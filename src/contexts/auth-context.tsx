@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { AuthState, User, LoginCredentials, RegisterCredentials } from "@/types/auth";
 import { toast } from "@/hooks/use-toast";
@@ -127,6 +126,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         token: session.access_token,
                       },
                     });
+                    
+                    toast({
+                      title: "Login successful",
+                      description: `Welcome back${profile.name ? ', ' + profile.name : ''}!`,
+                    });
                   }
                 } catch (error: any) {
                   console.error("Error fetching profile:", error);
@@ -168,23 +172,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) throw error;
       
-      // User data will be set by onAuthStateChange handler
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
+      // The onAuthStateChange handler will update the user state
+      // No need to dispatch LOGIN_SUCCESS here
       
     } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message || "An error occurred during login",
-        variant: "destructive",
-      });
+      console.error("Login error:", error.message);
       
       dispatch({
         type: "LOGIN_FAILURE",
-        payload: error.message || "An error occurred during login",
+        payload: error.message || "Invalid login credentials",
       });
+      
+      throw error; // Re-throw to handle in the component
     }
   };
 
@@ -223,6 +222,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: "REGISTER_FAILURE",
         payload: error.message || "An error occurred during registration",
       });
+      
+      throw error;
     }
   };
 

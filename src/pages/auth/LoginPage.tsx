@@ -46,10 +46,7 @@ const LoginPage = () => {
   const { login, state } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [demoCredentialsStatus, setDemoCredentialsStatus] = useState<{
-    admin: boolean;
-    user: boolean;
-  }>({ admin: false, user: false });
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,49 +56,33 @@ const LoginPage = () => {
     },
   });
 
-  // Check if demo credentials exist in the database
+  // Redirect if already authenticated
   useEffect(() => {
-    const checkDemoCredentials = async () => {
-      try {
-        // We can't directly check if users exist through the client API
-        // Instead, we'll modify the UI based on the login success/failure
-        setDemoCredentialsStatus({ admin: true, user: true });
-      } catch (error) {
-        console.error("Error checking demo credentials:", error);
+    if (state.isAuthenticated && !state.isLoading) {
+      if (state.user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
       }
-    };
-
-    checkDemoCredentials();
-  }, []);
+    }
+  }, [state.isAuthenticated, state.isLoading, state.user, navigate]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
+    setLoginError(null);
+    
     try {
       await login({
         email: data.email,
         password: data.password,
       });
-      // Redirect based on role
-      if (state.user?.role === "admin") {
-        navigate("/admin");
-        toast({
-          title: "Welcome back, Admin",
-          description: "You've successfully logged in to your admin account.",
-        });
-      } else {
-        navigate("/dashboard");
-        toast({
-          title: "Welcome back",
-          description: "You've successfully logged in to your account.",
-        });
-      }
-    } catch (error) {
+      
+      // The redirect will happen in the useEffect above when state.isAuthenticated changes
+      // No need to manually redirect here
+      
+    } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      setLoginError(error.message || "Failed to login. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
     }
@@ -169,6 +150,9 @@ const LoginPage = () => {
                     User Login
                   </Button>
                 </div>
+                <p className="text-xs mt-2 text-amber-600">
+                  Note: You may need to register these accounts first if they don't exist in your Supabase project.
+                </p>
               </AlertDescription>
             </Alert>
 
@@ -218,8 +202,8 @@ const LoginPage = () => {
                     "Log in"
                   )}
                 </Button>
-                {state.error && (
-                  <p className="text-sm text-destructive text-center">{state.error}</p>
+                {loginError && (
+                  <p className="text-sm text-destructive text-center">{loginError}</p>
                 )}
               </form>
             </Form>
