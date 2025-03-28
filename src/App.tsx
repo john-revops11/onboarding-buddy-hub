@@ -23,6 +23,9 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminApiKeys from "./pages/admin/AdminApiKeys";
 import AdminFiles from "./pages/admin/AdminFiles";
+import ChecklistEditor from "./pages/admin/ChecklistEditor";
+import AssignChecklist from "./pages/admin/AssignChecklist";
+import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
 
 // Create the QueryClient outside of the component
 const queryClient = new QueryClient();
@@ -56,6 +59,11 @@ const App = () => {
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/checklists" element={<AdminChecklists />} />
+                  <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
+                  <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
+                  <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
+                  <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
+                  <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
                   <Route path="/admin/api-keys" element={<AdminApiKeys />} />
                   <Route path="/admin/files" element={<AdminFiles />} />
                 </Route>

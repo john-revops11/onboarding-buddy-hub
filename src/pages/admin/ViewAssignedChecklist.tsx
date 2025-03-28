@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -8,61 +8,125 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckSquare, Circle, User } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  ArrowLeft,
+  CheckCircle,
+  Circle,
+  Clock,
+  User,
+  FileText,
+  CalendarDays
+} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
 const ViewAssignedChecklist = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { id } = useParams();
+  const location = useLocation();
+  const isEditable = location.pathname.includes("edit-assignment");
   
-  // Mock data - in a real app would be fetched from API based on the id
-  const assignment = {
-    id,
+  // Mock data that would normally be fetched from API
+  const [assignmentData, setAssignmentData] = useState({
+    id: id,
+    checklistTitle: "New Client Onboarding",
+    assignedTo: {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+      avatar: "",
+    },
     progress: 30,
     assignedDate: "2023-06-15",
-    user: {
-      name: "Test User",
-      email: "user@example.com",
-      avatar: ""
-    },
-    checklist: {
-      title: "New Client Onboarding",
-      description: "Standard onboarding process for new clients",
-      items: [
-        {
-          id: "1",
-          text: "Collect client information",
-          description: "Gather basic contact and business details",
-          completed: true
-        },
-        {
-          id: "2",
-          text: "Set up initial meeting",
-          description: "Schedule kickoff call with the client",
-          completed: true
-        },
-        {
-          id: "3",
-          text: "Document requirements",
-          description: "Capture detailed project requirements",
-          completed: false
-        },
-        {
-          id: "4",
-          text: "Create project plan",
-          description: "Develop timeline and milestones",
-          completed: false
-        },
-      ]
-    }
+    dueDate: "2023-07-15",
+    lastUpdated: "2023-06-20",
+    items: [
+      {
+        id: "item-1",
+        text: "Collect client information",
+        description: "Gather basic contact and business details",
+        required: true,
+        completed: true,
+        completedOn: "2023-06-16",
+      },
+      {
+        id: "item-2",
+        text: "Set up initial meeting",
+        description: "Schedule kickoff call with the client",
+        required: true,
+        completed: true,
+        completedOn: "2023-06-18",
+      },
+      {
+        id: "item-3",
+        text: "Document requirements",
+        description: "Capture detailed project requirements",
+        required: true,
+        completed: false,
+        completedOn: null,
+      },
+      {
+        id: "item-4",
+        text: "Create project timeline",
+        description: "Develop schedule for project milestones",
+        required: true,
+        completed: false,
+        completedOn: null,
+      },
+      {
+        id: "item-5",
+        text: "Set up project tools",
+        description: "Configure project management and communication tools",
+        required: false,
+        completed: false,
+        completedOn: null,
+      },
+    ],
+  });
+
+  // Toggle completion status of an item
+  const toggleItemCompletion = (itemId: string) => {
+    if (!isEditable) return;
+    
+    const newItems = assignmentData.items.map(item => {
+      if (item.id === itemId) {
+        const newCompleted = !item.completed;
+        return {
+          ...item,
+          completed: newCompleted,
+          completedOn: newCompleted ? new Date().toISOString().split('T')[0] : null,
+        };
+      }
+      return item;
+    });
+    
+    // Calculate new progress
+    const completedCount = newItems.filter(item => item.completed).length;
+    const newProgress = Math.round((completedCount / newItems.length) * 100);
+    
+    setAssignmentData({
+      ...assignmentData,
+      items: newItems,
+      progress: newProgress,
+    });
   };
 
-  const completedItems = assignment.checklist.items.filter(item => item.completed).length;
-  const totalItems = assignment.checklist.items.length;
-  const progressPercentage = Math.round((completedItems / totalItems) * 100);
+  // Save changes
+  const handleSaveChanges = () => {
+    // Here would be API call to update the checklist assignment
+    toast({
+      title: "Changes saved",
+      description: "The checklist progress has been updated.",
+    });
+    navigate("/admin/checklists");
+  };
 
   return (
     <DashboardLayout>
@@ -76,100 +140,148 @@ const ViewAssignedChecklist = () => {
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">
-            View Assigned Checklist
+            {isEditable ? "Edit Assigned Checklist" : "View Assigned Checklist"}
           </h1>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Assignment Details</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>{assignmentData.checklistTitle}</span>
+              <Badge variant={assignmentData.progress === 100 ? "success" : "default"}>
+                {assignmentData.progress}% Complete
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Assignment details and progress tracking
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={assignment.user.avatar} />
-                  <AvatarFallback>
-                    {assignment.user.name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+            {/* Assignment Info */}
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-md">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">{assignment.user.name}</p>
-                  <p className="text-sm text-muted-foreground">{assignment.user.email}</p>
+                  <p className="text-sm text-muted-foreground">Assigned To</p>
+                  <div className="flex items-center mt-1">
+                    <Avatar className="h-6 w-6 mr-2">
+                      <AvatarImage src={assignmentData.assignedTo.avatar} />
+                      <AvatarFallback>
+                        {assignmentData.assignedTo.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{assignmentData.assignedTo.name}</span>
+                  </div>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Assigned Date</p>
-                <p className="font-medium">{assignment.assignedDate}</p>
+              
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-md">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Assigned Date</p>
+                  <p className="font-medium mt-1">{assignmentData.assignedDate}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Progress</p>
-                <div className="flex items-center gap-2">
-                  <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-primary h-full rounded-full"
-                      style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs">{progressPercentage}%</span>
+              
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-md">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Due Date</p>
+                  <p className="font-medium mt-1">{assignmentData.dueDate}</p>
                 </div>
               </div>
             </div>
             
-            <div>
-              <h2 className="text-xl font-semibold mb-2">{assignment.checklist.title}</h2>
-              <p className="text-muted-foreground mb-4">{assignment.checklist.description}</p>
-              
-              <div className="space-y-3 mt-6">
-                {assignment.checklist.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-start gap-3 p-3 border rounded-lg ${
-                      item.completed ? "bg-muted/50" : ""
-                    }`}
-                  >
-                    <div className="mt-0.5">
-                      {item.completed ? (
-                        <CheckSquare className="h-5 w-5 text-primary" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <p className={`font-medium ${item.completed ? "line-through text-muted-foreground" : ""}`}>
-                        {item.text}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {item.description}
-                      </p>
-                    </div>
-                    <div className="ml-auto">
-                      {item.completed ? (
-                        <Badge variant="success">Completed</Badge>
-                      ) : (
-                        <Badge variant="secondary">Pending</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Progress</p>
+                <p className="text-sm font-medium">{assignmentData.progress}%</p>
               </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${
+                    assignmentData.progress === 100 
+                      ? "bg-green-500" 
+                      : "bg-primary"
+                  }`}
+                  style={{ width: `${assignmentData.progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Last updated: {assignmentData.lastUpdated}
+              </p>
+            </div>
+
+            {/* Checklist Items */}
+            <div>
+              <h3 className="font-semibold mb-3">Checklist Items</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">Status</TableHead>
+                    <TableHead>Task</TableHead>
+                    <TableHead className="hidden md:table-cell">Description</TableHead>
+                    <TableHead className="hidden md:table-cell">Required</TableHead>
+                    <TableHead className="hidden md:table-cell">Completed On</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {assignmentData.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        {isEditable ? (
+                          <Checkbox 
+                            checked={item.completed}
+                            onCheckedChange={() => toggleItemCompletion(item.id)}
+                          />
+                        ) : (
+                          item.completed ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-gray-300" />
+                          )
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{item.text}</div>
+                        <div className="md:hidden text-sm text-muted-foreground mt-1">
+                          {item.description}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{item.description}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {item.required ? "Yes" : "No"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {item.completedOn || "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
+          {isEditable && (
+            <CardFooter className="flex justify-end space-x-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/checklists")}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
+            </CardFooter>
+          )}
         </Card>
-
-        <div className="flex justify-between">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/admin/checklists")}
-          >
-            Back to Checklists
-          </Button>
-          <Button
-            onClick={() => navigate(`/admin/checklists/edit/${id}`)}
-          >
-            Edit Assignment
-          </Button>
-        </div>
       </div>
     </DashboardLayout>
   );

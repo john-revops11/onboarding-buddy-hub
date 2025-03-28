@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -11,21 +11,96 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { Search, Plus, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 const AdminChecklists = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Simulated checklist templates data
+  const [templates, setTemplates] = useState([
+    {
+      id: "template-1",
+      title: "New Client Onboarding",
+      description: "Standard onboarding process for new clients",
+      itemCount: 10,
+    },
+    {
+      id: "template-2",
+      title: "Enterprise Client Onboarding",
+      description: "Extended onboarding for enterprise clients",
+      itemCount: 15,
+    },
+  ]);
+  
+  // Simulated assigned checklists data
+  const [assignments, setAssignments] = useState([
+    {
+      id: "assignment-1",
+      userId: "user-1",
+      userName: "Test User",
+      templateId: "template-1",
+      templateName: "New Client Onboarding",
+      progress: 30,
+      assignedDate: "2023-06-15",
+    },
+    {
+      id: "assignment-2",
+      userId: "user-2",
+      userName: "Jane Smith",
+      templateId: "template-2",
+      templateName: "Enterprise Client Onboarding",
+      progress: 75,
+      assignedDate: "2023-07-10",
+    },
+  ]);
 
   // Handle click events
   const handleCreateChecklist = () => navigate("/admin/checklists/create");
-  const handleEditChecklist = (id: string) => navigate(`/admin/checklists/edit/${id}`);
+  
+  const handleEditChecklist = (id: string) => {
+    navigate(`/admin/checklists/edit/${id}`);
+  };
+  
   const handleDuplicateChecklist = (id: string) => {
     // In a real app, you'd make an API call to duplicate the checklist
-    // For now, we'll just navigate to create with a query param
-    navigate(`/admin/checklists/create?duplicate=${id}`);
+    const templateToDuplicate = templates.find(t => t.id === id);
+    
+    if (templateToDuplicate) {
+      toast({
+        title: "Duplicating checklist",
+        description: `Creating a copy of ${templateToDuplicate.title}`,
+      });
+      
+      // For demo purposes, navigate to create with query param
+      navigate(`/admin/checklists/create?duplicate=${id}`);
+    }
   };
-  const handleAssignChecklist = (id: string) => navigate(`/admin/checklists/assign/${id}`);
-  const handleViewAssignment = (id: string) => navigate(`/admin/checklists/view-assignment/${id}`);
-  const handleEditAssignment = (id: string) => navigate(`/admin/checklists/edit-assignment/${id}`);
+  
+  const handleAssignChecklist = (id: string) => {
+    navigate(`/admin/checklists/assign/${id}`);
+  };
+  
+  const handleViewAssignment = (id: string) => {
+    navigate(`/admin/checklists/view-assignment/${id}`);
+  };
+  
+  const handleEditAssignment = (id: string) => {
+    navigate(`/admin/checklists/edit-assignment/${id}`);
+  };
+  
+  const handleDeleteAssignment = (id: string) => {
+    // In a real app, you'd make an API call to delete the assignment
+    setAssignments(assignments.filter(a => a.id !== id));
+    
+    toast({
+      title: "Assignment deleted",
+      description: "The checklist assignment has been removed",
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -41,7 +116,10 @@ const AdminChecklists = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold">Onboarding Checklists</h2>
           </div>
-          <Button onClick={handleCreateChecklist}>Create Checklist</Button>
+          <Button onClick={handleCreateChecklist}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Checklist
+          </Button>
         </div>
 
         <Tabs defaultValue="templates">
@@ -51,6 +129,20 @@ const AdminChecklists = () => {
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search templates..."
+                  className="pl-8"
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle>Available Templates</CardTitle>
@@ -60,73 +152,61 @@ const AdminChecklists = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
-                  <div className="border rounded-lg p-4 flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">New Client Onboarding</h3>
-                      <p className="text-sm text-muted-foreground">
-                        10 items - Standard onboarding process for new clients
-                      </p>
+                  {templates.map(template => (
+                    <div 
+                      key={template.id}
+                      className="border rounded-lg p-4 flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="font-medium">{template.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {template.itemCount} items - {template.description}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditChecklist(template.id)}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDuplicateChecklist(template.id)}
+                        >
+                          Duplicate
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleAssignChecklist(template.id)}
+                        >
+                          Assign
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditChecklist("template-1")}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDuplicateChecklist("template-1")}
-                      >
-                        Duplicate
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleAssignChecklist("template-1")}
-                      >
-                        Assign
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4 flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">Enterprise Client Onboarding</h3>
-                      <p className="text-sm text-muted-foreground">
-                        15 items - Extended onboarding for enterprise clients
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditChecklist("template-2")}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDuplicateChecklist("template-2")}
-                      >
-                        Duplicate
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleAssignChecklist("template-2")}
-                      >
-                        Assign
-                      </Button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="assigned" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search assignments..."
+                  className="pl-8"
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle>Assigned Checklists</CardTitle>
@@ -147,40 +227,46 @@ const AdminChecklists = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t">
-                        <td className="py-3 px-4">Test User</td>
-                        <td className="py-3 px-4">New Client Onboarding</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                              <div
-                                className="bg-primary h-full rounded-full"
-                                style={{ width: "30%" }}
-                              ></div>
+                      {assignments.map(assignment => (
+                        <tr key={assignment.id} className="border-t">
+                          <td className="py-3 px-4">{assignment.userName}</td>
+                          <td className="py-3 px-4">{assignment.templateName}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
+                                <div
+                                  className={`${
+                                    assignment.progress === 100 
+                                      ? "bg-green-500" 
+                                      : "bg-primary"
+                                  } h-full rounded-full`}
+                                  style={{ width: `${assignment.progress}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs">{assignment.progress}%</span>
                             </div>
-                            <span className="text-xs">30%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">2023-06-15</td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleViewAssignment("assignment-1")}
-                            >
-                              View
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEditAssignment("assignment-1")}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td className="py-3 px-4">{assignment.assignedDate}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleViewAssignment(assignment.id)}
+                              >
+                                View
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditAssignment(assignment.id)}
+                              >
+                                Edit
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
