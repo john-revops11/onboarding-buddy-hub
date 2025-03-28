@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 
 import {
@@ -25,6 +25,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -65,6 +70,16 @@ const LoginPage = () => {
       setIsSubmitting(false);
     }
   };
+  
+  const fillAdminCredentials = () => {
+    form.setValue("email", "admin@example.com");
+    form.setValue("password", "admin123");
+  };
+
+  const fillUserCredentials = () => {
+    form.setValue("email", "user@example.com");
+    form.setValue("password", "user123");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center auth-bg p-4">
@@ -75,7 +90,33 @@ const LoginPage = () => {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Demo Credentials Alert */}
+          <Alert variant="outline" className="border-primary/50 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">Demo Credentials</AlertTitle>
+            <AlertDescription className="mt-2">
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full text-xs"
+                  onClick={fillAdminCredentials}
+                >
+                  Admin Login
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full text-xs"
+                  onClick={fillUserCredentials}
+                >
+                  User Login
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
