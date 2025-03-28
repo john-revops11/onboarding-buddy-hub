@@ -1,138 +1,193 @@
 
+import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  CheckCircle2,
+  Circle,
+  FileUp,
+  BarChart3,
+  MoveRight,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Clock, FileUp } from "lucide-react";
 
 const DashboardPage = () => {
-  // This is a placeholder - in a real app, this would be fetched from an API
-  const onboardingProgress = 35;
-  const pendingTasks = 4;
-  const completedTasks = 2;
+  // Mock checklist data
+  const checklist = [
+    {
+      id: 1,
+      title: "Complete your profile",
+      description: "Fill in all required profile information",
+      completed: true,
+    },
+    {
+      id: 2,
+      title: "Upload company logo",
+      description: "Add your company logo for branding",
+      completed: true,
+    },
+    {
+      id: 3,
+      title: "Provide business details",
+      description: "Enter your business information and address",
+      completed: false,
+    },
+    {
+      id: 4,
+      title: "Upload required documents",
+      description: "Submit necessary legal and business documents",
+      completed: false,
+    },
+    {
+      id: 5,
+      title: "Review terms and conditions",
+      description: "Read and accept the terms of service",
+      completed: false,
+    },
+  ];
+
+  // Calculate progress
+  const completedItems = checklist.filter((item) => item.completed).length;
+  const progress = Math.round((completedItems / checklist.length) * 100);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Onboarding Progress</CardTitle>
-              <Clock size={18} className="text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{onboardingProgress}%</div>
-              <Progress value={onboardingProgress} className="mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                {6 - pendingTasks} of 6 tasks completed
-              </p>
-            </CardContent>
-          </Card>
+        <p className="text-muted-foreground">
+          Welcome to your onboarding dashboard. Track your progress and complete
+          the required steps.
+        </p>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
-              <Clock size={18} className="text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingTasks}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Tasks awaiting completion
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Tasks</CardTitle>
-              <CheckCircle2 size={18} className="text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedTasks}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Tasks successfully completed
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="col-span-2">
-            <CardHeader>
-              <CardTitle>Onboarding Checklist</CardTitle>
-              <CardDescription>
-                Complete these tasks to set up your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: "Complete your profile", completed: true },
-                  { name: "Upload company logo", completed: true },
-                  { name: "Fill out business details", completed: false },
-                  { name: "Set up payment information", completed: false },
-                  { name: "Review terms and conditions", completed: false },
-                  { name: "Schedule onboarding call", completed: false }
-                ].map((task, i) => (
-                  <div key={i} className="flex items-start space-x-4">
-                    <div className={`p-1 rounded-full ${task.completed ? "bg-green-500/20 text-green-500" : "bg-amber-500/20 text-amber-500"}`}>
-                      {task.completed ? (
-                        <CheckCircle2 size={18} />
-                      ) : (
-                        <Clock size={18} />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
-                        {task.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {task.completed ? "Completed" : "Pending"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+        {/* Progress Overview */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent File Uploads</CardTitle>
-            <CardDescription>Files you've recently uploaded</CardDescription>
+            <CardTitle className="flex items-center justify-between">
+              <span>Onboarding Progress</span>
+              <span className="text-lg">{progress}%</span>
+            </CardTitle>
+            <CardDescription>
+              Complete all the required steps to finish your onboarding
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-4">
-                <div className="p-1 rounded-full bg-blue-500/20 text-blue-500">
-                  <FileUp size={18} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    company_logo.png
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Uploaded 2 days ago
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="p-1 rounded-full bg-blue-500/20 text-blue-500">
-                  <FileUp size={18} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    business_requirements.pdf
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Uploaded 3 days ago
-                  </p>
-                </div>
-              </div>
+          <CardContent className="space-y-4">
+            <Progress value={progress} className="h-2" />
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                {completedItems} of {checklist.length} tasks completed
+              </span>
+              <span className="font-medium">
+                {checklist.length - completedItems} remaining
+              </span>
             </div>
           </CardContent>
         </Card>
+
+        {/* Checklist */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Onboarding Checklist</CardTitle>
+            <CardDescription>
+              Follow these steps to complete your onboarding
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {checklist.map((item) => (
+              <div
+                key={item.id}
+                className={`flex items-start gap-4 p-4 border rounded-lg ${
+                  item.completed ? "bg-muted/50" : ""
+                }`}
+              >
+                <div
+                  className={`mt-0.5 ${
+                    item.completed ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  {item.completed ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : (
+                    <Circle className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3
+                    className={`font-medium ${
+                      item.completed ? "line-through text-muted-foreground" : ""
+                    }`}
+                  >
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {item.description}
+                  </p>
+                </div>
+                <Button
+                  variant={item.completed ? "ghost" : "default"}
+                  disabled={item.completed}
+                >
+                  {item.completed ? "Completed" : "Complete"}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileUp className="h-5 w-5" /> File Upload
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Upload important documents and files
+              </p>
+              <Button className="w-full">
+                Upload Files <MoveRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" /> Knowledge Hub
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Access guides, documentation and resources
+              </p>
+              <Button variant="outline" className="w-full">
+                Visit Knowledge Hub <MoveRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Need Help?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Contact our support team for assistance
+              </p>
+              <Button variant="secondary" className="w-full">
+                Contact Support
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
