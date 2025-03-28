@@ -1,6 +1,16 @@
 
-import { createRoot } from 'react-dom/client'
+import React from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-createRoot(document.getElementById("root")!).render(<App />);
+const root = document.getElementById("root");
+
+if (root) {
+  React.createRoot(root).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} else {
+  console.error("Root element not found");
+}

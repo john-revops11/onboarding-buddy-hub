@@ -32,50 +32,48 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Navigate to="/login" />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                {/* User Routes */}
-                <Route element={<AuthGuard requiredRole="user" />}>
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
-                </Route>
+              {/* User Routes */}
+              <Route element={<AuthGuard requiredRole="user" />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
+              </Route>
 
-                {/* Admin Routes */}
-                <Route element={<AuthGuard requiredRole="admin" />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/checklists" element={<AdminChecklists />} />
-                  <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
-                  <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
-                  <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
-                  <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
-                  <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
-                  <Route path="/admin/api-keys" element={<AdminApiKeys />} />
-                  <Route path="/admin/files" element={<AdminFiles />} />
-                </Route>
+              {/* Admin Routes */}
+              <Route element={<AuthGuard requiredRole="admin" />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/checklists" element={<AdminChecklists />} />
+                <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
+                <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
+                <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
+                <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
+                <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
+                <Route path="/admin/api-keys" element={<AdminApiKeys />} />
+                <Route path="/admin/files" element={<AdminFiles />} />
+              </Route>
 
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 
