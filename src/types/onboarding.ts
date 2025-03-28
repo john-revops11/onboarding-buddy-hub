@@ -35,6 +35,9 @@ export interface UploadedFile {
   size: number;
   userId: string;
   uploadedAt: string;
+  category?: string;
+  status: 'pending' | 'verified' | 'rejected';
+  verifiedAt: string | null;
 }
 
 export interface ApiKey {
@@ -45,3 +48,26 @@ export interface ApiKey {
   createdAt: string;
   lastUsed?: string;
 }
+
+export type DocumentCategory = 
+  | 'id_verification'
+  | 'address_proof'
+  | 'business_certificate'
+  | 'tax_document'
+  | 'company_logo'
+  | 'general';
+
+export const DOCUMENT_CATEGORIES: Record<DocumentCategory, string> = {
+  id_verification: 'ID Verification',
+  address_proof: 'Proof of Address',
+  business_certificate: 'Business Certificate',
+  tax_document: 'Tax Document',
+  company_logo: 'Company Logo',
+  general: 'General Document'
+};
+
+export const REQUIRED_DOCUMENTS: DocumentCategory[] = [
+  'id_verification',
+  'address_proof',
+  'business_certificate',
+];
