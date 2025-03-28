@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -19,9 +20,12 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { FileUploader } from "@/components/onboarding/FileUploader";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 const DashboardPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { state } = useAuth();
   
   // Mock checklist data
   const checklist = [
@@ -60,6 +64,13 @@ const DashboardPage = () => {
   // Calculate progress
   const completedItems = checklist.filter((item) => item.completed).length;
   const progress = Math.round((completedItems / checklist.length) * 100);
+
+  const handleCompleteTask = (id: number) => {
+    toast({
+      title: "Task completed",
+      description: "Your progress has been updated",
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -136,6 +147,7 @@ const DashboardPage = () => {
                 <Button
                   variant={item.completed ? "ghost" : "default"}
                   disabled={item.completed}
+                  onClick={() => handleCompleteTask(item.id)}
                 >
                   {item.completed ? "Completed" : "Complete"}
                 </Button>
@@ -178,7 +190,11 @@ const DashboardPage = () => {
               <p className="text-sm text-muted-foreground">
                 Access guides, documentation and resources
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/knowledge-hub')}
+              >
                 Visit Knowledge Hub <MoveRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -192,7 +208,16 @@ const DashboardPage = () => {
               <p className="text-sm text-muted-foreground">
                 Contact our support team for assistance
               </p>
-              <Button variant="secondary" className="w-full">
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                onClick={() => {
+                  toast({
+                    title: "Support request sent",
+                    description: "A support representative will contact you shortly.",
+                  });
+                }}
+              >
                 Contact Support
               </Button>
             </CardContent>
