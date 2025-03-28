@@ -1,36 +1,84 @@
 
+import { useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 const KnowledgeHubPage = () => {
+  // Add event listeners to disable inspect element
+  useEffect(() => {
+    const disableInspect = () => {
+      // Disable right-click context menu
+      const handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+      };
+
+      // Disable keyboard shortcuts for inspect element
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // Disable F12 key
+        if (e.key === "F12") {
+          e.preventDefault();
+        }
+
+        // Disable Ctrl+Shift+I / Cmd+Option+I
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "I" || e.key === "i")) {
+          e.preventDefault();
+        }
+
+        // Disable Ctrl+Shift+C / Cmd+Option+C
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "C" || e.key === "c")) {
+          e.preventDefault();
+        }
+
+        // Disable Ctrl+Shift+J / Cmd+Option+J
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "J" || e.key === "j")) {
+          e.preventDefault();
+        }
+
+        // Disable Ctrl+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "U" || e.key === "u")) {
+          e.preventDefault();
+        }
+      };
+
+      // Add event listeners
+      document.addEventListener("contextmenu", handleContextMenu);
+      document.addEventListener("keydown", handleKeyDown);
+
+      // Clean up event listeners when component unmounts
+      return () => {
+        document.removeEventListener("contextmenu", handleContextMenu);
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    };
+
+    const cleanup = disableInspect();
+    return cleanup;
+  }, []);
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight">Knowledge Hub</h1>
         <p className="text-muted-foreground">
           Access resources, guides, and helpful information.
         </p>
 
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>Resource Library</CardTitle>
-            <CardDescription>
-              Explore our collection of guides and documentation
-            </CardDescription>
-          </CardHeader>
+        {/* Seamless full-width card with iframe only */}
+        <Card className="overflow-hidden border-0 shadow-lg">
           <CardContent className="p-0">
-            <div className="min-h-[600px] border-t">
+            <div className="min-h-[80vh]">
               <iframe 
                 src="https://knowledgehub-revology.notion.site/ebd/1730db3d2d0880b3b471e47957635bfa?v=1730db3d2d088142a724000cff9fddb8" 
                 width="100%" 
-                height="600" 
-                style={{ border: "none" }} 
+                height="100%" 
+                style={{ 
+                  border: "none",
+                  height: "80vh",
+                  borderRadius: "0.5rem" 
+                }} 
                 title="Revify Knowledge Hub"
                 allowFullScreen
               />
@@ -38,57 +86,30 @@ const KnowledgeHubPage = () => {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
-              <CardDescription>
-                Learn the basics of our platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Platform overview</li>
-                <li>Account setup guide</li>
-                <li>First-time configuration</li>
-                <li>Basic features walkthrough</li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>FAQ</CardTitle>
-              <CardDescription>
-                Common questions and answers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Account management</li>
-                <li>Billing and subscriptions</li>
-                <li>Feature usage guides</li>
-                <li>Troubleshooting tips</li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Support</CardTitle>
-              <CardDescription>
-                Get help when you need it
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Contact support team</li>
-                <li>Submit a ticket</li>
-                <li>Schedule a call</li>
-                <li>Feature requests</li>
-              </ul>
-            </CardContent>
-          </Card>
+        {/* Hidden information cards section for mobile view only */}
+        <div className="md:hidden mt-6">
+          <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-medium">Getting Started</h3>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-muted-foreground">
+                  <li>Platform overview</li>
+                  <li>Account setup guide</li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-medium">FAQ & Support</h3>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-muted-foreground">
+                  <li>Common questions</li>
+                  <li>Contact support team</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </DashboardLayout>
