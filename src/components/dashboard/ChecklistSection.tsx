@@ -12,7 +12,7 @@ import { ChecklistItemComponent } from "./ChecklistItem";
 
 interface ChecklistSectionProps {
   checklist: ChecklistItemType[];
-  onCompleteTask: (id: string) => void;
+  onCompleteTask: (id: string, isCompleted?: boolean) => void;
   areRequiredDocumentsUploaded: (task: ChecklistItemType) => boolean;
 }
 

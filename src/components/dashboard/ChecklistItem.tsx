@@ -7,7 +7,7 @@ import { ChecklistItem as ChecklistItemType } from "@/types/onboarding";
 
 interface ChecklistItemProps {
   item: ChecklistItemType;
-  onComplete: (id: string) => void;
+  onComplete: (id: string, isCompleted?: boolean) => void;
   areRequiredDocumentsUploaded: (task: ChecklistItemType) => boolean;
 }
 
@@ -67,7 +67,7 @@ export const ChecklistItemComponent = ({
       return;
     }
 
-    onComplete(item.id);
+    onComplete(item.id, true);
 
     toast({
       title: "Task completed",
