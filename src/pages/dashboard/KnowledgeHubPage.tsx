@@ -25,18 +25,15 @@ const KnowledgeHubPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            {/* In a real application, this would be an embedded Notion page */}
-            <div className="bg-muted/50 border-t p-6 min-h-[500px] flex flex-col items-center justify-center text-center">
-              <h3 className="text-lg font-medium">Notion Embed</h3>
-              <p className="text-sm text-muted-foreground mt-2 mb-4 max-w-md">
-                This is where a Notion page would be embedded in the actual application. 
-                The admin can configure which Notion page is displayed here.
-              </p>
-              <div className="border border-dashed border-muted-foreground/25 rounded-lg p-8 w-full max-w-2xl">
-                <p className="text-muted-foreground">
-                  Notion Knowledge Base Content
-                </p>
-              </div>
+            <div className="min-h-[600px] border-t">
+              <iframe 
+                src="https://knowledgehub-revology.notion.site/ebd/1730db3d2d0880b3b471e47957635bfa?v=1730db3d2d088142a724000cff9fddb8" 
+                width="100%" 
+                height="600" 
+                style={{ border: "none" }} 
+                title="Revify Knowledge Hub"
+                allowFullScreen
+              />
             </div>
           </CardContent>
         </Card>

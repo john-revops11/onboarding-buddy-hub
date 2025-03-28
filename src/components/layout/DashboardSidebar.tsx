@@ -10,7 +10,8 @@ import {
   Key, 
   LogOut,
   Menu,
-  FileUp
+  FileUp,
+  RefreshCw
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -118,9 +119,9 @@ export function DashboardSidebar() {
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            CO
+            <RefreshCw size={18} />
           </div>
-          <span className="font-bold text-xl">Client Onboarding</span>
+          <span className="font-bold text-xl">Revify</span>
         </div>
       </SidebarHeader>
       
