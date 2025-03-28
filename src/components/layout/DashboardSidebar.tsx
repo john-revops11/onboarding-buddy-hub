@@ -9,7 +9,8 @@ import {
   CheckSquare, 
   Key, 
   LogOut,
-  Menu
+  Menu,
+  FileUp
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -97,6 +98,11 @@ export function DashboardSidebar() {
       name: "Checklists",
       path: "/admin/checklists",
       icon: CheckSquare,
+    },
+    {
+      name: "Files",
+      path: "/admin/files",
+      icon: FileUp,
     },
     {
       name: "API Keys",

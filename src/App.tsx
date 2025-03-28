@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminApiKeys from "./pages/admin/AdminApiKeys";
+import AdminFiles from "./pages/admin/AdminFiles";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/checklists" element={<AdminChecklists />} />
               <Route path="/admin/api-keys" element={<AdminApiKeys />} />
+              <Route path="/admin/files" element={<AdminFiles />} />
             </Route>
 
             {/* Catch-all route */}

@@ -17,8 +17,12 @@ import {
   MoveRight,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { FileUploader } from "@/components/onboarding/FileUploader";
+import { useToast } from "@/components/ui/use-toast";
 
 const DashboardPage = () => {
+  const { toast } = useToast();
+  
   // Mock checklist data
   const checklist = [
     {
@@ -140,24 +144,30 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileUp className="h-5 w-5" /> File Upload
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Upload important documents and files
-              </p>
-              <Button className="w-full">
-                Upload Files <MoveRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+        {/* File Upload Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileUp className="h-5 w-5" /> Document Upload
+            </CardTitle>
+            <CardDescription>
+              Upload required documents for your onboarding process
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FileUploader 
+              onUploadComplete={(file) => {
+                toast({
+                  title: "Document uploaded",
+                  description: `${file.name} has been uploaded and will be reviewed.`,
+                });
+              }}
+            />
+          </CardContent>
+        </Card>
 
+        {/* Quick Actions */}
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
