@@ -16,12 +16,13 @@ import {
   FileUp,
   BarChart3,
   MoveRight,
+  AlertCircle,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { FileUploader } from "@/components/onboarding/FileUploader";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
-import { getUserFiles } from "@/utils/fileUtils";
+import { getUserFiles, getUserFilesByCategory, checkRequiredDocuments } from "@/utils/fileUtils";
 import { ChecklistItem } from "@/types/onboarding";
 
 const DashboardPage = () => {
@@ -33,6 +34,7 @@ const DashboardPage = () => {
   // State for checklist items and uploaded files
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [userFiles, setUserFiles] = useState<any[]>([]);
+  const [documentStatus, setDocumentStatus] = useState<any>(null);
   
   // Initialize checklist from localStorage or create new one
   useEffect(() => {
@@ -49,6 +51,7 @@ const DashboardPage = () => {
           description: "Fill in all required profile information",
           completed: false,
           order: 1,
+          requiredDocuments: [],
         },
         {
           id: "2",
@@ -56,6 +59,7 @@ const DashboardPage = () => {
           description: "Add your company logo for branding",
           completed: false,
           order: 2,
+          requiredDocuments: ["company_logo"],
         },
         {
           id: "3",
@@ -63,6 +67,7 @@ const DashboardPage = () => {
           description: "Enter your business information and address",
           completed: false,
           order: 3,
+          requiredDocuments: [],
         },
         {
           id: "4",
@@ -70,6 +75,7 @@ const DashboardPage = () => {
           description: "Submit necessary legal and business documents",
           completed: false,
           order: 4,
+          requiredDocuments: ["id_verification", "address_proof", "business_certificate"],
         },
         {
           id: "5",
@@ -77,6 +83,7 @@ const DashboardPage = () => {
           description: "Read and accept the terms of service",
           completed: false,
           order: 5,
+          requiredDocuments: [],
         },
       ];
       
@@ -91,7 +98,16 @@ const DashboardPage = () => {
   // Check if document upload task should be completed based on file uploads
   useEffect(() => {
     if (userFiles.length > 0) {
-      updateTaskCompletion("4", true);
+      const requiredDocsStatus = checkRequiredDocuments(
+        userId, 
+        ["id_verification", "address_proof", "business_certificate"]
+      );
+      setDocumentStatus(requiredDocsStatus);
+      
+      // Auto-complete the document upload task if all required documents are uploaded and verified
+      if (requiredDocsStatus.complete) {
+        updateTaskCompletion("4", true);
+      }
     }
   }, [userFiles]);
   
@@ -118,8 +134,38 @@ const DashboardPage = () => {
     localStorage.setItem(`user_checklist_${userId}`, JSON.stringify(updatedChecklist));
   };
 
+  // Check if the required documents for a task are uploaded
+  const areRequiredDocumentsUploaded = (task: ChecklistItem): boolean => {
+    if (!task.requiredDocuments || task.requiredDocuments.length === 0) {
+      return true; // No documents required for this task
+    }
+    
+    // For each required document category, check if it's uploaded
+    for (const category of task.requiredDocuments) {
+      const filesInCategory = getUserFilesByCategory(userId, category);
+      if (filesInCategory.length === 0) {
+        return false; // Missing at least one required document
+      }
+    }
+    
+    return true;
+  };
+
   // Handle completing a task
   const handleCompleteTask = (id: string) => {
+    const task = checklist.find(item => item.id === id);
+    
+    if (!task) return;
+    
+    if (!areRequiredDocumentsUploaded(task)) {
+      toast({
+        title: "Missing required documents",
+        description: "Please upload all required documents before completing this task.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     updateTaskCompletion(id, true);
     
     toast({
@@ -136,6 +182,44 @@ const DashboardPage = () => {
       title: "Document uploaded",
       description: `${file.name} has been uploaded and will be reviewed.`,
     });
+  };
+  
+  // Get task button status
+  const getTaskButton = (task: ChecklistItem) => {
+    if (task.completed) {
+      return (
+        <Button variant="ghost" disabled className="flex gap-2 items-center">
+          <CheckCircle2 className="h-4 w-4" />
+          Completed
+        </Button>
+      );
+    }
+    
+    if (task.requiredDocuments && task.requiredDocuments.length > 0) {
+      const hasRequiredDocs = areRequiredDocumentsUploaded(task);
+      
+      return (
+        <Button
+          variant={hasRequiredDocs ? "default" : "outline"}
+          onClick={() => handleCompleteTask(task.id)}
+          className={hasRequiredDocs ? "bg-[#68b046] hover:bg-[#72c90a]" : ""}
+          disabled={!hasRequiredDocs}
+        >
+          {!hasRequiredDocs && <AlertCircle className="h-4 w-4 mr-2" />}
+          {hasRequiredDocs ? "Complete" : "Upload Required Files"}
+        </Button>
+      );
+    }
+    
+    return (
+      <Button
+        variant="default"
+        onClick={() => handleCompleteTask(task.id)}
+        className="bg-[#68b046] hover:bg-[#72c90a]"
+      >
+        Complete
+      </Button>
+    );
   };
 
   return (
@@ -209,15 +293,14 @@ const DashboardPage = () => {
                   <p className="text-sm text-muted-foreground mt-1">
                     {item.description}
                   </p>
+                  {item.requiredDocuments && item.requiredDocuments.length > 0 && !item.completed && (
+                    <div className="mt-2 text-xs text-amber-600 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Required documents must be uploaded first
+                    </div>
+                  )}
                 </div>
-                <Button
-                  variant={item.completed ? "ghost" : "default"}
-                  disabled={item.completed}
-                  onClick={() => handleCompleteTask(item.id)}
-                  className={!item.completed ? "bg-[#68b046] hover:bg-[#72c90a]" : ""}
-                >
-                  {item.completed ? "Completed" : "Complete"}
-                </Button>
+                {getTaskButton(item)}
               </div>
             ))}
           </CardContent>
@@ -236,6 +319,7 @@ const DashboardPage = () => {
           <CardContent>
             <FileUploader 
               onUploadComplete={handleFileUploadComplete}
+              onVerificationStatusChange={setDocumentStatus}
             />
           </CardContent>
         </Card>
