@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -21,54 +21,120 @@ import { Progress } from "@/components/ui/progress";
 import { FileUploader } from "@/components/onboarding/FileUploader";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
+import { getUserFiles } from "@/utils/fileUtils";
+import { ChecklistItem } from "@/types/onboarding";
 
 const DashboardPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { state } = useAuth();
+  const userId = state.user?.id || "demo-user";
   
-  // Mock checklist data
-  const checklist = [
-    {
-      id: 1,
-      title: "Complete your profile",
-      description: "Fill in all required profile information",
-      completed: true,
-    },
-    {
-      id: 2,
-      title: "Upload company logo",
-      description: "Add your company logo for branding",
-      completed: true,
-    },
-    {
-      id: 3,
-      title: "Provide business details",
-      description: "Enter your business information and address",
-      completed: false,
-    },
-    {
-      id: 4,
-      title: "Upload required documents",
-      description: "Submit necessary legal and business documents",
-      completed: false,
-    },
-    {
-      id: 5,
-      title: "Review terms and conditions",
-      description: "Read and accept the terms of service",
-      completed: false,
-    },
-  ];
+  // State for checklist items and uploaded files
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [userFiles, setUserFiles] = useState<any[]>([]);
+  
+  // Initialize checklist from localStorage or create new one
+  useEffect(() => {
+    const savedChecklist = localStorage.getItem(`user_checklist_${userId}`);
+    
+    if (savedChecklist) {
+      setChecklist(JSON.parse(savedChecklist));
+    } else {
+      // Initial checklist if none exists
+      const initialChecklist = [
+        {
+          id: "1",
+          title: "Complete your profile",
+          description: "Fill in all required profile information",
+          completed: false,
+          order: 1,
+        },
+        {
+          id: "2",
+          title: "Upload company logo",
+          description: "Add your company logo for branding",
+          completed: false,
+          order: 2,
+        },
+        {
+          id: "3",
+          title: "Provide business details",
+          description: "Enter your business information and address",
+          completed: false,
+          order: 3,
+        },
+        {
+          id: "4",
+          title: "Upload required documents",
+          description: "Submit necessary legal and business documents",
+          completed: false,
+          order: 4,
+        },
+        {
+          id: "5",
+          title: "Review terms and conditions",
+          description: "Read and accept the terms of service",
+          completed: false,
+          order: 5,
+        },
+      ];
+      
+      setChecklist(initialChecklist);
+      localStorage.setItem(`user_checklist_${userId}`, JSON.stringify(initialChecklist));
+    }
+    
+    // Load user files
+    loadUserFiles();
+  }, [userId]);
+  
+  // Check if document upload task should be completed based on file uploads
+  useEffect(() => {
+    if (userFiles.length > 0) {
+      updateTaskCompletion("4", true);
+    }
+  }, [userFiles]);
+  
+  // Load user files from storage
+  const loadUserFiles = () => {
+    const files = getUserFiles(userId);
+    setUserFiles(files);
+  };
 
   // Calculate progress
   const completedItems = checklist.filter((item) => item.completed).length;
-  const progress = Math.round((completedItems / checklist.length) * 100);
+  const progress = checklist.length > 0 ? Math.round((completedItems / checklist.length) * 100) : 0;
 
-  const handleCompleteTask = (id: number) => {
+  // Update task completion status
+  const updateTaskCompletion = (taskId: string, isCompleted: boolean) => {
+    const updatedChecklist = checklist.map(item => {
+      if (item.id === taskId) {
+        return { ...item, completed: isCompleted };
+      }
+      return item;
+    });
+    
+    setChecklist(updatedChecklist);
+    localStorage.setItem(`user_checklist_${userId}`, JSON.stringify(updatedChecklist));
+  };
+
+  // Handle completing a task
+  const handleCompleteTask = (id: string) => {
+    updateTaskCompletion(id, true);
+    
     toast({
       title: "Task completed",
       description: "Your progress has been updated",
+    });
+  };
+  
+  // Handle file upload completion
+  const handleFileUploadComplete = (file: any) => {
+    loadUserFiles(); // Reload files after upload
+    
+    toast({
+      title: "Document uploaded",
+      description: `${file.name} has been uploaded and will be reviewed.`,
     });
   };
 
@@ -123,7 +189,7 @@ const DashboardPage = () => {
               >
                 <div
                   className={`mt-0.5 ${
-                    item.completed ? "text-green-base" : "text-muted-foreground"
+                    item.completed ? "text-[#68b046]" : "text-muted-foreground"
                   }`}
                 >
                   {item.completed ? (
@@ -148,7 +214,7 @@ const DashboardPage = () => {
                   variant={item.completed ? "ghost" : "default"}
                   disabled={item.completed}
                   onClick={() => handleCompleteTask(item.id)}
-                  className={!item.completed ? "bg-green-base hover:bg-green-hover" : ""}
+                  className={!item.completed ? "bg-[#68b046] hover:bg-[#72c90a]" : ""}
                 >
                   {item.completed ? "Completed" : "Complete"}
                 </Button>
@@ -169,12 +235,7 @@ const DashboardPage = () => {
           </CardHeader>
           <CardContent>
             <FileUploader 
-              onUploadComplete={(file) => {
-                toast({
-                  title: "Document uploaded",
-                  description: `${file.name} has been uploaded and will be reviewed.`,
-                });
-              }}
+              onUploadComplete={handleFileUploadComplete}
             />
           </CardContent>
         </Card>
@@ -193,7 +254,7 @@ const DashboardPage = () => {
               </p>
               <Button 
                 variant="outline" 
-                className="w-full border-green-base text-green-base hover:bg-green-base/10"
+                className="w-full border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10"
                 onClick={() => navigate('/knowledge-hub')}
               >
                 Visit Knowledge Hub <MoveRight className="ml-2 h-4 w-4" />
@@ -211,7 +272,7 @@ const DashboardPage = () => {
               </p>
               <Button 
                 variant="secondary" 
-                className="w-full bg-green-base/20 hover:bg-green-base/30 text-green-base"
+                className="w-full bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046]"
                 onClick={() => {
                   toast({
                     title: "Support request sent",
