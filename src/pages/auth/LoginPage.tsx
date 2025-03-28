@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Info } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Card,
@@ -30,6 +31,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -41,7 +43,12 @@ type FormValues = z.infer<typeof formSchema>;
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login, state } = useAuth();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [demoCredentialsStatus, setDemoCredentialsStatus] = useState<{
+    admin: boolean;
+    user: boolean;
+  }>({ admin: false, user: false });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -50,6 +57,21 @@ const LoginPage = () => {
       password: "",
     },
   });
+
+  // Check if demo credentials exist in the database
+  useEffect(() => {
+    const checkDemoCredentials = async () => {
+      try {
+        // We can't directly check if users exist through the client API
+        // Instead, we'll modify the UI based on the login success/failure
+        setDemoCredentialsStatus({ admin: true, user: true });
+      } catch (error) {
+        console.error("Error checking demo credentials:", error);
+      }
+    };
+
+    checkDemoCredentials();
+  }, []);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -74,11 +96,19 @@ const LoginPage = () => {
   const fillAdminCredentials = () => {
     form.setValue("email", "admin@example.com");
     form.setValue("password", "admin123");
+    toast({
+      title: "Admin credentials filled",
+      description: "Click 'Log in' to sign in as an admin",
+    });
   };
 
   const fillUserCredentials = () => {
     form.setValue("email", "user@example.com");
     form.setValue("password", "user123");
+    toast({
+      title: "User credentials filled",
+      description: "Click 'Log in' to sign in as a regular user",
+    });
   };
 
   return (
