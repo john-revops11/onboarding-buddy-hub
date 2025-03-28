@@ -62,6 +62,10 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				green: {
+					base: '#68b046',
+					hover: '#72c90a',
 				}
 			},
 			borderRadius: {

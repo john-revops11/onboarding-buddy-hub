@@ -93,7 +93,7 @@ const DashboardPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-2 bg-green-base/20" />
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
                 {completedItems} of {checklist.length} tasks completed
@@ -123,7 +123,7 @@ const DashboardPage = () => {
               >
                 <div
                   className={`mt-0.5 ${
-                    item.completed ? "text-primary" : "text-muted-foreground"
+                    item.completed ? "text-green-base" : "text-muted-foreground"
                   }`}
                 >
                   {item.completed ? (
@@ -148,6 +148,7 @@ const DashboardPage = () => {
                   variant={item.completed ? "ghost" : "default"}
                   disabled={item.completed}
                   onClick={() => handleCompleteTask(item.id)}
+                  className={!item.completed ? "bg-green-base hover:bg-green-hover" : ""}
                 >
                   {item.completed ? "Completed" : "Complete"}
                 </Button>
@@ -192,7 +193,7 @@ const DashboardPage = () => {
               </p>
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="w-full border-green-base text-green-base hover:bg-green-base/10"
                 onClick={() => navigate('/knowledge-hub')}
               >
                 Visit Knowledge Hub <MoveRight className="ml-2 h-4 w-4" />
@@ -210,7 +211,7 @@ const DashboardPage = () => {
               </p>
               <Button 
                 variant="secondary" 
-                className="w-full"
+                className="w-full bg-green-base/20 hover:bg-green-base/30 text-green-base"
                 onClick={() => {
                   toast({
                     title: "Support request sent",

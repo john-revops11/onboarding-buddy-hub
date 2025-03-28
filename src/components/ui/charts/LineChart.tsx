@@ -28,7 +28,7 @@ export const LineChart = ({
   index,
   className,
 }: LineChartProps) => {
-  const colors = ["#2563eb", "#7c3aed", "#db2777", "#ea580c", "#65a30d"];
+  const colors = ["#68b046", "#72c90a", "#9edc4f", "#b6e376", "#c9e99d"];
 
   return (
     <ChartContainer config={{}} className={className}>

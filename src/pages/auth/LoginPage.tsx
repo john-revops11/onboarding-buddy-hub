@@ -92,15 +92,15 @@ const LoginPage = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Demo Credentials Alert */}
-          <Alert className="border-primary/50 bg-primary/5">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary">Demo Credentials</AlertTitle>
+          <Alert className="border-green-base/50 bg-green-base/5">
+            <Info className="h-4 w-4 text-green-base" />
+            <AlertTitle className="text-green-base">Demo Credentials</AlertTitle>
             <AlertDescription className="mt-2">
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-xs bg-[#68b046] hover:bg-[#72c90a] text-white border-[#68b046]"
+                  className="w-full text-xs bg-green-base hover:bg-green-hover text-white border-green-base"
                   onClick={fillAdminCredentials}
                 >
                   Admin Login
@@ -108,7 +108,7 @@ const LoginPage = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-xs bg-[#68b046] hover:bg-[#72c90a] text-white border-[#68b046]"
+                  className="w-full text-xs bg-green-base hover:bg-green-hover text-white border-green-base"
                   onClick={fillUserCredentials}
                 >
                   User Login
@@ -148,12 +148,12 @@ const LoginPage = () => {
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-green-base hover:underline"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <Button type="submit" className="w-full bg-[#68b046] hover:bg-[#72c90a]" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -172,7 +172,7 @@ const LoginPage = () => {
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-center text-sm">
             Don't have an account?{" "}
-            <Link to="/register" className="text-primary font-semibold hover:underline">
+            <Link to="/register" className="text-green-base font-semibold hover:underline">
               Register
             </Link>
           </div>
