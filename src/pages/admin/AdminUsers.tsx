@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, UserPlus, Edit, Eye, CheckCircle, XCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 import { User } from "@/types/auth";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -56,18 +66,12 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [viewUser, setViewUser] = useState<UserWithPassword | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchUsers = () => {
-      const fetchedUsers = getAllUsers().map((user: any) => ({
-        ...user,
-        onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
-      }));
-      setUsers(fetchedUsers as UserWithPassword[]);
-    };
-
-    fetchUsers();
-  }, [getAllUsers]);
+    refreshUsers();
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -114,6 +118,11 @@ const AdminUsers = () => {
       email: user.email,
       role: user.role,
     });
+    setDialogOpen(true);
+  };
+
+  const handleViewUser = (user: UserWithPassword) => {
+    setViewUser(user);
   };
 
   const handleApprove = (userId: string) => {
@@ -136,11 +145,13 @@ const AdminUsers = () => {
 
   const onSubmit = (data: FormValues) => {
     if (selectedUser) {
-      setUsers(users.map(user => 
+      const updatedUsers = users.map(user => 
         user.id === selectedUser.id 
-          ? { ...user, ...data } 
+          ? { ...user, ...data, status: user.status } as UserWithPassword
           : user
-      ));
+      );
+      
+      setUsers(updatedUsers);
       
       toast({
         title: "User updated",
@@ -170,7 +181,9 @@ const AdminUsers = () => {
       email: "",
       role: "user",
     });
+    
     setSelectedUser(null);
+    setDialogOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -226,7 +239,7 @@ const AdminUsers = () => {
               <option value="rejected">Rejected</option>
             </select>
             
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <UserPlus className="mr-2 h-4 w-4" />
@@ -376,31 +389,74 @@ const AdminUsers = () => {
                               Approve
                             </Button>
                           )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              toast({
-                                title: "User details",
-                                description: `Viewing details for ${user.name}`,
-                              });
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
+                          <Sheet>
+                            <SheetTrigger asChild>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => handleEdit(user)}
+                                onClick={() => handleViewUser(user)}
                               >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
                               </Button>
-                            </DialogTrigger>
-                          </Dialog>
+                            </SheetTrigger>
+                            <SheetContent>
+                              <SheetHeader>
+                                <SheetTitle>User Details</SheetTitle>
+                                <SheetDescription>View information for {user.name}</SheetDescription>
+                              </SheetHeader>
+                              <div className="py-6 space-y-4">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="font-medium">Name:</div>
+                                  <div>{viewUser?.name || user.name}</div>
+                                  
+                                  <div className="font-medium">Email:</div>
+                                  <div>{viewUser?.email || user.email}</div>
+                                  
+                                  <div className="font-medium">Role:</div>
+                                  <div className="capitalize">{viewUser?.role || user.role}</div>
+                                  
+                                  <div className="font-medium">Status:</div>
+                                  <div>{getStatusBadge(viewUser?.status || user.status)}</div>
+                                  
+                                  <div className="font-medium">Created:</div>
+                                  <div>{new Date(viewUser?.createdAt || user.createdAt).toLocaleDateString()}</div>
+                                  
+                                  <div className="font-medium">Onboarding:</div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
+                                      <div
+                                        className="bg-primary h-full rounded-full"
+                                        style={{ width: `${viewUser?.onboardingStatus || user.onboardingStatus}%` }}
+                                      ></div>
+                                    </div>
+                                    <span className="text-xs">{viewUser?.onboardingStatus || user.onboardingStatus}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <SheetFooter>
+                                <SheetClose asChild>
+                                  <Button variant="outline">Close</Button>
+                                </SheetClose>
+                                <Button
+                                  onClick={() => {
+                                    handleEdit(viewUser || user);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit User
+                                </Button>
+                              </SheetFooter>
+                            </SheetContent>
+                          </Sheet>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEdit(user)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
                         </div>
                       </td>
                     </tr>
