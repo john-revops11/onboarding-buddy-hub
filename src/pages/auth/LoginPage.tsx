@@ -92,7 +92,7 @@ const LoginPage = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Demo Credentials Alert */}
-          <Alert variant="outline" className="border-primary/50 bg-primary/5">
+          <Alert className="border-primary/50 bg-primary/5">
             <Info className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary">Demo Credentials</AlertTitle>
             <AlertDescription className="mt-2">
@@ -100,7 +100,7 @@ const LoginPage = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-xs"
+                  className="w-full text-xs bg-[#68b046] hover:bg-[#72c90a] text-white border-[#68b046]"
                   onClick={fillAdminCredentials}
                 >
                   Admin Login
@@ -108,7 +108,7 @@ const LoginPage = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-xs"
+                  className="w-full text-xs bg-[#68b046] hover:bg-[#72c90a] text-white border-[#68b046]"
                   onClick={fillUserCredentials}
                 >
                   User Login
@@ -153,7 +153,7 @@ const LoginPage = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-[#68b046] hover:bg-[#72c90a]" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
