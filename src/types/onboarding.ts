@@ -5,6 +5,7 @@ export interface ChecklistItem {
   description: string;
   completed: boolean;
   order: number;
+  requiredDocuments?: DocumentCategory[];
 }
 
 export interface Checklist {
