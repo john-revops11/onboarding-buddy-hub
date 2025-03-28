@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -33,6 +34,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
+import { User } from "@/types/auth";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,14 +44,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-type UserWithPassword = {
-  id: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
+type UserWithPassword = User & {
   password?: string;
-  createdAt: string;
-  status: "pending" | "approved" | "rejected";
   onboardingStatus?: number;
 };
 
@@ -62,11 +58,15 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
 
   useEffect(() => {
-    const fetchedUsers = getAllUsers().map((user: any) => ({
-      ...user,
-      onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
-    }));
-    setUsers(fetchedUsers);
+    const fetchUsers = () => {
+      const fetchedUsers = getAllUsers().map((user: any) => ({
+        ...user,
+        onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
+      }));
+      setUsers(fetchedUsers as UserWithPassword[]);
+    };
+
+    fetchUsers();
   }, [getAllUsers]);
 
   const form = useForm<FormValues>({
@@ -83,25 +83,28 @@ const AdminUsers = () => {
   };
   
   const refreshUsers = () => {
-    let filteredUsers = getAllUsers();
+    let fetchedUsers = getAllUsers();
     
-    filteredUsers = filteredUsers.map((user: any) => ({
+    fetchedUsers = fetchedUsers.map((user: any) => ({
       ...user,
       onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
     }));
     
+    // Apply status filtering
+    let filteredUsers = [...fetchedUsers];
     if (statusFilter !== "all") {
-      filteredUsers = filteredUsers.filter((user: UserWithPassword) => user.status === statusFilter);
+      filteredUsers = filteredUsers.filter((user: any) => user.status === statusFilter);
     }
     
+    // Apply search term filtering
     if (searchTerm) {
-      filteredUsers = filteredUsers.filter((user: UserWithPassword) => 
+      filteredUsers = filteredUsers.filter((user: any) => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
-    setUsers(filteredUsers);
+    setUsers(filteredUsers as UserWithPassword[]);
   };
 
   const handleEdit = (user: UserWithPassword) => {
@@ -109,7 +112,7 @@ const AdminUsers = () => {
     form.reset({
       name: user.name,
       email: user.email,
-      role: user.role as "user" | "admin",
+      role: user.role,
     });
   };
 
@@ -144,16 +147,17 @@ const AdminUsers = () => {
         description: `${data.name}'s information has been updated.`
       });
     } else {
-      setUsers([
-        ...users,
-        {
-          id: `${Date.now()}`,
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          onboardingStatus: 0,
-        }
-      ]);
+      const newUser: UserWithPassword = {
+        id: `${Date.now()}`,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        createdAt: new Date().toISOString(),
+        status: "approved",
+        onboardingStatus: 0,
+      };
+      
+      setUsers([...users, newUser]);
       
       toast({
         title: "User added",

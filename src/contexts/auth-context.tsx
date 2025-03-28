@@ -1,27 +1,26 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { AuthState, User, LoginCredentials, RegisterCredentials } from "@/types/auth";
 import { toast } from "@/hooks/use-toast";
 
 // Mock API for now (to be replaced with real API)
-const mockUsers = [
+const mockUsers: (Omit<User, 'password'> & { password: string })[] = [
   {
     id: "1",
     email: "admin@example.com",
     name: "Admin User",
-    role: "admin",
+    role: "admin" as const,
     password: "admin123", // In a real app, these should be hashed
     createdAt: new Date().toISOString(),
-    status: "approved",
+    status: "approved" as const,
   },
   {
     id: "2",
     email: "user@example.com",
     name: "Test User",
-    role: "user",
+    role: "user" as const,
     password: "user123",
     createdAt: new Date().toISOString(),
-    status: "approved",
+    status: "approved" as const,
   },
 ];
 
@@ -162,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = `mock-token-${Date.now()}`;
       
       // Remove password from user object
-      const { password, ...secureUser } = user as typeof mockUsers[0] & { password: string };
+      const { password, ...secureUser } = user;
       
       // Save to localStorage (in a real app, tokens should be HttpOnly cookies)
       localStorage.setItem("onboard-token", token);
@@ -176,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
-          user: secureUser as User,
+          user: secureUser,
           token,
         },
       });
@@ -320,4 +319,3 @@ export const useAuth = () => {
   
   return context;
 };
-
