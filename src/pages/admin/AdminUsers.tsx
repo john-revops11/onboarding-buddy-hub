@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Edit, Eye } from "lucide-react";
+import { Search, UserPlus, Edit, Eye, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
@@ -32,31 +31,8 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-// Mock users data
-const mockUsers = [
-  {
-    id: "1",
-    name: "Test User",
-    email: "user@example.com",
-    role: "user",
-    onboardingStatus: 30,
-  },
-  {
-    id: "2",
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "admin",
-    onboardingStatus: 100,
-  },
-  {
-    id: "3",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "user",
-    onboardingStatus: 70,
-  }
-];
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -66,11 +42,32 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+type UserWithPassword = {
+  id: string;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  password?: string;
+  createdAt: string;
+  status: "pending" | "approved" | "rejected";
+  onboardingStatus?: number;
+};
+
 const AdminUsers = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState(mockUsers);
+  const { getAllUsers, approveUser, rejectUser } = useAuth();
+  const [users, setUsers] = useState<UserWithPassword[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<typeof users[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+
+  useEffect(() => {
+    const fetchedUsers = getAllUsers().map((user: any) => ({
+      ...user,
+      onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
+    }));
+    setUsers(fetchedUsers);
+  }, [getAllUsers]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -82,20 +79,32 @@ const AdminUsers = () => {
   });
 
   const handleSearch = () => {
-    if (!searchTerm) {
-      setUsers(mockUsers);
-      return;
+    refreshUsers();
+  };
+  
+  const refreshUsers = () => {
+    let filteredUsers = getAllUsers();
+    
+    filteredUsers = filteredUsers.map((user: any) => ({
+      ...user,
+      onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
+    }));
+    
+    if (statusFilter !== "all") {
+      filteredUsers = filteredUsers.filter((user: UserWithPassword) => user.status === statusFilter);
     }
     
-    const filtered = mockUsers.filter(user => 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (searchTerm) {
+      filteredUsers = filteredUsers.filter((user: UserWithPassword) => 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
-    setUsers(filtered);
+    setUsers(filteredUsers);
   };
 
-  const handleEdit = (user: typeof users[0]) => {
+  const handleEdit = (user: UserWithPassword) => {
     setSelectedUser(user);
     form.reset({
       name: user.name,
@@ -104,9 +113,26 @@ const AdminUsers = () => {
     });
   };
 
+  const handleApprove = (userId: string) => {
+    approveUser(userId);
+    refreshUsers();
+    toast({
+      title: "User approved",
+      description: "User can now log in to the platform.",
+    });
+  };
+
+  const handleReject = (userId: string) => {
+    rejectUser(userId);
+    refreshUsers();
+    toast({
+      title: "User rejected",
+      description: "User registration has been rejected.",
+    });
+  };
+
   const onSubmit = (data: FormValues) => {
     if (selectedUser) {
-      // Update existing user
       setUsers(users.map(user => 
         user.id === selectedUser.id 
           ? { ...user, ...data } 
@@ -118,7 +144,6 @@ const AdminUsers = () => {
         description: `${data.name}'s information has been updated.`
       });
     } else {
-      // Add new user
       setUsers([
         ...users,
         {
@@ -144,6 +169,19 @@ const AdminUsers = () => {
     setSelectedUser(null);
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Pending</Badge>;
+      case "approved":
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Approved</Badge>;
+      case "rejected":
+        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Rejected</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -152,7 +190,7 @@ const AdminUsers = () => {
           View, search, and manage users in the system.
         </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2 w-full max-w-sm">
             <Input 
               placeholder="Search users..." 
@@ -168,78 +206,95 @@ const AdminUsers = () => {
               <Search className="h-4 w-4" />
             </Button>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selectedUser ? "Edit User" : "Add New User"}</DialogTitle>
-                <DialogDescription>
-                  {selectedUser 
-                    ? "Edit user information and role." 
-                    : "Fill in the details to add a new user to the system."}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="john@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <FormControl>
-                          <select
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                            {...field}
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button type="submit">
-                      {selectedUser ? "Update User" : "Add User"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          
+          <div className="flex gap-2">
+            <select 
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as "all" | "pending" | "approved" | "rejected");
+                setTimeout(refreshUsers, 0);
+              }}
+            >
+              <option value="all">All Users</option>
+              <option value="pending">Pending Approval</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{selectedUser ? "Edit User" : "Add New User"}</DialogTitle>
+                  <DialogDescription>
+                    {selectedUser 
+                      ? "Edit user information and role." 
+                      : "Fill in the details to add a new user to the system."}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="john@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <FormControl>
+                            <select
+                              className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                              {...field}
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit">
+                        {selectedUser ? "Update User" : "Add User"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <Card>
@@ -257,6 +312,7 @@ const AdminUsers = () => {
                     <th className="py-3 px-4 text-left">Name</th>
                     <th className="py-3 px-4 text-left">Email</th>
                     <th className="py-3 px-4 text-left">Role</th>
+                    <th className="py-3 px-4 text-left">Status</th>
                     <th className="py-3 px-4 text-left">Onboarding Status</th>
                     <th className="py-3 px-4 text-left">Actions</th>
                   </tr>
@@ -267,6 +323,9 @@ const AdminUsers = () => {
                       <td className="py-3 px-4">{user.name}</td>
                       <td className="py-3 px-4">{user.email}</td>
                       <td className="py-3 px-4 capitalize">{user.role}</td>
+                      <td className="py-3 px-4">
+                        {getStatusBadge(user.status)}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
@@ -280,6 +339,39 @@ const AdminUsers = () => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
+                          {user.status === "pending" && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="border-green-500 hover:bg-green-50 text-green-600"
+                                onClick={() => handleApprove(user.id)}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-red-500 hover:bg-red-50 text-red-600"
+                                onClick={() => handleReject(user.id)}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {user.status === "rejected" && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-green-500 hover:bg-green-50 text-green-600"
+                              onClick={() => handleApprove(user.id)}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="sm"
@@ -311,7 +403,7 @@ const AdminUsers = () => {
                   ))}
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                      <td colSpan={6} className="py-6 text-center text-muted-foreground">
                         No users found matching your search.
                       </td>
                     </tr>

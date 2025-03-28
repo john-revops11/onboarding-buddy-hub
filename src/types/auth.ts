@@ -6,6 +6,7 @@ export interface User {
   role: "admin" | "user";
   createdAt: string;
   avatar?: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 export interface AuthState {
@@ -26,3 +27,4 @@ export interface RegisterCredentials {
   email: string;
   password: string;
 }
+

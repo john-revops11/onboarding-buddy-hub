@@ -12,6 +12,7 @@ const mockUsers = [
     role: "admin",
     password: "admin123", // In a real app, these should be hashed
     createdAt: new Date().toISOString(),
+    status: "approved",
   },
   {
     id: "2",
@@ -20,6 +21,7 @@ const mockUsers = [
     role: "user",
     password: "user123",
     createdAt: new Date().toISOString(),
+    status: "approved",
   },
 ];
 
@@ -98,6 +100,9 @@ type AuthContextType = {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  approveUser: (userId: string) => void;
+  rejectUser: (userId: string) => void;
+  getAllUsers: () => (typeof mockUsers);
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -145,6 +150,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Invalid email or password");
       }
 
+      if (user.status === "pending") {
+        throw new Error("Your account is pending approval from an administrator");
+      }
+
+      if (user.status === "rejected") {
+        throw new Error("Your registration has been rejected. Please contact support.");
+      }
+
       // Generate a mock token
       const token = `mock-token-${Date.now()}`;
       
@@ -190,7 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Email already in use");
       }
       
-      // Create new user
+      // Create new user with pending status
       const newUser = {
         id: `${mockUsers.length + 1}`,
         email: credentials.email,
@@ -198,32 +211,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: "user" as const,
         password: credentials.password, // In a real app, this should be hashed
         createdAt: new Date().toISOString(),
+        status: "pending" as const,
       };
       
       mockUsers.push(newUser);
       
-      // Generate a mock token
-      const token = `mock-token-${Date.now()}`;
-      
-      // Remove password from user object
-      const { password, ...secureUser } = newUser;
-      
-      // Save to localStorage (in a real app, tokens should be HttpOnly cookies)
-      localStorage.setItem("onboard-token", token);
-      localStorage.setItem("onboard-user", JSON.stringify(secureUser));
-      
       toast({
         title: "Registration successful",
-        description: `Welcome, ${secureUser.name}!`,
+        description: "Your account has been created and is pending admin approval.",
       });
       
+      // For registration, we don't automatically log in the user since they need approval
       dispatch({
         type: "REGISTER_SUCCESS",
         payload: {
-          user: secureUser as User,
-          token,
+          user: { ...newUser, password: undefined } as unknown as User,
+          token: "",
         },
       });
+      
+      // Immediately log them out since they need approval
+      logout();
     } catch (error: any) {
       toast({
         title: "Registration failed",
@@ -236,6 +244,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: error.message || "An error occurred during registration",
       });
     }
+  };
+
+  const approveUser = (userId: string) => {
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    
+    if (userIndex !== -1) {
+      mockUsers[userIndex].status = "approved";
+      
+      toast({
+        title: "User approved",
+        description: `${mockUsers[userIndex].name} can now log in.`,
+      });
+    }
+  };
+
+  const rejectUser = (userId: string) => {
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    
+    if (userIndex !== -1) {
+      mockUsers[userIndex].status = "rejected";
+      
+      toast({
+        title: "User rejected",
+        description: `${mockUsers[userIndex].name}'s registration has been rejected.`,
+      });
+    }
+  };
+
+  const getAllUsers = () => {
+    return mockUsers;
   };
 
   const logout = () => {
@@ -262,6 +300,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         clearError,
+        approveUser,
+        rejectUser,
+        getAllUsers,
       }}
     >
       {children}
@@ -279,3 +320,4 @@ export const useAuth = () => {
   
   return context;
 };
+
