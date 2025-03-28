@@ -8,7 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BarChart, LineChart } from "@/components/ui/chart";
+import { BarChart } from "@/components/ui/charts/BarChart";
+import { LineChart } from "@/components/ui/charts/LineChart";
 import { 
   UserPlus, 
   CheckCircle, 
