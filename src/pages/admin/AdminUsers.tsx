@@ -45,6 +45,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -54,24 +55,20 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-type UserWithPassword = User & {
-  password?: string;
-  onboardingStatus?: number;
-};
-
 const AdminUsers = () => {
   const { toast } = useToast();
-  const { getAllUsers, approveUser, rejectUser } = useAuth();
-  const [users, setUsers] = useState<UserWithPassword[]>([]);
+  const { approveUser, rejectUser, getAllUsers } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
-  const [viewUser, setViewUser] = useState<UserWithPassword | null>(null);
+  const [viewUser, setViewUser] = useState<User | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     refreshUsers();
-  }, []);
+  }, [statusFilter]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,32 +83,39 @@ const AdminUsers = () => {
     refreshUsers();
   };
   
-  const refreshUsers = () => {
-    let fetchedUsers = getAllUsers();
-    
-    fetchedUsers = fetchedUsers.map((user: any) => ({
-      ...user,
-      onboardingStatus: user.onboardingStatus || (user.status === "approved" ? Math.floor(Math.random() * 70) + 30 : 0),
-    }));
-    
-    // Apply status filtering
-    let filteredUsers = [...fetchedUsers];
-    if (statusFilter !== "all") {
-      filteredUsers = filteredUsers.filter((user: any) => user.status === statusFilter);
+  const refreshUsers = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedUsers = await getAllUsers();
+      
+      // Apply status filtering
+      let filteredUsers = [...fetchedUsers];
+      if (statusFilter !== "all") {
+        filteredUsers = filteredUsers.filter((user) => user.status === statusFilter);
+      }
+      
+      // Apply search term filtering
+      if (searchTerm) {
+        filteredUsers = filteredUsers.filter((user) => 
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      setUsers(filteredUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Apply search term filtering
-    if (searchTerm) {
-      filteredUsers = filteredUsers.filter((user: any) => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    setUsers(filteredUsers as UserWithPassword[]);
   };
 
-  const handleEdit = (user: UserWithPassword) => {
+  const handleEdit = (user: User) => {
     setSelectedUser(user);
     form.reset({
       name: user.name,
@@ -121,69 +125,64 @@ const AdminUsers = () => {
     setDialogOpen(true);
   };
 
-  const handleViewUser = (user: UserWithPassword) => {
+  const handleViewUser = (user: User) => {
     setViewUser(user);
   };
 
-  const handleApprove = (userId: string) => {
-    approveUser(userId);
+  const handleApprove = async (userId: string) => {
+    await approveUser(userId);
     refreshUsers();
-    toast({
-      title: "User approved",
-      description: "User can now log in to the platform.",
-    });
   };
 
-  const handleReject = (userId: string) => {
-    rejectUser(userId);
+  const handleReject = async (userId: string) => {
+    await rejectUser(userId);
     refreshUsers();
-    toast({
-      title: "User rejected",
-      description: "User registration has been rejected.",
-    });
   };
 
-  const onSubmit = (data: FormValues) => {
-    if (selectedUser) {
-      const updatedUsers = users.map(user => 
-        user.id === selectedUser.id 
-          ? { ...user, ...data, status: user.status } as UserWithPassword
-          : user
-      );
+  const onSubmit = async (data: FormValues) => {
+    try {
+      if (selectedUser) {
+        // Update user profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: data.name,
+            email: data.email,
+            role: data.role,
+          })
+          .eq('id', selectedUser.id);
+          
+        if (error) throw error;
+        
+        toast({
+          title: "User updated",
+          description: `${data.name}'s information has been updated.`
+        });
+      } else {
+        // Create a new user - this would need admin access to Supabase Auth
+        toast({
+          title: "Not implemented",
+          description: "Direct user creation is not available in this demo. Users must sign up.",
+          variant: "destructive"
+        });
+      }
       
-      setUsers(updatedUsers);
-      
-      toast({
-        title: "User updated",
-        description: `${data.name}'s information has been updated.`
+      form.reset({
+        name: "",
+        email: "",
+        role: "user",
       });
-    } else {
-      const newUser: UserWithPassword = {
-        id: `${Date.now()}`,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        createdAt: new Date().toISOString(),
-        status: "approved",
-        onboardingStatus: 0,
-      };
       
-      setUsers([...users, newUser]);
-      
+      setSelectedUser(null);
+      setDialogOpen(false);
+      refreshUsers();
+    } catch (error: any) {
       toast({
-        title: "User added",
-        description: `${data.name} has been added to the system.`
+        title: "Error",
+        description: error.message || "An error occurred",
+        variant: "destructive"
       });
     }
-    
-    form.reset({
-      name: "",
-      email: "",
-      role: "user",
-    });
-    
-    setSelectedUser(null);
-    setDialogOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -230,7 +229,6 @@ const AdminUsers = () => {
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as "all" | "pending" | "approved" | "rejected");
-                setTimeout(refreshUsers, 0);
               }}
             >
               <option value="all">All Users</option>
@@ -335,29 +333,58 @@ const AdminUsers = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id} className="border-t">
-                      <td className="py-3 px-4">{user.name}</td>
-                      <td className="py-3 px-4">{user.email}</td>
-                      <td className="py-3 px-4 capitalize">{user.role}</td>
-                      <td className="py-3 px-4">
-                        {getStatusBadge(user.status)}
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={6} className="py-6 text-center">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                        <p className="mt-2 text-muted-foreground">Loading users...</p>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                            <div
-                              className="bg-primary h-full rounded-full"
-                              style={{ width: `${user.onboardingStatus}%` }}
-                            ></div>
+                    </tr>
+                  ) : users.length > 0 ? (
+                    users.map((user) => (
+                      <tr key={user.id} className="border-t">
+                        <td className="py-3 px-4">{user.name}</td>
+                        <td className="py-3 px-4">{user.email}</td>
+                        <td className="py-3 px-4 capitalize">{user.role}</td>
+                        <td className="py-3 px-4">
+                          {getStatusBadge(user.status)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
+                              <div
+                                className="bg-primary h-full rounded-full"
+                                style={{ width: `${user.onboardingStatus || 0}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs">{user.onboardingStatus || 0}%</span>
                           </div>
-                          <span className="text-xs">{user.onboardingStatus}%</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          {user.status === "pending" && (
-                            <>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex gap-2">
+                            {user.status === "pending" && (
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="border-green-500 hover:bg-green-50 text-green-600"
+                                  onClick={() => handleApprove(user.id)}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Approve
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="border-red-500 hover:bg-red-50 text-red-600"
+                                  onClick={() => handleReject(user.id)}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {user.status === "rejected" && (
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -367,101 +394,80 @@ const AdminUsers = () => {
                                 <CheckCircle className="h-4 w-4 mr-1" />
                                 Approve
                               </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="border-red-500 hover:bg-red-50 text-red-600"
-                                onClick={() => handleReject(user.id)}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                          {user.status === "rejected" && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="border-green-500 hover:bg-green-50 text-green-600"
-                              onClick={() => handleApprove(user.id)}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                          )}
-                          <Sheet>
-                            <SheetTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleViewUser(user)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </SheetTrigger>
-                            <SheetContent>
-                              <SheetHeader>
-                                <SheetTitle>User Details</SheetTitle>
-                                <SheetDescription>View information for {user.name}</SheetDescription>
-                              </SheetHeader>
-                              <div className="py-6 space-y-4">
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="font-medium">Name:</div>
-                                  <div>{viewUser?.name || user.name}</div>
-                                  
-                                  <div className="font-medium">Email:</div>
-                                  <div>{viewUser?.email || user.email}</div>
-                                  
-                                  <div className="font-medium">Role:</div>
-                                  <div className="capitalize">{viewUser?.role || user.role}</div>
-                                  
-                                  <div className="font-medium">Status:</div>
-                                  <div>{getStatusBadge(viewUser?.status || user.status)}</div>
-                                  
-                                  <div className="font-medium">Created:</div>
-                                  <div>{new Date(viewUser?.createdAt || user.createdAt).toLocaleDateString()}</div>
-                                  
-                                  <div className="font-medium">Onboarding:</div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                                      <div
-                                        className="bg-primary h-full rounded-full"
-                                        style={{ width: `${viewUser?.onboardingStatus || user.onboardingStatus}%` }}
-                                      ></div>
+                            )}
+                            <Sheet>
+                              <SheetTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleViewUser(user)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                              </SheetTrigger>
+                              <SheetContent>
+                                <SheetHeader>
+                                  <SheetTitle>User Details</SheetTitle>
+                                  <SheetDescription>View information for {user.name}</SheetDescription>
+                                </SheetHeader>
+                                <div className="py-6 space-y-4">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="font-medium">Name:</div>
+                                    <div>{viewUser?.name || user.name}</div>
+                                    
+                                    <div className="font-medium">Email:</div>
+                                    <div>{viewUser?.email || user.email}</div>
+                                    
+                                    <div className="font-medium">Role:</div>
+                                    <div className="capitalize">{viewUser?.role || user.role}</div>
+                                    
+                                    <div className="font-medium">Status:</div>
+                                    <div>{getStatusBadge(viewUser?.status || user.status)}</div>
+                                    
+                                    <div className="font-medium">Created:</div>
+                                    <div>{new Date(viewUser?.createdAt || user.createdAt).toLocaleDateString()}</div>
+                                    
+                                    <div className="font-medium">Onboarding:</div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
+                                        <div
+                                          className="bg-primary h-full rounded-full"
+                                          style={{ width: `${viewUser?.onboardingStatus || user.onboardingStatus || 0}%` }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs">{viewUser?.onboardingStatus || user.onboardingStatus || 0}%</span>
                                     </div>
-                                    <span className="text-xs">{viewUser?.onboardingStatus || user.onboardingStatus}%</span>
                                   </div>
                                 </div>
-                              </div>
-                              <SheetFooter>
-                                <SheetClose asChild>
-                                  <Button variant="outline">Close</Button>
-                                </SheetClose>
-                                <Button
-                                  onClick={() => {
-                                    handleEdit(viewUser || user);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Edit User
-                                </Button>
-                              </SheetFooter>
-                            </SheetContent>
-                          </Sheet>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleEdit(user)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {users.length === 0 && (
+                                <SheetFooter>
+                                  <SheetClose asChild>
+                                    <Button variant="outline">Close</Button>
+                                  </SheetClose>
+                                  <Button
+                                    onClick={() => {
+                                      handleEdit(viewUser || user);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Edit User
+                                  </Button>
+                                </SheetFooter>
+                              </SheetContent>
+                            </Sheet>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEdit(user)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
                     <tr>
                       <td colSpan={6} className="py-6 text-center text-muted-foreground">
                         No users found matching your search.
