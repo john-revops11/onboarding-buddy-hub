@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthBackground } from "@/components/auth/AuthBackground";
@@ -47,6 +47,7 @@ const LoginPage = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [demoCred, setDemoCred] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -60,9 +61,9 @@ const LoginPage = () => {
   useEffect(() => {
     if (state.isAuthenticated && !state.isLoading) {
       if (state.user?.role === "admin") {
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     }
   }, [state.isAuthenticated, state.isLoading, state.user, navigate]);
@@ -77,8 +78,8 @@ const LoginPage = () => {
         password: data.password,
       });
       
+      // Toast notification will be shown by the auth context after successful login
       // The redirect will happen in the useEffect above when state.isAuthenticated changes
-      // No need to manually redirect here
       
     } catch (error: any) {
       console.error("Login error:", error);
@@ -91,6 +92,7 @@ const LoginPage = () => {
   const fillAdminCredentials = () => {
     form.setValue("email", "admin@example.com");
     form.setValue("password", "admin123");
+    setDemoCred("admin");
     toast({
       title: "Admin credentials filled",
       description: "Click 'Log in' to sign in as an admin",
@@ -100,6 +102,7 @@ const LoginPage = () => {
   const fillUserCredentials = () => {
     form.setValue("email", "user@example.com");
     form.setValue("password", "user123");
+    setDemoCred("user");
     toast({
       title: "User credentials filled",
       description: "Click 'Log in' to sign in as a regular user",
@@ -131,28 +134,28 @@ const LoginPage = () => {
             <Alert className="border-green-base/50 bg-green-base/10">
               <Info className="h-4 w-4 text-green-base" />
               <AlertTitle className="text-green-base">Demo Credentials</AlertTitle>
-              <AlertDescription className="mt-2">
+              <AlertDescription className="text-sm mt-2">
+                <p>The following demo credentials are ready to use:</p>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="w-full text-xs bg-green-base hover:bg-green-hover text-white border-green-base"
+                    className={`w-full text-xs ${demoCred === "admin" ? "bg-green-base/90 hover:bg-green-hover" : "bg-green-base hover:bg-green-hover"} text-white border-green-base`}
                     onClick={fillAdminCredentials}
                   >
+                    {demoCred === "admin" && <CheckCircle2 className="mr-1 h-3 w-3" />}
                     Admin Login
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="w-full text-xs bg-green-base hover:bg-green-hover text-white border-green-base"
+                    className={`w-full text-xs ${demoCred === "user" ? "bg-green-base/90 hover:bg-green-hover" : "bg-green-base hover:bg-green-hover"} text-white border-green-base`}
                     onClick={fillUserCredentials}
                   >
+                    {demoCred === "user" && <CheckCircle2 className="mr-1 h-3 w-3" />}
                     User Login
                   </Button>
                 </div>
-                <p className="text-xs mt-2 text-amber-600">
-                  Note: You may need to register these accounts first if they don't exist in your Supabase project.
-                </p>
               </AlertDescription>
             </Alert>
 
@@ -203,7 +206,11 @@ const LoginPage = () => {
                   )}
                 </Button>
                 {loginError && (
-                  <p className="text-sm text-destructive text-center">{loginError}</p>
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertDescription className="text-sm">
+                      {loginError}
+                    </AlertDescription>
+                  </Alert>
                 )}
               </form>
             </Form>
