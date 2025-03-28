@@ -1,484 +1,183 @@
-
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Edit, Eye, CheckCircle, XCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import {
+import { Input } from "@/components/ui/input";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { useAuth } from "@/contexts/auth-context";
+import { User } from "@/types/auth";
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/auth-context";
-import { User } from "@/types/auth";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
-
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  role: z.enum(["user", "admin"]),
-});
-
-type FormValues = z.infer<typeof formSchema>;
 
 const AdminUsers = () => {
-  const { toast } = useToast();
-  const { approveUser, rejectUser, getAllUsers } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
-  const [viewUser, setViewUser] = useState<User | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const { getAllUsers, approveUser, rejectUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    refreshUsers();
-  }, [statusFilter]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      role: "user",
-    },
-  });
-
-  const handleSearch = () => {
-    refreshUsers();
-  };
-  
-  const refreshUsers = async () => {
-    setIsLoading(true);
-    try {
-      const fetchedUsers = await getAllUsers();
-      
-      // Apply status filtering
-      let filteredUsers = [...fetchedUsers];
-      if (statusFilter !== "all") {
-        filteredUsers = filteredUsers.filter((user) => user.status === statusFilter);
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+      } finally {
+        setIsLoading(false);
       }
-      
-      // Apply search term filtering
-      if (searchTerm) {
-        filteredUsers = filteredUsers.filter((user) => 
-          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      setUsers(filteredUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load users",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  const handleEdit = (user: User) => {
-    setSelectedUser(user);
-    form.reset({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-    setDialogOpen(true);
-  };
-
-  const handleViewUser = (user: User) => {
-    setViewUser(user);
-  };
+    fetchUsers();
+  }, [getAllUsers]);
 
   const handleApprove = async (userId: string) => {
     await approveUser(userId);
-    refreshUsers();
+    // Refresh users after approval
+    const updatedUsers = await getAllUsers();
+    setUsers(updatedUsers);
   };
 
   const handleReject = async (userId: string) => {
     await rejectUser(userId);
-    refreshUsers();
+    // Refresh users after rejection
+    const updatedUsers = await getAllUsers();
+    setUsers(updatedUsers);
   };
 
-  const onSubmit = async (data: FormValues) => {
-    try {
-      if (selectedUser) {
-        // Update user profile
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            name: data.name,
-            email: data.email,
-            role: data.role,
-          })
-          .eq('id', selectedUser.id);
-          
-        if (error) throw error;
-        
-        toast({
-          title: "User updated",
-          description: `${data.name}'s information has been updated.`
-        });
-      } else {
-        // Create a new user - this would need admin access to Supabase Auth
-        toast({
-          title: "Not implemented",
-          description: "Direct user creation is not available in this demo. Users must sign up.",
-          variant: "destructive"
-        });
-      }
-      
-      form.reset({
-        name: "",
-        email: "",
-        role: "user",
-      });
-      
-      setSelectedUser(null);
-      setDialogOpen(false);
-      refreshUsers();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Pending</Badge>;
-      case "approved":
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Approved</Badge>;
-      case "rejected":
-        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Rejected</Badge>;
-      default:
-        return null;
-    }
-  };
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground">
-          View, search, and manage users in the system.
-        </p>
-
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2 w-full max-w-sm">
-            <Input 
-              placeholder="Search users..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
-            />
-            <Button variant="outline" size="icon" onClick={handleSearch}>
-              <Search className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="flex gap-2">
-            <select 
-              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as "all" | "pending" | "approved" | "rejected");
-              }}
-            >
-              <option value="all">All Users</option>
-              <option value="pending">Pending Approval</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add User
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{selectedUser ? "Edit User" : "Add New User"}</DialogTitle>
-                  <DialogDescription>
-                    {selectedUser 
-                      ? "Edit user information and role." 
-                      : "Fill in the details to add a new user to the system."}
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="john@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="role"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Role</FormLabel>
-                          <FormControl>
-                            <select
-                              className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                              {...field}
-                            >
-                              <option value="user">User</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button type="submit">
-                        {selectedUser ? "Update User" : "Add User"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+          <Button>Add User</Button>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>
-              A list of all users registered in the system.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="py-3 px-4 text-left">Name</th>
-                    <th className="py-3 px-4 text-left">Email</th>
-                    <th className="py-3 px-4 text-left">Role</th>
-                    <th className="py-3 px-4 text-left">Status</th>
-                    <th className="py-3 px-4 text-left">Onboarding Status</th>
-                    <th className="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={6} className="py-6 text-center">
-                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                        <p className="mt-2 text-muted-foreground">Loading users...</p>
-                      </td>
-                    </tr>
-                  ) : users.length > 0 ? (
-                    users.map((user) => (
-                      <tr key={user.id} className="border-t">
-                        <td className="py-3 px-4">{user.name}</td>
-                        <td className="py-3 px-4">{user.email}</td>
-                        <td className="py-3 px-4 capitalize">{user.role}</td>
-                        <td className="py-3 px-4">
-                          {getStatusBadge(user.status)}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                              <div
-                                className="bg-primary h-full rounded-full"
-                                style={{ width: `${user.onboardingStatus || 0}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs">{user.onboardingStatus || 0}%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2">
-                            {user.status === "pending" && (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="border-green-500 hover:bg-green-50 text-green-600"
-                                  onClick={() => handleApprove(user.id)}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Approve
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="border-red-500 hover:bg-red-50 text-red-600"
-                                  onClick={() => handleReject(user.id)}
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                            {user.status === "rejected" && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="border-green-500 hover:bg-green-50 text-green-600"
-                                onClick={() => handleApprove(user.id)}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                            )}
-                            <Sheet>
-                              <SheetTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => handleViewUser(user)}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
-                              </SheetTrigger>
-                              <SheetContent>
-                                <SheetHeader>
-                                  <SheetTitle>User Details</SheetTitle>
-                                  <SheetDescription>View information for {user.name}</SheetDescription>
-                                </SheetHeader>
-                                <div className="py-6 space-y-4">
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div className="font-medium">Name:</div>
-                                    <div>{viewUser?.name || user.name}</div>
-                                    
-                                    <div className="font-medium">Email:</div>
-                                    <div>{viewUser?.email || user.email}</div>
-                                    
-                                    <div className="font-medium">Role:</div>
-                                    <div className="capitalize">{viewUser?.role || user.role}</div>
-                                    
-                                    <div className="font-medium">Status:</div>
-                                    <div>{getStatusBadge(viewUser?.status || user.status)}</div>
-                                    
-                                    <div className="font-medium">Created:</div>
-                                    <div>{new Date(viewUser?.createdAt || user.createdAt).toLocaleDateString()}</div>
-                                    
-                                    <div className="font-medium">Onboarding:</div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="bg-gray-200 w-24 h-2 rounded-full overflow-hidden">
-                                        <div
-                                          className="bg-primary h-full rounded-full"
-                                          style={{ width: `${viewUser?.onboardingStatus || user.onboardingStatus || 0}%` }}
-                                        ></div>
-                                      </div>
-                                      <span className="text-xs">{viewUser?.onboardingStatus || user.onboardingStatus || 0}%</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <SheetFooter>
-                                  <SheetClose asChild>
-                                    <Button variant="outline">Close</Button>
-                                  </SheetClose>
-                                  <Button
-                                    onClick={() => {
-                                      handleEdit(viewUser || user);
-                                    }}
-                                  >
-                                    <Edit className="h-4 w-4 mr-1" />
-                                    Edit User
-                                  </Button>
-                                </SheetFooter>
-                              </SheetContent>
-                            </Sheet>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEdit(user)}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="py-6 text-center text-muted-foreground">
-                        No users found matching your search.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+        <Input
+          type="search"
+          placeholder="Search users..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center w-full h-48">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 size={48} className="animate-spin text-primary" />
+              <p className="text-lg text-muted-foreground">Loading users...</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.status === 'approved' ? 'success' : user.status === 'pending' ? 'secondary' : 'destructive'}>
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {user.status === 'pending' && (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleApprove(user.id)}>
+                            Approve
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleReject(user.id)}>
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            View
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>User Details</DialogTitle>
+                            <DialogDescription>
+                              View all information about this user.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <label htmlFor="name" className="text-right font-medium leading-none text-right">
+                                Name
+                              </label>
+                              <Input type="text" id="name" defaultValue={user.name} className="col-span-3" disabled />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <label htmlFor="email" className="text-right font-medium leading-none text-right">
+                                Email
+                              </label>
+                              <Input type="email" id="email" defaultValue={user.email} className="col-span-3" disabled />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <label htmlFor="role" className="text-right font-medium leading-none text-right">
+                                Role
+                              </label>
+                              <Input type="text" id="role" defaultValue={user.role} className="col-span-3" disabled />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <label htmlFor="status" className="text-right font-medium leading-none text-right">
+                                Status
+                              </label>
+                              <Input type="text" id="status" defaultValue={user.status} className="col-span-3" disabled />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <label htmlFor="createdAt" className="text-right font-medium leading-none text-right">
+                                Created At
+                              </label>
+                              <Input type="text" id="createdAt" defaultValue={user.createdAt} className="col-span-3" disabled />
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">No users found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

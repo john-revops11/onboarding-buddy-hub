@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,46 +24,51 @@ import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminApiKeys from "./pages/admin/AdminApiKeys";
 import AdminFiles from "./pages/admin/AdminFiles";
 
+// Create the QueryClient outside of the component
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Navigate to="/login" />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+const App = () => {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-            {/* User Routes */}
-            <Route element={<AuthGuard requiredRole="user" />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
-            </Route>
+                {/* User Routes */}
+                <Route element={<AuthGuard requiredRole="user" />}>
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
+                </Route>
 
-            {/* Admin Routes */}
-            <Route element={<AuthGuard requiredRole="admin" />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/checklists" element={<AdminChecklists />} />
-              <Route path="/admin/api-keys" element={<AdminApiKeys />} />
-              <Route path="/admin/files" element={<AdminFiles />} />
-            </Route>
+                {/* Admin Routes */}
+                <Route element={<AuthGuard requiredRole="admin" />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/checklists" element={<AdminChecklists />} />
+                  <Route path="/admin/api-keys" element={<AdminApiKeys />} />
+                  <Route path="/admin/files" element={<AdminFiles />} />
+                </Route>
 
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
