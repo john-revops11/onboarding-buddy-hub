@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AuthBackground } from "@/components/auth/AuthBackground";
 
 import {
   Card,
@@ -70,66 +71,78 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center auth-bg p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
-          <CardDescription className="text-center">
-            Enter your email and we'll send you a password reset link
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {emailSent ? (
-            <div className="text-center space-y-4">
-              <p className="text-sm text-muted-foreground">
-                We've sent a password reset link to your email. Please check your inbox.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setEmailSent(false)}
-              >
-                Send again
-              </Button>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative">
+      {/* Dynamic background */}
+      <AuthBackground />
+      
+      <div className="w-full max-w-md relative z-10">
+        <Card className="w-full shadow-lg border-green-base/20 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
+          <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-4">
+              <img
+                src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
+                alt="Analytics Dashboard"
+                className="w-20 h-20 object-contain"
+              />
             </div>
-          ) : (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="john@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending reset link...
-                    </>
-                  ) : (
-                    "Send reset link"
-                  )}
+            <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
+            <CardDescription className="text-center">
+              Enter your email and we'll send you a password reset link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {emailSent ? (
+              <div className="text-center space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  We've sent a password reset link to your email. Please check your inbox.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-green-base text-green-base hover:bg-green-base hover:text-white"
+                  onClick={() => setEmailSent(false)}
+                >
+                  Send again
                 </Button>
-              </form>
-            </Form>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <div className="text-center text-sm">
-            <Link to="/login" className="text-primary font-semibold hover:underline">
-              Back to login
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="john@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending reset link...
+                      </>
+                    ) : (
+                      "Send reset link"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <div className="text-center text-sm">
+              <Link to="/login" className="text-green-base font-semibold hover:underline">
+                Back to login
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 };
