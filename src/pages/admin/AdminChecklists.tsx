@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -12,6 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminChecklists = () => {
+  const navigate = useNavigate();
+
+  // Handle click events
+  const handleCreateChecklist = () => navigate("/admin/checklists/create");
+  const handleEditChecklist = (id: string) => navigate(`/admin/checklists/edit/${id}`);
+  const handleDuplicateChecklist = (id: string) => {
+    // In a real app, you'd make an API call to duplicate the checklist
+    // For now, we'll just navigate to create with a query param
+    navigate(`/admin/checklists/create?duplicate=${id}`);
+  };
+  const handleAssignChecklist = (id: string) => navigate(`/admin/checklists/assign/${id}`);
+  const handleViewAssignment = (id: string) => navigate(`/admin/checklists/view-assignment/${id}`);
+  const handleEditAssignment = (id: string) => navigate(`/admin/checklists/edit-assignment/${id}`);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -26,7 +41,7 @@ const AdminChecklists = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold">Onboarding Checklists</h2>
           </div>
-          <Button>Create Checklist</Button>
+          <Button onClick={handleCreateChecklist}>Create Checklist</Button>
         </div>
 
         <Tabs defaultValue="templates">
@@ -53,13 +68,26 @@ const AdminChecklists = () => {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditChecklist("template-1")}
+                      >
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDuplicateChecklist("template-1")}
+                      >
                         Duplicate
                       </Button>
-                      <Button size="sm">Assign</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleAssignChecklist("template-1")}
+                      >
+                        Assign
+                      </Button>
                     </div>
                   </div>
 
@@ -71,13 +99,26 @@ const AdminChecklists = () => {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditChecklist("template-2")}
+                      >
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDuplicateChecklist("template-2")}
+                      >
                         Duplicate
                       </Button>
-                      <Button size="sm">Assign</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleAssignChecklist("template-2")}
+                      >
+                        Assign
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -123,10 +164,18 @@ const AdminChecklists = () => {
                         <td className="py-3 px-4">2023-06-15</td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewAssignment("assignment-1")}
+                            >
                               View
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditAssignment("assignment-1")}
+                            >
                               Edit
                             </Button>
                           </div>
