@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
@@ -23,7 +22,7 @@ import { FileUploader } from "@/components/onboarding/FileUploader";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { getUserFiles, getUserFilesByCategory, checkRequiredDocuments } from "@/utils/fileUtils";
-import { ChecklistItem } from "@/types/onboarding";
+import { ChecklistItem, DocumentCategory } from "@/types/onboarding";
 
 const DashboardPage = () => {
   const { toast } = useToast();
@@ -44,7 +43,7 @@ const DashboardPage = () => {
       setChecklist(JSON.parse(savedChecklist));
     } else {
       // Initial checklist if none exists
-      const initialChecklist = [
+      const initialChecklist: ChecklistItem[] = [
         {
           id: "1",
           title: "Complete your profile",
@@ -59,7 +58,7 @@ const DashboardPage = () => {
           description: "Add your company logo for branding",
           completed: false,
           order: 2,
-          requiredDocuments: ["company_logo"],
+          requiredDocuments: ["company_logo" as DocumentCategory],
         },
         {
           id: "3",
@@ -75,7 +74,7 @@ const DashboardPage = () => {
           description: "Submit necessary legal and business documents",
           completed: false,
           order: 4,
-          requiredDocuments: ["id_verification", "address_proof", "business_certificate"],
+          requiredDocuments: ["id_verification", "address_proof", "business_certificate"] as DocumentCategory[],
         },
         {
           id: "5",
