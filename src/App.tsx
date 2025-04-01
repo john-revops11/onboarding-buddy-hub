@@ -18,11 +18,14 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
+import OpportunitiesPage from "./pages/dashboard/OpportunitiesPage";
+import DataUploadsPage from "./pages/dashboard/DataUploadsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminApiKeys from "./pages/admin/AdminApiKeys";
 import AdminFiles from "./pages/admin/AdminFiles";
+import AdminOpportunities from "./pages/admin/AdminOpportunities"; 
 import ChecklistEditor from "./pages/admin/ChecklistEditor";
 import AssignChecklist from "./pages/admin/AssignChecklist";
 import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
@@ -51,6 +54,8 @@ const App = () => {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
+                <Route path="/opportunities" element={<OpportunitiesPage />} />
+                <Route path="/data-uploads" element={<DataUploadsPage />} />
               </Route>
 
               {/* Admin Routes */}
@@ -65,6 +70,7 @@ const App = () => {
                 <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
                 <Route path="/admin/api-keys" element={<AdminApiKeys />} />
                 <Route path="/admin/files" element={<AdminFiles />} />
+                <Route path="/admin/opportunities" element={<AdminOpportunities />} />
               </Route>
 
               {/* Catch-all route */}

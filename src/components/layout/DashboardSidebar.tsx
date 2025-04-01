@@ -11,7 +11,11 @@ import {
   LogOut,
   Menu,
   FileUp,
-  RefreshCw
+  RefreshCw,
+  BarChart3,
+  UploadCloud,
+  HelpCircle,
+  Calculator
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -78,6 +82,16 @@ export function DashboardSidebar() {
       icon: FileText,
     },
     {
+      name: "Opportunities",
+      path: "/opportunities",
+      icon: BarChart3,
+    },
+    {
+      name: "Data Uploads",
+      path: "/data-uploads",
+      icon: UploadCloud,
+    },
+    {
       name: "Profile",
       path: "/profile",
       icon: User,
@@ -109,6 +123,11 @@ export function DashboardSidebar() {
       name: "API Keys",
       path: "/admin/api-keys",
       icon: Key,
+    },
+    {
+      name: "Opportunities",
+      path: "/admin/opportunities",
+      icon: BarChart3,
     },
   ];
 
@@ -153,6 +172,46 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Tools</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Pricing Calculator"
+                  >
+                    <a 
+                      href="https://revify.com/pricing-calculator" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Calculator size={18} />
+                      <span>Pricing Calculator</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Support"
+                  >
+                    <a 
+                      href="#" 
+                      onClick={(e) => { 
+                        e.preventDefault();
+                        // Open support form
+                      }}
+                    >
+                      <HelpCircle size={18} />
+                      <span>Contact Support</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       
       <SidebarFooter className="border-t p-4">

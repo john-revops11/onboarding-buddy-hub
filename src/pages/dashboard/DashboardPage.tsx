@@ -3,15 +3,28 @@ import React from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calculator, Calendar, ArrowRight, FileText } from "lucide-react";
 
 // Custom hook for checklist management
 import { useChecklist } from "@/hooks/useChecklist";
 
-// Refactored components
+// Components
 import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
 import { ChecklistSection } from "@/components/dashboard/ChecklistSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
+import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
+import SupportForm from "@/components/dashboard/SupportForm";
 
 const DashboardPage = () => {
   const { toast } = useToast();
@@ -41,37 +54,91 @@ const DashboardPage = () => {
     });
   };
 
+  // Get current date
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your onboarding dashboard. Track your progress and complete
-          the required steps.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              {currentDate}
+            </p>
+          </div>
+        </div>
 
-        {/* Progress Overview */}
-        <ProgressOverview 
-          progress={progress}
-          completedItems={completedItems}
-          totalItems={checklist.length}
+        {/* Onboarding Checklist */}
+        <OnboardingChecklist clientName={state.user?.name || "Client"} />
+
+        <ConsultingTierBox 
+          tier="Elite" 
+          description="Premium access to all Revify services and features" 
         />
 
-        {/* Checklist */}
-        <ChecklistSection 
-          checklist={checklist}
-          onCompleteTask={updateTaskCompletion}
-          areRequiredDocumentsUploaded={areRequiredDocumentsUploaded}
-        />
+        {/* Main Dashboard Content */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Recent Files */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="mr-2" size={20} />
+                Recent Files
+              </CardTitle>
+              <CardDescription>
+                Your recently uploaded files
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-6 text-muted-foreground">
+                <p>No files have been uploaded recently</p>
+                <p className="text-sm mt-1">Upload files to see them here</p>
+              </div>
+            </CardContent>
+            <CardFooter className="border-t bg-muted/50 p-3">
+              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => window.location.href = '/data-uploads'}>
+                View All Files
+                <ArrowRight className="ml-2" size={16} />
+              </Button>
+            </CardFooter>
+          </Card>
 
-        {/* File Upload Section */}
-        <FileUploadSection 
-          onFileUploadComplete={handleFileUploadComplete}
-          onVerificationStatusChange={setDocumentStatus}
-        />
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>
+                Common actions and tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/data-uploads">
+                  <Calendar className="mr-2" size={18} />
+                  Schedule Data Upload
+                </a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="https://revify.com/pricing-calculator" target="_blank" rel="noopener noreferrer">
+                  <Calculator className="mr-2" size={18} />
+                  Pricing Calculator
+                </a>
+              </Button>
+              <SupportForm 
+                defaultName={state.user?.name || ""} 
+                defaultEmail={state.user?.email || ""}
+              />
+            </CardContent>
+          </Card>
 
-        {/* Quick Actions */}
-        <QuickActions />
+          {/* More cards can be added here as needed */}
+        </div>
       </div>
     </DashboardLayout>
   );
