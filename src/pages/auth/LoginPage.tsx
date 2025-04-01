@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Info, CheckCircle2 } from "lucide-react";
+import { Loader2, Info, CheckCircle2, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthBackground } from "@/components/auth/AuthBackground";
@@ -33,6 +33,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -48,6 +49,7 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [demoCred, setDemoCred] = useState<string | null>(null);
+  const [showMFAInfo, setShowMFAInfo] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -109,6 +111,9 @@ const LoginPage = () => {
     });
   };
 
+  // Toggle MFA info panel
+  const toggleMFAInfo = () => setShowMFAInfo(!showMFAInfo);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-black relative">
       {/* Dynamic background */}
@@ -120,7 +125,7 @@ const LoginPage = () => {
             <div className="flex justify-center mb-4">
               <img
                 src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
-                alt="Analytics Dashboard"
+                alt="Revify Logo"
                 className="w-24 h-24 object-contain"
               />
             </div>
@@ -158,6 +163,29 @@ const LoginPage = () => {
                 </div>
               </AlertDescription>
             </Alert>
+
+            {/* MFA Coming Soon Badge */}
+            <div className="flex justify-between items-center">
+              <Badge variant="outline" className="bg-amber-50 text-amber-800 hover:bg-amber-100 cursor-pointer border-amber-200" onClick={toggleMFAInfo}>
+                <LockKeyhole className="mr-1 h-3 w-3" />
+                MFA Coming Soon
+              </Badge>
+              
+              <Badge variant="outline" className="bg-blue-50 text-blue-800 hover:bg-blue-100 cursor-pointer border-blue-200">
+                SSO Support
+              </Badge>
+            </div>
+            
+            {/* MFA Info Panel - toggles visibility */}
+            {showMFAInfo && (
+              <Alert className="bg-amber-50 text-amber-800 border-amber-200">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Multi-Factor Authentication</AlertTitle>
+                <AlertDescription className="text-xs mt-1">
+                  Enhanced security with MFA will be available soon. This will provide an additional layer of protection for your account.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

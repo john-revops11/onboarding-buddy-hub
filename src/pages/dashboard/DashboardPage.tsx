@@ -62,6 +62,15 @@ const DashboardPage = () => {
     day: 'numeric'
   });
 
+  // Mock benefits for the consulting tier
+  const eliteBenefits = [
+    "Priority support with 2-hour response time",
+    "Weekly strategy calls with your dedicated consultant",
+    "Custom AI model training for your specific data",
+    "Unlimited data processing capacity",
+    "Executive quarterly business review"
+  ];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -79,7 +88,9 @@ const DashboardPage = () => {
 
         <ConsultingTierBox 
           tier="Elite" 
-          description="Premium access to all Revify services and features" 
+          description="Premium access to all Revify services and features with priority support and dedicated consulting" 
+          benefits={eliteBenefits}
+          showDetails={true}
         />
 
         {/* Main Dashboard Content */}
@@ -136,8 +147,6 @@ const DashboardPage = () => {
               />
             </CardContent>
           </Card>
-
-          {/* More cards can be added here as needed */}
         </div>
       </div>
     </DashboardLayout>
