@@ -61,11 +61,6 @@ const KnowledgeHubPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Knowledge Hub</h1>
-        <p className="text-muted-foreground">
-          Access resources, guides, and helpful information.
-        </p>
-
         {/* Seamless full-width card with iframe only */}
         <Card className="overflow-hidden border-0 shadow-lg">
           <CardContent className="p-0">
