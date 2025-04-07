@@ -1,13 +1,14 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, Info, ChevronRight } from "lucide-react";
+import { Award, Info, ChevronRight, ChevronDown, ChevronUp, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,20 +16,36 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface ConsultingTierBoxProps {
   tier: string;
   description: string;
   benefits?: string[];
   showDetails?: boolean;
+  onChange?: (newTier: string) => void;
+  isEditable?: boolean;
 }
 
 const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
   tier,
   description,
   benefits = [],
-  showDetails = false,
+  showDetails: initialShowDetails = false,
+  onChange,
+  isEditable = false,
 }) => {
+  const [showDetails, setShowDetails] = useState(initialShowDetails);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   // Define tier colors
   const getTierColors = () => {
     switch (tier.toLowerCase()) {
@@ -68,6 +85,15 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
   };
 
   const colors = getTierColors();
+  
+  const availableTiers = ['standard', 'premium', 'elite'];
+  
+  const handleTierChange = (newTier: string) => {
+    if (onChange) {
+      onChange(newTier);
+    }
+    setDialogOpen(false);
+  };
 
   return (
     <Card className={`border overflow-hidden ${colors.bgColor}`}>
@@ -79,9 +105,46 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
             </div>
             Your Consulting Tier
           </CardTitle>
-          <Badge variant="outline" className={colors.badge}>
-            {tier}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className={colors.badge}>
+              {tier}
+            </Badge>
+            {isEditable && (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Edit className="h-3.5 w-3.5" />
+                    <span className="sr-only">Edit Tier</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Change Consulting Tier</DialogTitle>
+                    <DialogDescription>
+                      Select a new consulting tier for this user or client.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    {availableTiers.map((availableTier) => (
+                      <Button
+                        key={availableTier}
+                        variant={tier.toLowerCase() === availableTier ? "default" : "outline"}
+                        onClick={() => handleTierChange(availableTier)}
+                        className="justify-start"
+                      >
+                        <span className="capitalize">{availableTier}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -102,8 +165,8 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
           </TooltipProvider>
         </div>
         
-        {showDetails && benefits && benefits.length > 0 && (
-          <div className="border-t pt-3 mt-2">
+        {benefits && benefits.length > 0 && (
+          <div className={`border-t pt-3 mt-2 ${!showDetails ? 'hidden' : ''}`}>
             <p className="text-sm font-medium mb-2">Tier Benefits:</p>
             <ul className="text-sm space-y-1">
               {benefits.map((benefit, index) => (
@@ -115,14 +178,38 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
             </ul>
           </div>
         )}
-
-        <div className="flex justify-end">
-          <Button variant="link" size="sm" className={colors.textColor}>
-            View Benefits
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
-        </div>
       </CardContent>
+      <CardFooter className="pt-0 flex justify-between">
+        {benefits && benefits.length > 0 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`${colors.textColor} flex items-center`}
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            {showDetails ? (
+              <>
+                Hide Benefits
+                <ChevronUp className="ml-1 h-4 w-4" />
+              </>
+            ) : (
+              <>
+                View Benefits
+                <ChevronDown className="ml-1 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        )}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className={colors.textColor}
+          onClick={() => window.open('/profile?section=tier', '_self')}
+        >
+          Tier Details
+          <ChevronRight className="ml-1 h-4 w-4" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
