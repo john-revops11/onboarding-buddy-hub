@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -167,15 +168,15 @@ const LoginPage = () => {
             <p className="text-muted-foreground text-center mt-1">Sign in to continue to your account</p>
           </div>
 
-          <Alert className="mb-6 border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 dark:border-blue-700/40 auth-card">
-            <Info className="h-4 w-4 text-blue-900 dark:text-blue-400" />
-            <AlertTitle className="text-blue-900 dark:text-blue-400 font-medium">Demo Credentials</AlertTitle>
+          <Alert className="mb-6 border-darkblue-base/40 bg-darkblue-base/5 dark:bg-darkblue-base/10 dark:border-darkblue-hover/40 auth-card">
+            <Info className="h-4 w-4 text-darkblue-base dark:text-green-base" />
+            <AlertTitle className="text-darkblue-base dark:text-green-base font-medium">Demo Credentials</AlertTitle>
             <AlertDescription className="text-sm mt-2">
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className={`w-full text-xs ${demoCred === "admin" ? "bg-blue-900 text-white dark:bg-blue-800" : ""} border-blue-900/50 text-blue-900 dark:text-blue-400 dark:border-blue-700/50 hover:text-white hover:bg-blue-900 dark:hover:bg-blue-800 transition-colors duration-300`}
+                  className={`w-full text-xs ${demoCred === "admin" ? "bg-darkblue-base text-white dark:bg-darkblue-hover" : ""} border-darkblue-base/50 text-darkblue-base dark:text-green-base dark:border-green-base/50 hover:text-white hover:bg-darkblue-base dark:hover:bg-green-base transition-colors duration-300`}
                   onClick={fillAdminCredentials}
                 >
                   {demoCred === "admin" && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -184,7 +185,7 @@ const LoginPage = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className={`w-full text-xs ${demoCred === "user" ? "bg-blue-900 text-white dark:bg-blue-800" : ""} border-blue-900/50 text-blue-900 dark:text-blue-400 dark:border-blue-700/50 hover:text-white hover:bg-blue-900 dark:hover:bg-blue-800 transition-colors duration-300`}
+                  className={`w-full text-xs ${demoCred === "user" ? "bg-darkblue-base text-white dark:bg-darkblue-hover" : ""} border-darkblue-base/50 text-darkblue-base dark:text-green-base dark:border-green-base/50 hover:text-white hover:bg-darkblue-base dark:hover:bg-green-base transition-colors duration-300`}
                   onClick={fillUserCredentials}
                 >
                   {demoCred === "user" && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -226,7 +227,7 @@ const LoginPage = () => {
                       <FormLabel>Password</FormLabel>
                       <Link
                         to="/forgot-password"
-                        className="text-xs text-blue-900 dark:text-blue-400 hover:underline"
+                        className="text-xs text-darkblue-base dark:text-green-base hover:underline"
                       >
                         Forgot password?
                       </Link>
@@ -262,7 +263,7 @@ const LoginPage = () => {
               >
                 <Button 
                   type="submit" 
-                  className="w-full h-12 text-base bg-blue-900 hover:bg-blue-800 auth-button" 
+                  className="w-full h-12 text-base bg-darkblue-base hover:bg-darkblue-hover dark:bg-green-base dark:hover:bg-green-hover auth-button" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -304,7 +305,7 @@ const LoginPage = () => {
                 </div>
                 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-11 border-blue-900/20 hover:border-blue-900/40 transition-colors duration-300">
+                  <Button variant="outline" className="h-11 border-darkblue-base/20 hover:border-darkblue-base/40 transition-colors duration-300">
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -325,7 +326,7 @@ const LoginPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="h-11 border-blue-900/20 hover:border-blue-900/40 transition-colors duration-300">
+                  <Button variant="outline" className="h-11 border-darkblue-base/20 hover:border-darkblue-base/40 transition-colors duration-300">
                     <Linkedin className="mr-2 h-4 w-4 text-[#0077B5]" />
                     LinkedIn
                   </Button>
@@ -340,14 +341,14 @@ const LoginPage = () => {
             }`}
           >
             Don't have an account?{" "}
-            <Link to="/register" className="text-blue-900 dark:text-blue-400 font-medium hover:underline">
+            <Link to="/register" className="text-darkblue-base dark:text-green-base font-medium hover:underline">
               Create an account
             </Link>
           </div>
         </div>
       </div>
       
-      <div className="hidden md:block relative bg-gradient-to-br from-blue-900/90 to-blue-800">
+      <div className="hidden md:block relative bg-gradient-to-br from-darkblue-base to-darkblue-hover">
         <div className="absolute inset-0 opacity-10 pattern-dots pattern-white pattern-size-4 pattern-offset-[8px]"></div>
         
         <div className="relative z-10 h-full flex flex-col justify-center items-center p-12 text-white text-center">

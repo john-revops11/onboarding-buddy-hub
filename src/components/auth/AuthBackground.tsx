@@ -22,13 +22,13 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ className }) => 
     delay: Math.random() * 5,
     duration: Math.random() * 20 + 10,
     opacity: Math.random() * 0.5 + 0.1,
-    color: i % 5 === 0 ? '#1E40AF' : i % 3 === 0 ? '#243949' : '#517fa4',
+    color: i % 5 === 0 ? '#5d8430' : i % 3 === 0 ? '#0a1c34' : '#2a4d73',
   }));
 
   return (
     <div className={`absolute inset-0 overflow-hidden -z-10 ${className}`}>
-      {/* Gradient backdrop - modified to use dark blue tones */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-blue-950 dark:to-slate-900"></div>
+      {/* Gradient backdrop - modified to use our new color tones */}
+      <div className="absolute inset-0 bg-gradient-to-br from-darkblue-base/5 to-darkblue-base/10 dark:from-darkblue-base dark:to-darkblue-hover"></div>
 
       {/* Animated hexagon pattern */}
       <div className="absolute inset-0">

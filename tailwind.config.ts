@@ -64,8 +64,12 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				green: {
-					base: '#68b046',
-					hover: '#72c90a',
+					base: '#5d8430',
+					hover: '#6a9538',
+				},
+				darkblue: {
+					base: '#0a1c34',
+					hover: '#112c4e',
 				}
 			},
 			borderRadius: {
