@@ -4,9 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Info, CheckCircle2, LockKeyhole } from "lucide-react";
+import { Loader2, Info, CheckCircle2, LockKeyhole, EyeOff, Eye, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 
 import {
@@ -34,6 +33,7 @@ import {
 } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -49,7 +49,8 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [demoCred, setDemoCred] = useState<string | null>(null);
-  const [showMFAInfo, setShowMFAInfo] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -70,6 +71,14 @@ const LoginPage = () => {
     }
   }, [state.isAuthenticated, state.isLoading, state.user, navigate]);
 
+  // Auto-cycle through slides
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     setLoginError(null);
@@ -79,9 +88,6 @@ const LoginPage = () => {
         email: data.email,
         password: data.password,
       });
-      
-      // Toast notification will be shown by the auth context after successful login
-      // The redirect will happen in the useEffect above when state.isAuthenticated changes
       
     } catch (error: any) {
       console.error("Login error:", error);
@@ -111,147 +117,253 @@ const LoginPage = () => {
     });
   };
 
-  // Toggle MFA info panel
-  const toggleMFAInfo = () => setShowMFAInfo(!showMFAInfo);
+  const toggleShowPassword = () => setShowPassword(!showPassword);
+
+  // Content for feature slides
+  const featureSlides = [
+    {
+      title: "Complete Business Intelligence",
+      description: "Gain insights with our powerful analytics dashboard",
+      stats: "+21.35%",
+      statsPeriod: "last month",
+      statsLabel: "Your business growth is accelerating",
+    },
+    {
+      title: "Streamlined Onboarding",
+      description: "Get up and running quickly with guided step-by-step process",
+      stats: "3x",
+      statsPeriod: "faster",
+      statsLabel: "Complete onboarding with ease",
+    },
+    {
+      title: "Secure Data Management",
+      description: "Your data is protected with enterprise-grade security",
+      stats: "99.9%",
+      statsPeriod: "uptime",
+      statsLabel: "Reliable platform you can trust",
+    }
+  ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative">
-      {/* Dynamic background */}
-      <AuthBackground />
-      
-      <div className="w-full max-w-md relative z-10">
-        <Card className="w-full shadow-lg border-green-base/20 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
-          <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <img
-                src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
-                alt="Revify Logo"
-                className="w-24 h-24 object-contain"
+    <div className="min-h-screen w-full grid md:grid-cols-2 relative overflow-hidden">
+      {/* Left Column - Login Form */}
+      <div className="flex items-center justify-center p-4 md:p-8 relative z-10">
+        <div className="w-full max-w-md">
+          <div className="mb-8 flex flex-col items-center">
+            <img
+              src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
+              alt="Revify Logo"
+              className="w-16 h-16 object-contain mb-4"
+            />
+            <h1 className="text-2xl font-bold">Welcome to Revify</h1>
+            <p className="text-muted-foreground text-center mt-1">Sign in to continue to your account</p>
+          </div>
+
+          {/* Demo Credentials Alert */}
+          <Alert className="mb-6 border-primary/40 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary font-medium">Demo Credentials</AlertTitle>
+            <AlertDescription className="text-sm mt-2">
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className={`w-full text-xs ${demoCred === "admin" ? "bg-primary text-primary-foreground" : ""} border-primary/50 text-primary hover:text-primary-foreground`}
+                  onClick={fillAdminCredentials}
+                >
+                  {demoCred === "admin" && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                  Admin Login
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className={`w-full text-xs ${demoCred === "user" ? "bg-primary text-primary-foreground" : ""} border-primary/50 text-primary hover:text-primary-foreground`}
+                  onClick={fillUserCredentials}
+                >
+                  {demoCred === "user" && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                  User Login
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="your@email.com" {...field} className="h-12" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Demo Credentials Alert */}
-            <Alert className="border-green-base/50 bg-green-base/10">
-              <Info className="h-4 w-4 text-green-base" />
-              <AlertTitle className="text-green-base">Demo Credentials</AlertTitle>
-              <AlertDescription className="text-sm mt-2">
-                <p>The following demo credentials are ready to use:</p>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className={`w-full text-xs ${demoCred === "admin" ? "bg-green-base/90 hover:bg-green-hover" : "bg-green-base hover:bg-green-hover"} text-white border-green-base`}
-                    onClick={fillAdminCredentials}
-                  >
-                    {demoCred === "admin" && <CheckCircle2 className="mr-1 h-3 w-3" />}
-                    Admin Login
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className={`w-full text-xs ${demoCred === "user" ? "bg-green-base/90 hover:bg-green-hover" : "bg-green-base hover:bg-green-hover"} text-white border-green-base`}
-                    onClick={fillUserCredentials}
-                  >
-                    {demoCred === "user" && <CheckCircle2 className="mr-1 h-3 w-3" />}
-                    User Login
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-
-            {/* MFA Coming Soon Badge */}
-            <div className="flex justify-between items-center">
-              <Badge variant="outline" className="bg-amber-50 text-amber-800 hover:bg-amber-100 cursor-pointer border-amber-200" onClick={toggleMFAInfo}>
-                <LockKeyhole className="mr-1 h-3 w-3" />
-                MFA Coming Soon
-              </Badge>
-              
-              <Badge variant="outline" className="bg-blue-50 text-blue-800 hover:bg-blue-100 cursor-pointer border-blue-200">
-                SSO Support
-              </Badge>
-            </div>
-            
-            {/* MFA Info Panel - toggles visibility */}
-            {showMFAInfo && (
-              <Alert className="bg-amber-50 text-amber-800 border-amber-200">
-                <Info className="h-4 w-4" />
-                <AlertTitle>Multi-Factor Authentication</AlertTitle>
-                <AlertDescription className="text-xs mt-1">
-                  Enhanced security with MFA will be available soon. This will provide an additional layer of protection for your account.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="john@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
                       <FormLabel>Password</FormLabel>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
                       <FormControl>
-                        <Input type="password" placeholder="********" {...field} />
+                        <Input 
+                          type={showPassword ? "text" : "password"} 
+                          placeholder="********" 
+                          {...field} 
+                          className="h-12 pr-10"
+                        />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="text-right">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-green-base hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={isSubmitting}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                        onClick={toggleShowPassword}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="pt-2">
+                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Signing in...
                     </>
                   ) : (
-                    "Log in"
+                    <>
+                      Sign in
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
-                {loginError && (
-                  <Alert variant="destructive" className="mt-2">
-                    <AlertDescription className="text-sm">
-                      {loginError}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <div className="text-center text-sm">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-green-base font-semibold hover:underline">
-                Register
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
+              </div>
+              
+              {loginError && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertDescription className="text-sm">
+                    {loginError}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-background px-2 text-xs text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Button variant="outline" className="h-11">
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                    </svg>
+                    Google
+                  </Button>
+                  <Button variant="outline" className="h-11">
+                    <svg className="mr-2 h-4 w-4 text-[#1877f2]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9.19795 21.5H13.198V13.4901H16.8021L17.198 9.50977H13.198V7.5C13.198 6.94772 13.6457 6.5 14.198 6.5H17.198V2.5H14.198C11.4365 2.5 9.19795 4.73858 9.19795 7.5V9.50977H7.19795L6.80206 13.4901H9.19795V21.5Z"></path>
+                    </svg>
+                    Facebook
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </Form>
+          
+          <div className="text-center mt-8 text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-primary font-medium hover:underline">
+              Create an account
+            </Link>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right Column - Feature Showcase */}
+      <div className="hidden md:block relative bg-gradient-to-br from-primary/90 to-primary">
+        <div className="absolute inset-0 opacity-10 pattern-dots pattern-white pattern-size-4 pattern-offset-[8px]"></div>
+        
+        <div className="relative z-10 h-full flex flex-col justify-center items-center p-12 text-white text-center">
+          <div className="max-w-md transition-all duration-500 ease-in-out">
+            {featureSlides.map((slide, index) => (
+              <div 
+                key={index}
+                className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 ${
+                  currentSlide === index ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                <div className="mb-8">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                    <img
+                      src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
+                      alt="Feature"
+                      className="w-12 h-12 object-contain"
+                    />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>
+                  <p className="text-white/80">{slide.description}</p>
+                </div>
+                
+                <div className="w-full bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-4">
+                  <div className="text-4xl font-bold">{slide.stats}</div>
+                  <div className="text-sm text-white/70">{slide.statsPeriod}</div>
+                  <div className="mt-4 text-sm">{slide.statsLabel}</div>
+                </div>
+                
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 mt-8">
+                  {featureSlides.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`w-2 h-2 rounded-full ${
+                        currentSlide === i ? "bg-white" : "bg-white/30"
+                      }`}
+                      onClick={() => setCurrentSlide(i)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

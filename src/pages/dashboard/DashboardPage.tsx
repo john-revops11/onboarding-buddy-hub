@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calculator, Calendar, ArrowRight, FileText } from "lucide-react";
+import { Calculator, Calendar, ArrowRight, FileText, Timer } from "lucide-react";
 
 // Custom hook for checklist management
 import { useChecklist } from "@/hooks/useChecklist";
@@ -25,11 +25,20 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
 import SupportForm from "@/components/dashboard/SupportForm";
+import WelcomeOnboarding from "@/components/onboarding/WelcomeOnboarding";
 
 const DashboardPage = () => {
   const { toast } = useToast();
   const { state } = useAuth();
   const userId = state.user?.id || "demo-user";
+  const [showWelcome, setShowWelcome] = useState(false);
+  
+  useEffect(() => {
+    // Check if the user has completed onboarding
+    const onboardingComplete = localStorage.getItem("onboardingComplete");
+    // Show welcome screen for new users
+    setShowWelcome(!onboardingComplete);
+  }, []);
   
   const {
     checklist,
@@ -71,6 +80,14 @@ const DashboardPage = () => {
     "Executive quarterly business review"
   ];
 
+  if (showWelcome) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/50">
+        <WelcomeOnboarding userName={state.user?.name || "Client"} />
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -80,6 +97,16 @@ const DashboardPage = () => {
             <p className="text-muted-foreground">
               {currentDate}
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Timer size={16} />
+              Activity Log
+            </Button>
+            <Button size="sm" className="gap-2">
+              <Calendar size={16} />
+              Schedule Call
+            </Button>
           </div>
         </div>
 
