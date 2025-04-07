@@ -132,7 +132,7 @@ export function DashboardSidebar() {
             alt="Revify Logo"
             className="h-8 w-auto"
           />
-          <span className="font-bold text-xl">Revify</span>
+          <span className="font-medium text-sm">Revify</span>
         </div>
         
         <div className="mb-6 relative">
