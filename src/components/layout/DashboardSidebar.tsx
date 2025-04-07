@@ -119,7 +119,7 @@ export function DashboardSidebar() {
   const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
-    <div className="w-full max-w-xs bg-sidebar flex flex-col h-full border-r">
+    <div className="min-w-[260px] max-w-[260px] bg-sidebar flex flex-col h-full border-r">
       <div className="p-4">
         <div className="flex items-center gap-2 mb-6">
           <img
