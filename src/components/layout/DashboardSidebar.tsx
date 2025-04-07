@@ -40,7 +40,7 @@ interface DashboardSidebarProps {
 
 export function DashboardLayout({ children }: DashboardSidebarProps) {
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
         <DashboardSidebar />
         <div className="flex-1">
@@ -163,9 +163,9 @@ export function DashboardSidebar() {
                         e.preventDefault();
                         navigate(item.path);
                       }}
+                      className="justify-center"
                     >
                       <item.icon size={18} />
-                      <span>{item.name}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -187,9 +187,9 @@ export function DashboardSidebar() {
                       href="https://revify.com/pricing-calculator" 
                       target="_blank" 
                       rel="noopener noreferrer"
+                      className="justify-center"
                     >
                       <Calculator size={18} />
-                      <span>Pricing Calculator</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -203,9 +203,9 @@ export function DashboardSidebar() {
                         e.preventDefault();
                         // Open support form
                       }}
+                      className="justify-center"
                     >
                       <HelpCircle size={18} />
-                      <span>Contact Support</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -218,11 +218,10 @@ export function DashboardSidebar() {
       <SidebarFooter className="border-t p-4">
         <Button 
           variant="ghost" 
-          className="w-full justify-start" 
+          className="w-full justify-center" 
           onClick={handleLogout}
         >
-          <LogOut size={18} className="mr-2" />
-          <span>Logout</span>
+          <LogOut size={18} />
         </Button>
       </SidebarFooter>
     </Sidebar>
