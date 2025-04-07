@@ -126,13 +126,13 @@ export function DashboardSidebar() {
   return (
     <div className="min-w-[260px] max-w-[260px] bg-sidebar flex flex-col h-full border-r">
       <div className="p-4">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex flex-col items-center mb-6">
           <img
             src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
             className="h-8 w-auto"
           />
-          <span className="font-medium text-sm">Revify</span>
+          <span className="font-medium text-xs mt-1">Revify</span>
         </div>
         
         <div className="mb-6 relative">
