@@ -51,6 +51,7 @@ const LoginPage = () => {
   const [demoCred, setDemoCred] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [animationStarted, setAnimationStarted] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,6 +60,14 @@ const LoginPage = () => {
       password: "",
     },
   });
+
+  // Start animations after component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimationStarted(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -146,28 +155,35 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen w-full grid md:grid-cols-2 relative overflow-hidden">
+      {/* Background */}
+      <AuthBackground />
+      
       {/* Left Column - Login Form */}
       <div className="flex items-center justify-center p-4 md:p-8 relative z-10">
-        <div className="w-full max-w-md">
+        <div 
+          className={`w-full max-w-md transition-all duration-1000 transform ${
+            animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          }`}
+        >
           <div className="mb-8 flex flex-col items-center">
             <img
               src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
               alt="Revify Logo"
-              className="w-48 h-auto object-contain mb-4"
+              className="w-48 h-auto object-contain mb-4 hover:scale-105 transition-transform duration-300"
             />
             <p className="text-muted-foreground text-center mt-1">Sign in to continue to your account</p>
           </div>
 
           {/* Demo Credentials Alert */}
-          <Alert className="mb-6 border-primary/40 bg-primary/5">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-medium">Demo Credentials</AlertTitle>
+          <Alert className="mb-6 border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 dark:border-blue-700/40 auth-card">
+            <Info className="h-4 w-4 text-blue-900 dark:text-blue-400" />
+            <AlertTitle className="text-blue-900 dark:text-blue-400 font-medium">Demo Credentials</AlertTitle>
             <AlertDescription className="text-sm mt-2">
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className={`w-full text-xs ${demoCred === "admin" ? "bg-primary text-primary-foreground" : ""} border-primary/50 text-primary hover:text-primary-foreground`}
+                  className={`w-full text-xs ${demoCred === "admin" ? "bg-blue-900 text-white dark:bg-blue-800" : ""} border-blue-900/50 text-blue-900 dark:text-blue-400 dark:border-blue-700/50 hover:text-white hover:bg-blue-900 dark:hover:bg-blue-800 transition-colors duration-300`}
                   onClick={fillAdminCredentials}
                 >
                   {demoCred === "admin" && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -176,7 +192,7 @@ const LoginPage = () => {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className={`w-full text-xs ${demoCred === "user" ? "bg-primary text-primary-foreground" : ""} border-primary/50 text-primary hover:text-primary-foreground`}
+                  className={`w-full text-xs ${demoCred === "user" ? "bg-blue-900 text-white dark:bg-blue-800" : ""} border-blue-900/50 text-blue-900 dark:text-blue-400 dark:border-blue-700/50 hover:text-white hover:bg-blue-900 dark:hover:bg-blue-800 transition-colors duration-300`}
                   onClick={fillUserCredentials}
                 >
                   {demoCred === "user" && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -192,10 +208,14 @@ const LoginPage = () => {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem 
+                    className={`transition-all duration-1000 delay-100 transform ${
+                      animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                    }`}
+                  >
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="your@email.com" {...field} className="h-12" />
+                      <Input type="email" placeholder="your@email.com" {...field} className="h-12 auth-input" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -205,12 +225,16 @@ const LoginPage = () => {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem 
+                    className={`transition-all duration-1000 delay-200 transform ${
+                      animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
                       <FormLabel>Password</FormLabel>
                       <Link
                         to="/forgot-password"
-                        className="text-xs text-primary hover:underline"
+                        className="text-xs text-blue-900 dark:text-blue-400 hover:underline"
                       >
                         Forgot password?
                       </Link>
@@ -221,7 +245,7 @@ const LoginPage = () => {
                           type={showPassword ? "text" : "password"} 
                           placeholder="********" 
                           {...field} 
-                          className="h-12 pr-10"
+                          className="h-12 pr-10 auth-input"
                         />
                       </FormControl>
                       <Button
@@ -239,8 +263,16 @@ const LoginPage = () => {
                 )}
               />
               
-              <div className="pt-2">
-                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting}>
+              <div 
+                className={`pt-2 transition-all duration-1000 delay-300 transform ${
+                  animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                }`}
+              >
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 text-base bg-blue-900 hover:bg-blue-800 auth-button" 
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -256,14 +288,18 @@ const LoginPage = () => {
               </div>
               
               {loginError && (
-                <Alert variant="destructive" className="mt-4">
+                <Alert variant="destructive" className="mt-4 animate-fade-in">
                   <AlertDescription className="text-sm">
                     {loginError}
                   </AlertDescription>
                 </Alert>
               )}
               
-              <div className="mt-6">
+              <div 
+                className={`mt-6 transition-all duration-1000 delay-400 transform ${
+                  animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                }`}
+              >
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <Separator className="w-full" />
@@ -276,7 +312,7 @@ const LoginPage = () => {
                 </div>
                 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-11">
+                  <Button variant="outline" className="h-11 border-blue-900/20 hover:border-blue-900/40 transition-colors duration-300">
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -297,7 +333,7 @@ const LoginPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="h-11">
+                  <Button variant="outline" className="h-11 border-blue-900/20 hover:border-blue-900/40 transition-colors duration-300">
                     <svg className="mr-2 h-4 w-4 text-[#1877f2]" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M9.19795 21.5H13.198V13.4901H16.8021L17.198 9.50977H13.198V7.5C13.198 6.94772 13.6457 6.5 14.198 6.5H17.198V2.5H14.198C11.4365 2.5 9.19795 4.73858 9.19795 7.5V9.50977H7.19795L6.80206 13.4901H9.19795V21.5Z"></path>
                     </svg>
@@ -308,9 +344,13 @@ const LoginPage = () => {
             </form>
           </Form>
           
-          <div className="text-center mt-8 text-sm text-muted-foreground">
+          <div 
+            className={`text-center mt-8 text-sm text-muted-foreground transition-all duration-1000 delay-500 transform ${
+              animationStarted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+            }`}
+          >
             Don't have an account?{" "}
-            <Link to="/register" className="text-primary font-medium hover:underline">
+            <Link to="/register" className="text-blue-900 dark:text-blue-400 font-medium hover:underline">
               Create an account
             </Link>
           </div>
@@ -318,7 +358,7 @@ const LoginPage = () => {
       </div>
       
       {/* Right Column - Feature Showcase */}
-      <div className="hidden md:block relative bg-gradient-to-br from-primary/90 to-primary">
+      <div className="hidden md:block relative bg-gradient-to-br from-blue-900/90 to-blue-800">
         <div className="absolute inset-0 opacity-10 pattern-dots pattern-white pattern-size-4 pattern-offset-[8px]"></div>
         
         <div className="relative z-10 h-full flex flex-col justify-center items-center p-12 text-white text-center">
@@ -331,7 +371,7 @@ const LoginPage = () => {
                 }`}
               >
                 <div className="mb-8">
-                  <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm animate-float">
                     <img
                       src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
                       alt="Feature"
@@ -342,7 +382,7 @@ const LoginPage = () => {
                   <p className="text-white/80">{slide.description}</p>
                 </div>
                 
-                <div className="w-full bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-4">
+                <div className="w-full bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-4 hover:bg-white/15 transition-colors duration-300">
                   <div className="text-4xl font-bold">{slide.stats}</div>
                   <div className="text-sm text-white/70">{slide.statsPeriod}</div>
                   <div className="mt-4 text-sm">{slide.statsLabel}</div>
@@ -352,8 +392,8 @@ const LoginPage = () => {
                   {featureSlides.map((_, i) => (
                     <button
                       key={i}
-                      className={`w-2 h-2 rounded-full ${
-                        currentSlide === i ? "bg-white" : "bg-white/30"
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        currentSlide === i ? "bg-white w-6" : "bg-white/30"
                       }`}
                       onClick={() => setCurrentSlide(i)}
                     />

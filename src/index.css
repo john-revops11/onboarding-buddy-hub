@@ -42,6 +42,10 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 92 44% 48%; /* #68b046 */
 
+    /* Dark blue accent */
+    --dark-blue: 222 47% 11%;
+    --dark-blue-hover: 222 47% 20%;
+
     /* Border Radius */
     --radius: 0.5rem;
 
@@ -122,4 +126,128 @@
   .checklist-item.completed {
     @apply text-muted-foreground;
   }
+  
+  /* Dark blue accent styles */
+  .accent-dark-blue {
+    @apply text-blue-900 dark:text-blue-400;
+  }
+  
+  .bg-accent-dark-blue {
+    @apply bg-blue-900 dark:bg-blue-800;
+  }
+  
+  .border-accent-dark-blue {
+    @apply border-blue-900 dark:border-blue-700;
+  }
+  
+  /* Auth page animations */
+  .auth-card {
+    @apply transition-all duration-500 shadow-lg hover:shadow-xl;
+  }
+  
+  .auth-input {
+    @apply transition-all duration-300 border-2 focus:border-primary;
+  }
+  
+  .auth-button {
+    @apply transition-all duration-300 transform hover:scale-[1.02];
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  100% {
+    transform: translateY(5px) rotate(-5deg);
+  }
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite alternate;
+  }
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #68b046aa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #72c90aaa);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
 }
