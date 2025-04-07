@@ -11,9 +11,8 @@ import {
   LogOut,
   Menu,
   FileUp,
-  RefreshCw,
-  BarChart3,
   UploadCloud,
+  BarChart3,
   HelpCircle,
   Calculator
 } from "lucide-react";
@@ -137,9 +136,11 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            <RefreshCw size={18} />
-          </div>
+          <img
+            src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+            alt="Revify Logo"
+            className="h-8 w-auto"
+          />
           <span className="font-bold text-xl">Revify</span>
         </div>
       </SidebarHeader>

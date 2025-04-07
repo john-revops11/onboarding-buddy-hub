@@ -88,12 +88,11 @@ const RegisterPage = () => {
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
               <img
-                src="/lovable-uploads/dea409e6-aeec-4b1c-9742-d95c742d338a.png"
-                alt="Data Analytics"
-                className="w-24 h-24 object-contain"
+                src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+                alt="Revify Logo"
+                className="w-48 h-auto object-contain"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Register</CardTitle>
             <CardDescription className="text-center">
               Create an account to get started
             </CardDescription>

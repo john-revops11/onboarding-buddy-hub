@@ -151,11 +151,10 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           <div className="mb-8 flex flex-col items-center">
             <img
-              src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
+              src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
               alt="Revify Logo"
-              className="w-16 h-16 object-contain mb-4"
+              className="w-48 h-auto object-contain mb-4"
             />
-            <h1 className="text-2xl font-bold">Welcome to Revify</h1>
             <p className="text-muted-foreground text-center mt-1">Sign in to continue to your account</p>
           </div>
 
@@ -332,11 +331,11 @@ const LoginPage = () => {
                 }`}
               >
                 <div className="mb-8">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
                     <img
-                      src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
+                      src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
                       alt="Feature"
-                      className="w-12 h-12 object-contain"
+                      className="w-20 h-20 object-contain"
                     />
                   </div>
                   <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>

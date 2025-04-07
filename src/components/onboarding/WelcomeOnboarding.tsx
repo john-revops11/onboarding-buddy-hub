@@ -60,6 +60,13 @@ const WelcomeOnboarding = ({ userName = 'User' }) => {
   return (
     <Card className="w-full max-w-4xl shadow-lg">
       <CardHeader className="text-center pb-8">
+        <div className="flex justify-center mb-6">
+          <img
+            src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+            alt="Revify Logo"
+            className="w-48 h-auto object-contain"
+          />
+        </div>
         <CardTitle className="text-3xl font-bold">Welcome to Revify, {userName}</CardTitle>
         <CardDescription className="text-lg mt-2">
           What do you need help with?
