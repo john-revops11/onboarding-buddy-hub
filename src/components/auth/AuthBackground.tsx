@@ -13,7 +13,7 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ className }) => 
     setInitialized(true);
   }, []);
 
-  // Generate hexagons with various sizes and positions
+  // Generate hexagons with various sizes and positions - now with more green emphasis
   const hexagons = Array.from({ length: 30 }, (_, i) => ({
     id: i,
     size: Math.floor(Math.random() * 30) + 10,
@@ -22,13 +22,14 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ className }) => 
     delay: Math.random() * 5,
     duration: Math.random() * 20 + 10,
     opacity: Math.random() * 0.5 + 0.1,
-    color: i % 5 === 0 ? '#5d8430' : i % 3 === 0 ? '#0a1c34' : '#2a4d73',
+    // Changed color distribution to favor green (60%) over blue (40%)
+    color: i % 10 <= 5 ? '#5d8430' : i % 10 <= 8 ? '#8ab454' : '#0a1c34',
   }));
 
   return (
     <div className={`absolute inset-0 overflow-hidden -z-10 ${className}`}>
-      {/* Gradient backdrop - modified to use our new color tones */}
-      <div className="absolute inset-0 bg-gradient-to-br from-darkblue-base/5 to-darkblue-base/10 dark:from-darkblue-base dark:to-darkblue-hover"></div>
+      {/* Gradient backdrop - modified to emphasize green over blue */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-light/60 to-green-light/20 dark:from-green-base/30 dark:to-darkblue-base/50"></div>
 
       {/* Animated hexagon pattern */}
       <div className="absolute inset-0">
@@ -48,7 +49,7 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ className }) => 
             <Hexagon 
               size={hex.size} 
               color={hex.color}
-              fill={Math.random() > 0.7 ? hex.color : 'transparent'}
+              fill={Math.random() > 0.6 ? hex.color : 'transparent'} // More filled hexagons
               strokeWidth={1} 
               className="transition-transform duration-300"
             />

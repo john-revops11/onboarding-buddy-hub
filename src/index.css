@@ -16,8 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary - Green */
-    --primary: 93 45% 35%;  /* #5d8430 */
+    /* Primary - Green - More saturated now */
+    --primary: 93 50% 38%;  /* #5d8430 with increased saturation */
     --primary-foreground: 210 40% 98%;
 
     /* Secondary */
@@ -28,8 +28,8 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent */
-    --accent: 93 45% 35%; /* #5d8430 */
+    /* Accent - Now green instead of matching primary */
+    --accent: 93 50% 38%; /* #5d8430 */
     --accent-foreground: 222.2 47.4% 11.2%;
 
     /* Destructive */
@@ -39,21 +39,21 @@
     /* Border & Input */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 93 45% 35%; /* #5d8430 */
+    --ring: 93 50% 38%; /* #5d8430 */
 
-    /* Dark blue accent */
+    /* Dark blue accent - Reduced prominence */
     --dark-blue: 214 76% 12%;  /* #0a1c34 */
     --dark-blue-hover: 214 65% 18%;
 
     /* Border Radius */
     --radius: 0.5rem;
 
-    /* Sidebar */
-    --sidebar-background: 252 87% 99%;
+    /* Sidebar - More green emphasis */
+    --sidebar-background: 93 30% 95%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 93 45% 35%; /* #5d8430 */
+    --sidebar-primary: 93 50% 38%; /* #5d8430 */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 93 45% 35%; /* #5d8430 */
+    --sidebar-accent: 93 50% 38%; /* #5d8430 */
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 93 45% 92%;
     --sidebar-ring: 93 45% 73%;
@@ -69,7 +69,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 93 45% 35%; /* #5d8430 */
+    /* Primary - Green - More vibrant in dark mode */
+    --primary: 93 60% 45%; /* Brighter #5d8430 */
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -78,7 +79,8 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 93 45% 35%; /* #5d8430 */
+    /* Accent - Green more visible on dark backgrounds */
+    --accent: 93 60% 45%; /* Brighter #5d8430 */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -86,16 +88,17 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 93 45% 73%;
+    --ring: 93 55% 65%;
 
-    --sidebar-background: 214 76% 12%; /* #0a1c34 */
+    /* Sidebar - Green emphasized, blue reduced */
+    --sidebar-background: 214 60% 15%; /* Lighter #0a1c34 */
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 93 45% 35%; /* #5d8430 */
+    --sidebar-primary: 93 60% 45%; /* Brighter #5d8430 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 93 45% 35%; /* #5d8430 */
+    --sidebar-accent: 93 60% 45%; /* Brighter #5d8430 */
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 214 76% 18%;
-    --sidebar-ring: 93 45% 73%;
+    --sidebar-border: 214 50% 25%;
+    --sidebar-ring: 93 55% 65%;
   }
 }
 
@@ -109,7 +112,7 @@
   }
   
   .auth-bg {
-    @apply bg-gradient-to-br from-green-50 to-white dark:from-darkblue-base/50 dark:to-background;
+    @apply bg-gradient-to-br from-green-light to-white dark:from-green-base/30 dark:to-darkblue-base/80;
   }
 }
 

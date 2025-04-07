@@ -66,10 +66,13 @@ export default {
 				green: {
 					base: '#5d8430',
 					hover: '#6a9538',
+					light: '#e8f4d9',
+					medium: '#8ab454',
 				},
 				darkblue: {
 					base: '#0a1c34',
 					hover: '#112c4e',
+					light: '#1a3c6a',
 				}
 			},
 			borderRadius: {
