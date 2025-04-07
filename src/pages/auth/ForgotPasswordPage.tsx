@@ -80,8 +80,8 @@ const ForgotPasswordPage = () => {
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
               <img
-                src="/lovable-uploads/c6574cfa-11f0-4c58-8f1e-962b252ae14f.png"
-                alt="Analytics Dashboard"
+                src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
+                alt="Revify Logo"
                 className="w-20 h-20 object-contain"
               />
             </div>

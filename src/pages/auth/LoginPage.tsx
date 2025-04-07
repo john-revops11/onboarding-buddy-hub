@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -161,7 +160,7 @@ const LoginPage = () => {
         >
           <div className="mb-8 flex flex-col items-center">
             <img
-              src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+              src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
               alt="Revify Logo"
               className="w-48 h-auto object-contain mb-4 hover:scale-105 transition-transform duration-300"
             />
@@ -362,7 +361,7 @@ const LoginPage = () => {
               <div className="mb-8">
                 <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm animate-float">
                   <img
-                    src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+                    src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
                     alt="Feature"
                     className="w-20 h-20 object-contain"
                   />

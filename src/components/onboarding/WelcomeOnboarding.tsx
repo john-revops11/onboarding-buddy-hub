@@ -64,7 +64,7 @@ const WelcomeOnboarding = ({ userName = 'User' }) => {
       <CardHeader className="text-center pb-8">
         <div className="flex justify-center mb-6">
           <img
-            src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+            src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
             className="w-48 h-auto object-contain"
           />

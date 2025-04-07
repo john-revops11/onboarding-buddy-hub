@@ -137,7 +137,7 @@ export function DashboardSidebar() {
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center space-x-2">
           <img
-            src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+            src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
             className="h-8 w-auto"
           />
