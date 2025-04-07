@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Info, CheckCircle2, LockKeyhole, EyeOff, Eye, ArrowRight } from "lucide-react";
+import { Loader2, Info, CheckCircle2, LockKeyhole, EyeOff, Eye, ArrowRight, Linkedin } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 
@@ -61,7 +60,6 @@ const LoginPage = () => {
     },
   });
 
-  // Start animations after component mount
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationStarted(true);
@@ -69,7 +67,6 @@ const LoginPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (state.isAuthenticated && !state.isLoading) {
       if (state.user?.role === "admin") {
@@ -80,7 +77,6 @@ const LoginPage = () => {
     }
   }, [state.isAuthenticated, state.isLoading, state.user, navigate]);
 
-  // Auto-cycle through slides
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % 3);
@@ -128,7 +124,6 @@ const LoginPage = () => {
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
 
-  // Content for feature slides
   const featureSlides = [
     {
       title: "Complete Business Intelligence",
@@ -155,10 +150,8 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen w-full grid md:grid-cols-2 relative overflow-hidden">
-      {/* Background */}
       <AuthBackground />
       
-      {/* Left Column - Login Form */}
       <div className="flex items-center justify-center p-4 md:p-8 relative z-10">
         <div 
           className={`w-full max-w-md transition-all duration-1000 transform ${
@@ -174,7 +167,6 @@ const LoginPage = () => {
             <p className="text-muted-foreground text-center mt-1">Sign in to continue to your account</p>
           </div>
 
-          {/* Demo Credentials Alert */}
           <Alert className="mb-6 border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 dark:border-blue-700/40 auth-card">
             <Info className="h-4 w-4 text-blue-900 dark:text-blue-400" />
             <AlertTitle className="text-blue-900 dark:text-blue-400 font-medium">Demo Credentials</AlertTitle>
@@ -334,10 +326,8 @@ const LoginPage = () => {
                     Google
                   </Button>
                   <Button variant="outline" className="h-11 border-blue-900/20 hover:border-blue-900/40 transition-colors duration-300">
-                    <svg className="mr-2 h-4 w-4 text-[#1877f2]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9.19795 21.5H13.198V13.4901H16.8021L17.198 9.50977H13.198V7.5C13.198 6.94772 13.6457 6.5 14.198 6.5H17.198V2.5H14.198C11.4365 2.5 9.19795 4.73858 9.19795 7.5V9.50977H7.19795L6.80206 13.4901H9.19795V21.5Z"></path>
-                    </svg>
-                    Facebook
+                    <Linkedin className="mr-2 h-4 w-4 text-[#0077B5]" />
+                    LinkedIn
                   </Button>
                 </div>
               </div>
@@ -357,51 +347,48 @@ const LoginPage = () => {
         </div>
       </div>
       
-      {/* Right Column - Feature Showcase */}
       <div className="hidden md:block relative bg-gradient-to-br from-blue-900/90 to-blue-800">
         <div className="absolute inset-0 opacity-10 pattern-dots pattern-white pattern-size-4 pattern-offset-[8px]"></div>
         
         <div className="relative z-10 h-full flex flex-col justify-center items-center p-12 text-white text-center">
-          <div className="max-w-md transition-all duration-500 ease-in-out">
-            {featureSlides.map((slide, index) => (
-              <div 
-                key={index}
-                className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 ${
-                  currentSlide === index ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
-              >
-                <div className="mb-8">
-                  <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm animate-float">
-                    <img
-                      src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
-                      alt="Feature"
-                      className="w-20 h-20 object-contain"
-                    />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>
-                  <p className="text-white/80">{slide.description}</p>
+          {featureSlides.map((slide, index) => (
+            <div 
+              key={index}
+              className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 ${
+                currentSlide === index ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <div className="mb-8">
+                <div className="w-28 h-28 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm animate-float">
+                  <img
+                    src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
+                    alt="Feature"
+                    className="w-20 h-20 object-contain"
+                  />
                 </div>
-                
-                <div className="w-full bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-4 hover:bg-white/15 transition-colors duration-300">
-                  <div className="text-4xl font-bold">{slide.stats}</div>
-                  <div className="text-sm text-white/70">{slide.statsPeriod}</div>
-                  <div className="mt-4 text-sm">{slide.statsLabel}</div>
-                </div>
-                
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 mt-8">
-                  {featureSlides.map((_, i) => (
-                    <button
-                      key={i}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        currentSlide === i ? "bg-white w-6" : "bg-white/30"
-                      }`}
-                      onClick={() => setCurrentSlide(i)}
-                    />
-                  ))}
-                </div>
+                <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>
+                <p className="text-white/80">{slide.description}</p>
               </div>
-            ))}
-          </div>
+              
+              <div className="w-full bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-4 hover:bg-white/15 transition-colors duration-300">
+                <div className="text-4xl font-bold">{slide.stats}</div>
+                <div className="text-sm text-white/70">{slide.statsPeriod}</div>
+                <div className="mt-4 text-sm">{slide.statsLabel}</div>
+              </div>
+              
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 mt-8">
+                {featureSlides.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentSlide === i ? "bg-white w-6" : "bg-white/30"
+                    }`}
+                    onClick={() => setCurrentSlide(i)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
