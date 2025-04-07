@@ -1,44 +1,28 @@
 
-import { Calculator, HelpCircle } from "lucide-react";
-import { 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton 
-} from "@/components/ui/sidebar";
+import { Search, HelpCircle, MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function ToolsSection() {
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          tooltip="Pricing Calculator"
-        >
-          <a 
-            href="https://revify.com/pricing-calculator" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="justify-center"
-          >
-            <Calculator size={18} />
-          </a>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          tooltip="Support"
-        >
-          <a 
-            href="#" 
-            onClick={(e) => { 
-              e.preventDefault();
-              // Open support form
-            }}
-            className="justify-center"
-          >
-            <HelpCircle size={18} />
-          </a>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
+    <div className="w-full space-y-1">
+      <button
+        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
+        onClick={() => {
+          // Open feedback form
+        }}
+      >
+        <MessageSquare size={18} />
+        <span>Give feedback</span>
+      </button>
+      <button
+        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
+        onClick={() => {
+          // Open help documentation
+        }}
+      >
+        <HelpCircle size={18} />
+        <span>Learn more</span>
+      </button>
+    </div>
   );
 }

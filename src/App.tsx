@@ -20,6 +20,7 @@ import ProfilePage from "./pages/dashboard/ProfilePage";
 import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
 import OpportunitiesPage from "./pages/dashboard/OpportunitiesPage";
 import DataUploadsPage from "./pages/dashboard/DataUploadsPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminChecklists from "./pages/admin/AdminChecklists";
@@ -56,6 +57,7 @@ const App = () => {
                 <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/data-uploads" element={<DataUploadsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Route>
 
               {/* Admin Routes */}
@@ -71,6 +73,7 @@ const App = () => {
                 <Route path="/admin/api-keys" element={<AdminApiKeys />} />
                 <Route path="/admin/files" element={<AdminFiles />} />
                 <Route path="/admin/opportunities" element={<AdminOpportunities />} />
+                <Route path="/admin/settings" element={<SettingsPage />} />
               </Route>
 
               {/* Catch-all route */}

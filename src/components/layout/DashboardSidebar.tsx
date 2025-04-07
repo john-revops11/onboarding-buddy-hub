@@ -9,24 +9,15 @@ import {
   CheckSquare, 
   Key, 
   LogOut,
-  Menu,
+  Search,
   FileUp,
   UploadCloud,
-  BarChart3
+  BarChart3,
+  Wallet
 } from "lucide-react";
-import { 
-  Sidebar, 
-  SidebarHeader, 
-  SidebarContent, 
-  SidebarFooter, 
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarTrigger,
-  SidebarProvider
-} from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { UserMenu } from "./sidebar/UserMenu";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
@@ -37,21 +28,18 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardLayout({ children }: DashboardSidebarProps) {
+  const { state } = useAuth();
+  const isAdmin = state.user?.role === "admin";
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="flex w-full min-h-screen">
-        <DashboardSidebar />
-        <div className="flex-1">
-          <div className="flex items-center p-4 border-b">
-            <SidebarTrigger className="md:hidden" />
-            <div className="ml-auto flex items-center space-x-2">
-              <UserMenu />
-            </div>
-          </div>
-          <main className="p-6">{children}</main>
+    <div className="flex h-screen w-full overflow-hidden">
+      <DashboardSidebar />
+      <main className="flex-1 overflow-auto">
+        <div className="flex items-center justify-end p-4 border-b">
+          <UserMenu />
         </div>
-      </div>
-    </SidebarProvider>
+        <div className="p-6">{children}</div>
+      </main>
+    </div>
   );
 }
 
@@ -69,19 +57,19 @@ export function DashboardSidebar() {
 
   const userNavItems = [
     {
-      name: "Dashboard",
+      name: "Find",
       path: "/dashboard",
-      icon: LayoutDashboard,
+      icon: Search,
     },
     {
-      name: "Knowledge Hub",
+      name: "My intents",
       path: "/knowledge-hub",
       icon: FileText,
     },
     {
-      name: "Opportunities",
+      name: "Wallet",
       path: "/opportunities",
-      icon: BarChart3,
+      icon: Wallet,
     },
     {
       name: "Data Uploads",
@@ -131,9 +119,9 @@ export function DashboardSidebar() {
   const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b">
-        <div className="flex items-center space-x-2">
+    <div className="w-60 bg-sidebar flex flex-col h-full border-r">
+      <div className="p-4">
+        <div className="flex items-center gap-2 mb-6">
           <img
             src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
@@ -141,35 +129,43 @@ export function DashboardSidebar() {
           />
           <span className="font-bold text-xl">Revify</span>
         </div>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarNavigation items={navItems} currentPath={currentPath} />
-          </SidebarGroupContent>
-        </SidebarGroup>
         
-        {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Tools</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ToolsSection />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-      </SidebarContent>
+        <div className="mb-6">
+          <Input 
+            placeholder="Search..." 
+            className="w-full bg-sidebar-accent/20 border-sidebar-border"
+            prefix={<Search className="h-4 w-4 text-muted-foreground" />}
+          />
+        </div>
+        
+        <div className="mb-6">
+          <SidebarNavigation items={navItems} currentPath={currentPath} />
+        </div>
+      </div>
       
-      <SidebarFooter className="border-t p-4">
-        <Button 
-          variant="ghost" 
-          className="w-full justify-center" 
-          onClick={handleLogout}
-        >
-          <LogOut size={18} />
-        </Button>
-      </SidebarFooter>
-    </Sidebar>
+      <div className="mt-auto p-4 border-t">
+        <ToolsSection />
+        
+        <div className="mt-3">
+          <Button 
+            variant="ghost" 
+            className="flex w-full items-center gap-3 justify-start px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" 
+            onClick={() => navigate("/settings")}
+          >
+            <Settings size={18} />
+            <span>Settings</span>
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            className="flex w-full items-center gap-3 justify-start px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" 
+            onClick={handleLogout}
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

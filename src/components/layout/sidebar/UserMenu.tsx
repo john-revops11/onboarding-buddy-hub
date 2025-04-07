@@ -7,17 +7,17 @@ export function UserMenu() {
   const user = state.user;
   
   return (
-    <div className="flex items-center gap-4">
-      <div className="hidden md:block">
-        <p className="text-sm font-medium">{user?.name}</p>
-        <p className="text-xs text-muted-foreground">{user?.email}</p>
-      </div>
-      <Avatar>
+    <div className="flex items-center gap-3">
+      <Avatar className="h-8 w-8">
         <AvatarImage src={user?.avatar} />
         <AvatarFallback>
           {user?.name?.charAt(0) || "U"}
         </AvatarFallback>
       </Avatar>
+      <div className="flex flex-col">
+        <span className="text-sm font-medium">{user?.name}</span>
+        <span className="text-xs text-muted-foreground">{user?.email}</span>
+      </div>
     </div>
   );
 }
