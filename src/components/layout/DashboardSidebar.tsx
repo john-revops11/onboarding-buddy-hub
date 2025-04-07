@@ -62,7 +62,7 @@ export function DashboardSidebar() {
       icon: Search,
     },
     {
-      name: "My intents",
+      name: "Knowledge Hub",
       path: "/knowledge-hub",
       icon: FileText,
     },
