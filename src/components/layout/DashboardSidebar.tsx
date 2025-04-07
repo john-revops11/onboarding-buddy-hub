@@ -67,7 +67,7 @@ export function DashboardSidebar() {
       icon: FileText,
     },
     {
-      name: "Wallet",
+      name: "Opportunities",
       path: "/opportunities",
       icon: Wallet,
     },
