@@ -12,27 +12,25 @@ import {
   Menu,
   FileUp,
   UploadCloud,
-  BarChart3,
-  HelpCircle,
-  Calculator
+  BarChart3
 } from "lucide-react";
 import { 
   Sidebar, 
   SidebarHeader, 
   SidebarContent, 
   SidebarFooter, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton, 
-  SidebarTrigger,
-  SidebarProvider,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent
+  SidebarGroupContent,
+  SidebarTrigger,
+  SidebarProvider
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import { UserMenu } from "./sidebar/UserMenu";
+import { SidebarNavigation } from "./sidebar/SidebarNavigation";
+import { ToolsSection } from "./sidebar/ToolsSection";
 
 interface DashboardSidebarProps {
   children: React.ReactNode;
@@ -149,28 +147,7 @@ export function DashboardSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={currentPath === item.path}
-                    tooltip={item.name}
-                  >
-                    <a 
-                      href={item.path} 
-                      onClick={(e) => { 
-                        e.preventDefault();
-                        navigate(item.path);
-                      }}
-                      className="justify-center"
-                    >
-                      <item.icon size={18} />
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarNavigation items={navItems} currentPath={currentPath} />
           </SidebarGroupContent>
         </SidebarGroup>
         
@@ -178,38 +155,7 @@ export function DashboardSidebar() {
           <SidebarGroup>
             <SidebarGroupLabel>Tools</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip="Pricing Calculator"
-                  >
-                    <a 
-                      href="https://revify.com/pricing-calculator" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="justify-center"
-                    >
-                      <Calculator size={18} />
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip="Support"
-                  >
-                    <a 
-                      href="#" 
-                      onClick={(e) => { 
-                        e.preventDefault();
-                        // Open support form
-                      }}
-                      className="justify-center"
-                    >
-                      <HelpCircle size={18} />
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
+              <ToolsSection />
             </SidebarGroupContent>
           </SidebarGroup>
         )}
@@ -225,25 +171,5 @@ export function DashboardSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
-  );
-}
-
-function UserMenu() {
-  const { state } = useAuth();
-  const user = state.user;
-  
-  return (
-    <div className="flex items-center gap-4">
-      <div className="hidden md:block">
-        <p className="text-sm font-medium">{user?.name}</p>
-        <p className="text-xs text-muted-foreground">{user?.email}</p>
-      </div>
-      <Avatar>
-        <AvatarImage src={user?.avatar} />
-        <AvatarFallback>
-          {user?.name?.charAt(0) || "U"}
-        </AvatarFallback>
-      </Avatar>
-    </div>
   );
 }
