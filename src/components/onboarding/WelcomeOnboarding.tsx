@@ -50,11 +50,13 @@ const WelcomeOnboarding = ({ userName = 'User' }) => {
   const handleContinue = () => {
     // In a real app, this would save the user's selection
     // and customize their experience
-    localStorage.setItem('selectedService', selectedService || '');
-    localStorage.setItem('onboardingComplete', 'true');
-    
-    // Navigate to dashboard
-    navigate('/dashboard');
+    if (selectedService) {
+      localStorage.setItem('selectedService', selectedService);
+      localStorage.setItem('onboardingComplete', 'true');
+      
+      // Navigate to dashboard
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -111,7 +113,7 @@ const WelcomeOnboarding = ({ userName = 'User' }) => {
           onClick={handleContinue} 
           disabled={!selectedService}
           size="lg"
-          className="px-8"
+          className="px-8 bg-green-base hover:bg-green-hover text-white"
         >
           Next
           <ArrowRight className="ml-2 h-4 w-4" />
