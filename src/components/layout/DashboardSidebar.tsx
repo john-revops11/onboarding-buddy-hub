@@ -130,12 +130,12 @@ export function DashboardSidebar() {
           <span className="font-bold text-xl">Revify</span>
         </div>
         
-        <div className="mb-6">
+        <div className="mb-6 relative">
           <Input 
             placeholder="Search..." 
-            className="w-full bg-sidebar-accent/20 border-sidebar-border"
-            prefix={<Search className="h-4 w-4 text-muted-foreground" />}
+            className="w-full bg-sidebar-accent/20 border-sidebar-border pl-9"
           />
+          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
         
         <div className="mb-6">
