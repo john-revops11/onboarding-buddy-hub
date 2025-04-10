@@ -16,7 +16,10 @@ import {
   ClipboardList,
   BookOpen,
   LineChart,
-  FileBarChart
+  FileBarChart,
+  Package,
+  Plus,
+  UserPlus
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -126,6 +129,21 @@ export function DashboardSidebar() {
       name: "API Keys",
       path: "/admin/api-keys",
       icon: Key,
+    },
+    {
+      name: "Subscriptions",
+      path: "/admin/subscriptions",
+      icon: Package,
+    },
+    {
+      name: "Add-ons",
+      path: "/admin/addons",
+      icon: Plus,
+    },
+    {
+      name: "Onboard Client",
+      path: "/admin/onboarding",
+      icon: UserPlus,
     },
     {
       name: "Opportunities",

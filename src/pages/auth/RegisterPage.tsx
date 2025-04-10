@@ -1,10 +1,10 @@
 
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useToast } from "@/hooks/use-toast";
@@ -28,39 +28,105 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
+  companyName: z.string().optional(),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  teamMembers: z.array(z.string().email("Invalid email format")).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register: registerUser, state } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [isInvited, setIsInvited] = useState(false);
+  const [invitedEmail, setInvitedEmail] = useState("");
+  const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
+  const [teamMemberInput, setTeamMemberInput] = useState("");
+  const [teamMembers, setTeamMembers] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Parse query parameters for invitation
+    const params = new URLSearchParams(location.search);
+    const email = params.get("email");
+    
+    if (email) {
+      setIsInvited(true);
+      setInvitedEmail(email);
+    }
+  }, [location]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
+      email: invitedEmail || "",
+      companyName: "",
       password: "",
+      teamMembers: [],
     },
   });
+
+  // Update form when invited email changes
+  useEffect(() => {
+    if (invitedEmail) {
+      form.setValue("email", invitedEmail);
+    }
+  }, [invitedEmail, form]);
+
+  const addTeamMember = () => {
+    if (teamMemberInput && teamMemberInput.includes("@")) {
+      if (!teamMembers.includes(teamMemberInput)) {
+        const newTeamMembers = [...teamMembers, teamMemberInput];
+        setTeamMembers(newTeamMembers);
+        form.setValue("teamMembers", newTeamMembers);
+      }
+      setTeamMemberInput("");
+    }
+  };
+
+  const removeTeamMember = (email: string) => {
+    const newTeamMembers = teamMembers.filter((member) => member !== email);
+    setTeamMembers(newTeamMembers);
+    form.setValue("teamMembers", newTeamMembers);
+  };
+
+  const handleTeamMemberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTeamMember();
+    }
+  };
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
+      // Register the user
       await registerUser({
         name: data.name,
         email: data.email,
         password: data.password,
+        companyName: data.companyName,
       });
+
+      // In a real implementation, we would also send invitations to team members here
+      if (data.teamMembers && data.teamMembers.length > 0) {
+        console.log("Would send invitations to:", data.teamMembers);
+      }
+
       setRegistrationComplete(true);
       toast({
         title: "Registration successful",
@@ -94,7 +160,9 @@ const RegisterPage = () => {
               />
             </div>
             <CardDescription className="text-center">
-              Create an account to get started
+              {isInvited 
+                ? "Complete your registration to join your organization" 
+                : "Create an account to get started"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -104,6 +172,11 @@ const RegisterPage = () => {
                   <AlertTitle className="text-green-base">Registration successful!</AlertTitle>
                   <AlertDescription>
                     Your account has been created and is pending admin approval. You will be notified when your account is approved.
+                    {teamMembers.length > 0 && (
+                      <p className="mt-2">
+                        Invitations have been sent to {teamMembers.length} team member{teamMembers.length > 1 ? 's' : ''}.
+                      </p>
+                    )}
                   </AlertDescription>
                 </Alert>
                 <Button 
@@ -129,6 +202,7 @@ const RegisterPage = () => {
                       </FormItem>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
                     name="email"
@@ -136,12 +210,32 @@ const RegisterPage = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="john@example.com" {...field} />
+                          <Input 
+                            type="email" 
+                            placeholder="john@example.com" 
+                            disabled={isInvited}
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                  
+                  <FormField
+                    control={form.control}
+                    name="companyName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Acme Corp" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <FormField
                     control={form.control}
                     name="password"
@@ -155,6 +249,58 @@ const RegisterPage = () => {
                       </FormItem>
                     )}
                   />
+                  
+                  <Collapsible
+                    open={isTeamMembersOpen}
+                    onOpenChange={setIsTeamMembersOpen}
+                    className="border rounded-md p-3"
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="flex w-full justify-between"
+                      >
+                        <span>Want to invite your team?</span>
+                        <span>{isTeamMembersOpen ? "Hide" : "Show"}</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 space-y-2">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        Add email addresses of team members you'd like to invite
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {teamMembers.map((email) => (
+                          <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                            {email}
+                            <X
+                              size={14}
+                              className="cursor-pointer"
+                              onClick={() => removeTeamMember(email)}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="team.member@example.com"
+                          value={teamMemberInput}
+                          onChange={(e) => setTeamMemberInput(e.target.value)}
+                          onKeyDown={handleTeamMemberKeyDown}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addTeamMember}
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  
                   <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <>
@@ -165,6 +311,7 @@ const RegisterPage = () => {
                       "Create account"
                     )}
                   </Button>
+                  
                   {state.error && (
                     <p className="text-sm text-destructive text-center">{state.error}</p>
                   )}

@@ -38,6 +38,15 @@ import DiagnosticReviewsPage from "./pages/dashboard/DiagnosticReviewsPage";
 import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
 import AdminDiagnosticReviewsPage from "./pages/admin/AdminDiagnosticReviewsPage";
 
+// Subscription and Onboarding Pages
+import AdminSubscriptionsPage from "./pages/admin/subscriptions/AdminSubscriptionsPage";
+import CreateSubscriptionPage from "./pages/admin/subscriptions/CreateSubscriptionPage";
+import EditSubscriptionPage from "./pages/admin/subscriptions/EditSubscriptionPage";
+import AdminAddonsPage from "./pages/admin/addons/AdminAddonsPage";
+import CreateAddonPage from "./pages/admin/addons/CreateAddonPage";
+import EditAddonPage from "./pages/admin/addons/EditAddonPage";
+import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
+
 // Create the QueryClient outside of the component
 const queryClient = new QueryClient();
 
@@ -90,6 +99,15 @@ const App = () => {
                 {/* New Admin Routes */}
                 <Route path="/admin/insights" element={<AdminInsightsPage />} />
                 <Route path="/admin/diagnostic-reviews" element={<AdminDiagnosticReviewsPage />} />
+                
+                {/* Subscription and Onboarding Routes */}
+                <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+                <Route path="/admin/subscriptions/create" element={<CreateSubscriptionPage />} />
+                <Route path="/admin/subscriptions/edit/:id" element={<EditSubscriptionPage />} />
+                <Route path="/admin/addons" element={<AdminAddonsPage />} />
+                <Route path="/admin/addons/create" element={<CreateAddonPage />} />
+                <Route path="/admin/addons/edit/:id" element={<EditAddonPage />} />
+                <Route path="/admin/onboarding" element={<AdminOnboardingPage />} />
               </Route>
 
               {/* Catch-all route */}
