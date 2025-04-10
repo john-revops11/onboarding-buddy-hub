@@ -13,7 +13,10 @@ import {
   FileUp,
   UploadCloud,
   BarChart3,
-  Wallet
+  ClipboardList,
+  BookOpen,
+  LineChart,
+  FileBarChart
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -57,19 +60,29 @@ export function DashboardSidebar() {
 
   const userNavItems = [
     {
-      name: "Find",
+      name: "Onboarding",
       path: "/dashboard",
-      icon: Search,
+      icon: ClipboardList,
+    },
+    {
+      name: "Latest Insights",
+      path: "/insights",
+      icon: LineChart,
+    },
+    {
+      name: "Top Opportunities",
+      path: "/opportunities",
+      icon: BarChart3,
+    },
+    {
+      name: "Diagnostic Reviews",
+      path: "/diagnostic-reviews",
+      icon: FileBarChart,
     },
     {
       name: "Knowledge Hub",
       path: "/knowledge-hub",
-      icon: FileText,
-    },
-    {
-      name: "Opportunities",
-      path: "/opportunities",
-      icon: Wallet,
+      icon: BookOpen,
     },
     {
       name: "Data Uploads",
@@ -118,6 +131,16 @@ export function DashboardSidebar() {
       name: "Opportunities",
       path: "/admin/opportunities",
       icon: BarChart3,
+    },
+    {
+      name: "Insights",
+      path: "/admin/insights",
+      icon: LineChart,
+    },
+    {
+      name: "Diagnostic Reviews",
+      path: "/admin/diagnostic-reviews",
+      icon: FileBarChart,
     },
   ];
 

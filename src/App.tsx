@@ -31,6 +31,12 @@ import ChecklistEditor from "./pages/admin/ChecklistEditor";
 import AssignChecklist from "./pages/admin/AssignChecklist";
 import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
 
+// New Pages for Revify Portal requirements
+import InsightsPage from "./pages/dashboard/InsightsPage";
+import DiagnosticReviewsPage from "./pages/dashboard/DiagnosticReviewsPage";
+import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
+import AdminDiagnosticReviewsPage from "./pages/admin/AdminDiagnosticReviewsPage";
+
 // Create the QueryClient outside of the component
 const queryClient = new QueryClient();
 
@@ -58,6 +64,10 @@ const App = () => {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/data-uploads" element={<DataUploadsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                
+                {/* New User Routes */}
+                <Route path="/insights" element={<InsightsPage />} />
+                <Route path="/diagnostic-reviews" element={<DiagnosticReviewsPage />} />
               </Route>
 
               {/* Admin Routes */}
@@ -74,6 +84,10 @@ const App = () => {
                 <Route path="/admin/files" element={<AdminFiles />} />
                 <Route path="/admin/opportunities" element={<AdminOpportunities />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
+                
+                {/* New Admin Routes */}
+                <Route path="/admin/insights" element={<AdminInsightsPage />} />
+                <Route path="/admin/diagnostic-reviews" element={<AdminDiagnosticReviewsPage />} />
               </Route>
 
               {/* Catch-all route */}
