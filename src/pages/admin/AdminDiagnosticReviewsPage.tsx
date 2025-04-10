@@ -351,7 +351,7 @@ const AdminDiagnosticReviewsPage = () => {
                             review.status === "completed"
                               ? "success"
                               : review.status === "scheduled"
-                              ? "warning"
+                              ? "secondary"  // Changed from "warning" to "secondary" which is an allowed variant
                               : "secondary"
                           }
                         >
