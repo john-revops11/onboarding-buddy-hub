@@ -5,11 +5,10 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -18,140 +17,142 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
-  FileText,
-  Plus,
-  Calendar,
-  Edit,
-  Trash2,
-  Eye,
-  Download,
-  Search,
-  Users,
-  Clock,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Calendar,
+  Download,
+  Edit,
+  Eye,
+  FileText,
+  Filter,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Share2,
+  Trash2,
+  Upload,
+} from "lucide-react";
+
+// Sample diagnostic reviews data
+const diagnosticReviews = [
+  {
+    id: "dr-001",
+    title: "Initial Diagnostic Assessment",
+    client: "Acme Corporation",
+    date: "2023-05-15",
+    status: "completed",
+    documentLink: "#",
+    type: "initial",
+  },
+  {
+    id: "dr-002",
+    title: "Q2 Performance Review",
+    client: "TechStart Inc",
+    date: "2023-06-22",
+    status: "completed",
+    documentLink: "#",
+    type: "quarterly",
+  },
+  {
+    id: "dr-003",
+    title: "Strategic Growth Analysis",
+    client: "Global Partners LLC",
+    date: "2023-07-10",
+    status: "scheduled",
+    documentLink: "#",
+    type: "strategic",
+  },
+  {
+    id: "dr-004",
+    title: "Data Integration Review",
+    client: "DataFlow Systems",
+    date: "2023-08-05",
+    status: "draft",
+    documentLink: "#",
+    type: "technical",
+  },
+  {
+    id: "dr-005",
+    title: "Annual Business Assessment",
+    client: "Retail Solutions Co",
+    date: "2023-09-18",
+    status: "completed",
+    documentLink: "#",
+    type: "annual",
+  },
+];
+
+// Sample templates
+const templates = [
+  {
+    id: "template-001",
+    name: "Initial Diagnostic Template",
+    description: "Standard template for new client assessments",
+    lastUpdated: "2023-04-10",
+    category: "assessment",
+  },
+  {
+    id: "template-002",
+    name: "Quarterly Review Template",
+    description: "Template for quarterly business reviews",
+    lastUpdated: "2023-05-22",
+    category: "review",
+  },
+  {
+    id: "template-003",
+    name: "Strategic Analysis Template",
+    description: "Detailed template for strategic growth analysis",
+    lastUpdated: "2023-06-15",
+    category: "strategy",
+  },
+];
 
 const AdminDiagnosticReviewsPage = () => {
+  const [selectedTab, setSelectedTab] = useState("reviews");
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // Sample diagnostic reviews data
-  const reviews = [
-    {
-      id: "1",
-      title: "Q2 2023 Strategic Diagnostic",
-      clientName: "Acme Corp",
-      date: "2023-06-15",
-      status: "completed",
-      assignedTo: "John Smith",
-      recommendations: 5,
-      kpis: 8,
-      nextReviewDate: "2023-09-15"
-    },
-    {
-      id: "2",
-      title: "Annual Business Review",
-      clientName: "TechGlobal Inc",
-      date: "2023-01-10",
-      status: "completed",
-      assignedTo: "Sarah Johnson",
-      recommendations: 12,
-      kpis: 15,
-      nextReviewDate: "2024-01-15"
-    },
-    {
-      id: "3",
-      title: "Market Positioning Analysis",
-      clientName: "Retail Partners",
-      date: "2022-09-22",
-      status: "completed",
-      assignedTo: "John Smith",
-      recommendations: 7,
-      kpis: 6,
-      nextReviewDate: "2023-03-22"
-    },
-    {
-      id: "4",
-      title: "Q3 2023 Strategic Planning",
-      clientName: "Acme Corp",
-      status: "scheduled",
-      date: "2023-09-10",
-      assignedTo: "Michael Brown",
-      recommendations: 0,
-      kpis: 0,
-      nextReviewDate: ""
-    },
-    {
-      id: "5",
-      title: "Product Strategy Review",
-      clientName: "Innovation Labs",
-      status: "in-progress",
-      date: "2023-07-05",
-      assignedTo: "Sarah Johnson",
-      recommendations: 3,
-      kpis: 4,
-      nextReviewDate: ""
-    }
-  ];
-  
-  // Filter reviews based on search
-  const filteredReviews = reviews.filter(review => 
-    review.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    review.clientName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  // Get status badge variant
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case "in-progress":
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case "scheduled":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-800">Scheduled</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-  
-  // Upcoming reviews (scheduled or in progress)
-  const upcomingReviews = reviews.filter(r => r.status === 'scheduled' || r.status === 'in-progress');
-  
-  // Sample clients with review statistics
-  const clientReviewStats = [
-    { 
-      clientName: "Acme Corp", 
-      completedReviews: 2, 
-      scheduledReviews: 1,
-      lastReview: "2023-06-15",
-      nextReview: "2023-09-10"
-    },
-    { 
-      clientName: "TechGlobal Inc", 
-      completedReviews: 1, 
-      scheduledReviews: 0,
-      lastReview: "2023-01-10",
-      nextReview: ""
-    },
-    { 
-      clientName: "Retail Partners", 
-      completedReviews: 1, 
-      scheduledReviews: 0,
-      lastReview: "2022-09-22",
-      nextReview: ""
-    },
-    { 
-      clientName: "Innovation Labs", 
-      completedReviews: 0, 
-      scheduledReviews: 1,
-      lastReview: "",
-      nextReview: "2023-07-05"
-    }
-  ];
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+
+  // Filter logic for diagnostic reviews
+  const filteredReviews = diagnosticReviews.filter((review) => {
+    const matchesSearch =
+      review.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      review.client.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = filterStatus === "all" || review.status === filterStatus;
+    const matchesType = filterType === "all" || review.type === filterType;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   return (
     <DashboardLayout>
@@ -160,324 +161,393 @@ const AdminDiagnosticReviewsPage = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Diagnostic Reviews</h1>
             <p className="text-muted-foreground">
-              Manage strategic reviews and client assessments
+              Manage client diagnostic reviews and templates
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2">
-              <Calendar size={16} />
-              Schedule Review
+              <Filter size={16} />
+              Filter
             </Button>
-            <Button size="sm" className="gap-2">
-              <Plus size={16} />
-              New Review
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus size={16} />
+                  New Review
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Diagnostic Review</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details to create a new diagnostic review for a client.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="text-right">
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
+                      placeholder="Enter review title"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="client" className="text-right">
+                      Client
+                    </Label>
+                    <Select>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="acme">Acme Corporation</SelectItem>
+                        <SelectItem value="techstart">TechStart Inc</SelectItem>
+                        <SelectItem value="global">Global Partners LLC</SelectItem>
+                        <SelectItem value="dataflow">DataFlow Systems</SelectItem>
+                        <SelectItem value="retail">Retail Solutions Co</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="type" className="text-right">
+                      Type
+                    </Label>
+                    <Select>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select review type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="initial">Initial Assessment</SelectItem>
+                        <SelectItem value="quarterly">Quarterly Review</SelectItem>
+                        <SelectItem value="strategic">Strategic Analysis</SelectItem>
+                        <SelectItem value="technical">Technical Review</SelectItem>
+                        <SelectItem value="annual">Annual Assessment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="text-right">
+                      Date
+                    </Label>
+                    <div className="col-span-3 flex w-full max-w-sm items-center space-x-2">
+                      <Input
+                        type="date"
+                        id="date"
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="template" className="text-right">
+                      Template
+                    </Label>
+                    <Select>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="template-001">Initial Diagnostic Template</SelectItem>
+                        <SelectItem value="template-002">Quarterly Review Template</SelectItem>
+                        <SelectItem value="template-003">Strategic Analysis Template</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="notes" className="text-right">
+                      Notes
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Add any additional notes or context"
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Create Review</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        {/* Upcoming Reviews */}
         <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Reviews</CardTitle>
-            <CardDescription>
-              Scheduled and in-progress diagnostic reviews
-            </CardDescription>
+          <CardHeader className="p-4">
+            <Tabs defaultValue="reviews" value={selectedTab} onValueChange={setSelectedTab}>
+              <TabsList>
+                <TabsTrigger value="reviews">All Reviews</TabsTrigger>
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              {upcomingReviews.length > 0 ? (
-                upcomingReviews.map(review => (
-                  <Card key={review.id} className="hover:border-primary/50 transition-colors">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between">
-                        <CardTitle className="text-lg">{review.title}</CardTitle>
-                        {getStatusBadge(review.status)}
-                      </div>
-                      <CardDescription>{review.clientName}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-3">
-                      <div className="flex justify-between gap-3 text-sm mb-3">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(review.date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{review.assignedTo}</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          View
-                        </Button>
-                        <Button size="sm" className="flex-1">
-                          Edit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-2 text-center py-8 text-muted-foreground">
-                  <p>No upcoming reviews scheduled</p>
-                  <Button variant="outline" className="mt-4">
-                    Schedule a Review
+          <CardContent className="p-0">
+            <TabsContent value="reviews" className="m-0">
+              <div className="flex items-center justify-between border-b p-4">
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input
+                    type="search"
+                    placeholder="Search reviews..."
+                    className="w-full"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Button type="submit" size="sm" variant="ghost">
+                    <Search className="h-4 w-4" />
                   </Button>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Search and Filter */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search reviews..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-1.5 w-40">
-                  <Label htmlFor="status-filter" className="text-xs">Status</Label>
-                  <Select defaultValue="all">
-                    <SelectTrigger id="status-filter" className="h-10">
-                      <SelectValue placeholder="All Status" />
+                <div className="flex items-center space-x-2">
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
                       <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="initial">Initial</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="strategic">Strategic</SelectItem>
+                      <SelectItem value="technical">Technical</SelectItem>
+                      <SelectItem value="annual">Annual</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="ghost" className="self-end h-10" onClick={() => setSearchQuery("")}>
-                  Reset
-                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* All Reviews */}
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="all">All Reviews</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>All Diagnostic Reviews</CardTitle>
-                <CardDescription>
-                  {filteredReviews.length} reviews found
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Assigned To</TableHead>
-                      <TableHead className="text-center">Recommendations</TableHead>
-                      <TableHead className="text-center">KPIs</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredReviews.map((review) => (
-                      <TableRow key={review.id}>
-                        <TableCell className="font-medium">{review.title}</TableCell>
-                        <TableCell>{review.clientName}</TableCell>
-                        <TableCell>{new Date(review.date).toLocaleDateString()}</TableCell>
-                        <TableCell>{getStatusBadge(review.status)}</TableCell>
-                        <TableCell>{review.assignedTo}</TableCell>
-                        <TableCell className="text-center">{review.recommendations}</TableCell>
-                        <TableCell className="text-center">{review.kpis}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-              <CardFooter className="border-t p-4 flex justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Showing {filteredReviews.length} of {reviews.length} reviews
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled>Previous</Button>
-                  <Button variant="outline" size="sm" disabled>Next</Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="completed" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Completed Reviews</CardTitle>
-                <CardDescription>
-                  Finalized diagnostic reviews with recommendations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Assigned To</TableHead>
-                      <TableHead className="text-center">Recommendations</TableHead>
-                      <TableHead className="text-center">KPIs</TableHead>
-                      <TableHead>Next Review</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reviews
-                      .filter(review => review.status === "completed")
-                      .map((review) => (
-                        <TableRow key={review.id}>
-                          <TableCell className="font-medium">{review.title}</TableCell>
-                          <TableCell>{review.clientName}</TableCell>
-                          <TableCell>{new Date(review.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{review.assignedTo}</TableCell>
-                          <TableCell className="text-center">{review.recommendations}</TableCell>
-                          <TableCell className="text-center">{review.kpis}</TableCell>
-                          <TableCell>{review.nextReviewDate ? new Date(review.nextReviewDate).toLocaleDateString() : "-"}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="upcoming" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Reviews</CardTitle>
-                <CardDescription>
-                  Scheduled and in-progress reviews
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Assigned To</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reviews
-                      .filter(review => review.status === "scheduled" || review.status === "in-progress")
-                      .map((review) => (
-                        <TableRow key={review.id}>
-                          <TableCell className="font-medium">{review.title}</TableCell>
-                          <TableCell>{review.clientName}</TableCell>
-                          <TableCell>{new Date(review.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{getStatusBadge(review.status)}</TableCell>
-                          <TableCell>{review.assignedTo}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        {/* Client Review Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Client Review Status</CardTitle>
-            <CardDescription>
-              Overview of reviews by client
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead className="text-center">Completed Reviews</TableHead>
-                  <TableHead className="text-center">Upcoming Reviews</TableHead>
-                  <TableHead>Last Review</TableHead>
-                  <TableHead>Next Review</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clientReviewStats.map((client, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{client.clientName}</TableCell>
-                    <TableCell className="text-center">{client.completedReviews}</TableCell>
-                    <TableCell className="text-center">{client.scheduledReviews}</TableCell>
-                    <TableCell>
-                      {client.lastReview ? new Date(client.lastReview).toLocaleDateString() : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {client.nextReview ? new Date(client.nextReview).toLocaleDateString() : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                    </TableCell>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredReviews.map((review) => (
+                    <TableRow key={review.id}>
+                      <TableCell className="font-medium">{review.title}</TableCell>
+                      <TableCell>{review.client}</TableCell>
+                      <TableCell>{review.date}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{review.type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            review.status === "completed"
+                              ? "success"
+                              : review.status === "scheduled"
+                              ? "warning"
+                              : "secondary"
+                          }
+                        >
+                          {review.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <Share2 className="mr-2 h-4 w-4" />
+                                <span>Share</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
+            <TabsContent value="templates" className="m-0">
+              <div className="flex items-center justify-between border-b p-4">
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input
+                    type="search"
+                    placeholder="Search templates..."
+                    className="w-full"
+                  />
+                  <Button type="submit" size="sm" variant="ghost">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="gap-2">
+                        <Plus size={16} />
+                        New Template
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[625px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New Template</DialogTitle>
+                        <DialogDescription>
+                          Create a new diagnostic review template for future use.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="templateName" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="templateName"
+                            placeholder="Template name"
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="templateDescription" className="text-right">
+                            Description
+                          </Label>
+                          <Textarea
+                            id="templateDescription"
+                            placeholder="Template description"
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="templateCategory" className="text-right">
+                            Category
+                          </Label>
+                          <Select>
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="assessment">Assessment</SelectItem>
+                              <SelectItem value="review">Review</SelectItem>
+                              <SelectItem value="strategy">Strategy</SelectItem>
+                              <SelectItem value="technical">Technical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="templateUpload" className="text-right">
+                            Template File
+                          </Label>
+                          <div className="col-span-3">
+                            <div className="flex items-center justify-center w-full">
+                              <label
+                                htmlFor="dropzone-file"
+                                className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                              >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                  <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
+                                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    DOCX, PDF, PPTX (MAX. 10MB)
+                                  </p>
+                                </div>
+                                <input id="dropzone-file" type="file" className="hidden" />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit">Create Template</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Last Updated</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {templates.map((template) => (
+                    <TableRow key={template.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center">
+                          <FileText className="mr-2 h-4 w-4 text-blue-500" />
+                          {template.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{template.description}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{template.category}</Badge>
+                      </TableCell>
+                      <TableCell>{template.lastUpdated}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
           </CardContent>
+          <CardFooter className="flex justify-between p-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredReviews.length} of {diagnosticReviews.length} reviews
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" disabled>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
       </div>
     </DashboardLayout>
