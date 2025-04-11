@@ -1,3 +1,4 @@
+
 import {
   Home,
   Users,
@@ -14,6 +15,7 @@ import {
   User,
   Settings,
   CheckSquare,
+  Upload,
 } from "lucide-react";
 
 interface SidebarNavItem {
@@ -49,6 +51,7 @@ const Icons = {
   User,
   Settings,
   CheckSquare,
+  Upload,
 };
 
 export const adminNavGroups: SidebarNavGroup[] = [

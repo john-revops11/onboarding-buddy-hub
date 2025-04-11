@@ -5,13 +5,13 @@ import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-interface NavItemProps {
+export interface NavItemProps {
   name: string;
   path: string;
   icon: LucideIcon;
 }
 
-interface NavGroupProps {
+export interface NavGroupProps {
   title: string;
   items: NavItemProps[];
   currentPath: string;

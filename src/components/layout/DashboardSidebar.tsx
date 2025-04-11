@@ -58,7 +58,11 @@ export function DashboardSidebar() {
             <SidebarNavGroup
               key={index}
               title={group.title}
-              items={group.items}
+              items={group.items.map(item => ({
+                name: item.title,
+                path: item.href,
+                icon: Icons[item.icon]
+              }))}
               currentPath={currentPath}
             />
           ))}
@@ -75,3 +79,6 @@ export function DashboardSidebar() {
     </div>
   );
 }
+
+// Import Icons to convert icon names to components
+import { icons as Icons } from "lucide-react";
