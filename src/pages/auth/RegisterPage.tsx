@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -8,8 +9,8 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { register } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
+import { register as registerUser } from "@/lib/auth";
 
 const registerFormSchema = z.object({
   name: z.string().min(2, {
@@ -55,7 +56,7 @@ const RegisterPage = () => {
         ...(data.companyName && { companyName: data.companyName })
       };
       
-      await register({
+      await registerUser({
         email: credentials.email,
         password: credentials.password,
         name: credentials.name,
