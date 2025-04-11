@@ -61,7 +61,6 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
           categories={["primary", "secondary", "comparison"]}
           index="name"
           colors={["#1e3a8a", "#7EC242", "#ef4444"]}
-          valueFormatter={(value) => `${value}`}
           showYAxis={false}
           showXAxis={false}
           showLegend={false}

@@ -42,7 +42,6 @@ export function AnalyticsOverview() {
               index="name"
               categories={["value"]}
               colors={["#7EC242"]}
-              valueFormatter={(value) => `${value}`}
               showLegend={false}
             />
           </div>
@@ -64,7 +63,6 @@ export function AnalyticsOverview() {
               index="name"
               categories={["value"]}
               colors={["#1e3a8a"]}
-              valueFormatter={(value) => `${value}`}
               showLegend={false}
             />
           </div>
