@@ -19,7 +19,8 @@ import {
   FileBarChart,
   Package,
   Plus,
-  UserPlus
+  UserPlus,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { UserMenu } from "./sidebar/UserMenu";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { ToolsSection } from "./sidebar/ToolsSection";
+import { SidebarNavGroup } from "./sidebar/SidebarNavGroup";
 
 interface DashboardSidebarProps {
   children: React.ReactNode;
@@ -61,111 +63,158 @@ export function DashboardSidebar() {
     navigate("/login");
   };
 
-  const userNavItems = [
+  // User navigation groups
+  const userNavGroups = [
     {
-      name: "Onboarding",
-      path: "/dashboard",
-      icon: ClipboardList,
+      title: "Home",
+      items: [
+        {
+          name: "Dashboard",
+          path: "/dashboard",
+          icon: LayoutDashboard,
+        }
+      ]
     },
     {
-      name: "Latest Insights",
-      path: "/insights",
-      icon: LineChart,
+      title: "Content",
+      items: [
+        {
+          name: "Latest Insights",
+          path: "/insights",
+          icon: LineChart,
+        },
+        {
+          name: "Top Opportunities",
+          path: "/opportunities",
+          icon: BarChart3,
+        },
+        {
+          name: "Diagnostic Reviews",
+          path: "/diagnostic-reviews",
+          icon: FileBarChart,
+        },
+        {
+          name: "Knowledge Hub",
+          path: "/knowledge-hub",
+          icon: BookOpen,
+        },
+      ]
     },
     {
-      name: "Top Opportunities",
-      path: "/opportunities",
-      icon: BarChart3,
-    },
-    {
-      name: "Diagnostic Reviews",
-      path: "/diagnostic-reviews",
-      icon: FileBarChart,
-    },
-    {
-      name: "Knowledge Hub",
-      path: "/knowledge-hub",
-      icon: BookOpen,
-    },
-    {
-      name: "Data Uploads",
-      path: "/data-uploads",
-      icon: UploadCloud,
-    },
-    {
-      name: "Profile",
-      path: "/profile",
-      icon: User,
-    },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: Settings,
-    },
+      title: "Account",
+      items: [
+        {
+          name: "Data Uploads",
+          path: "/data-uploads",
+          icon: UploadCloud,
+        },
+        {
+          name: "Profile",
+          path: "/profile",
+          icon: User,
+        },
+        {
+          name: "Settings",
+          path: "/settings",
+          icon: Settings,
+        },
+      ]
+    }
   ];
 
-  const adminNavItems = [
+  // Admin navigation groups
+  const adminNavGroups = [
     {
-      name: "Dashboard",
-      path: "/admin",
-      icon: LayoutDashboard,
+      title: "Home",
+      items: [
+        {
+          name: "Dashboard",
+          path: "/admin",
+          icon: LayoutDashboard,
+        }
+      ]
     },
     {
-      name: "Users",
-      path: "/admin/users",
-      icon: Users,
+      title: "Operations",
+      items: [
+        {
+          name: "Users",
+          path: "/admin/users",
+          icon: Users,
+        },
+        {
+          name: "Checklists",
+          path: "/admin/checklists",
+          icon: CheckSquare,
+        },
+        {
+          name: "Files",
+          path: "/admin/files",
+          icon: FileUp,
+        }
+      ]
     },
     {
-      name: "Checklists",
-      path: "/admin/checklists",
-      icon: CheckSquare,
+      title: "Client Journey",
+      items: [
+        {
+          name: "Onboard Client",
+          path: "/admin/onboarding",
+          icon: UserPlus,
+        },
+        {
+          name: "Opportunities",
+          path: "/admin/opportunities",
+          icon: BarChart3,
+        }
+      ]
     },
     {
-      name: "Files",
-      path: "/admin/files",
-      icon: FileUp,
+      title: "Insights & Reviews",
+      items: [
+        {
+          name: "Insights",
+          path: "/admin/insights",
+          icon: LineChart,
+        },
+        {
+          name: "Diagnostic Reviews",
+          path: "/admin/diagnostic-reviews",
+          icon: FileBarChart,
+        },
+      ]
     },
     {
-      name: "API Keys",
-      path: "/admin/api-keys",
-      icon: Key,
+      title: "Platform",
+      items: [
+        {
+          name: "API Keys",
+          path: "/admin/api-keys",
+          icon: Key,
+        },
+        {
+          name: "Add-ons",
+          path: "/admin/addons",
+          icon: Plus,
+        },
+      ]
     },
     {
-      name: "Subscriptions",
-      path: "/admin/subscriptions",
-      icon: Package,
-    },
-    {
-      name: "Add-ons",
-      path: "/admin/addons",
-      icon: Plus,
-    },
-    {
-      name: "Onboard Client",
-      path: "/admin/onboarding",
-      icon: UserPlus,
-    },
-    {
-      name: "Opportunities",
-      path: "/admin/opportunities",
-      icon: BarChart3,
-    },
-    {
-      name: "Insights",
-      path: "/admin/insights",
-      icon: LineChart,
-    },
-    {
-      name: "Diagnostic Reviews",
-      path: "/admin/diagnostic-reviews",
-      icon: FileBarChart,
-    },
+      title: "Billing",
+      items: [
+        {
+          name: "Subscriptions",
+          path: "/admin/subscriptions",
+          icon: CreditCard,
+        },
+      ]
+    }
   ];
 
-  const navItems = isAdmin ? adminNavItems : userNavItems;
+  const navGroups = isAdmin ? adminNavGroups : userNavGroups;
 
   return (
-    <div className="min-w-[260px] max-w-[260px] bg-sidebar flex flex-col h-full border-r">
+    <div className="min-w-[240px] max-w-[240px] bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out">
       <div className="p-4">
         <div className="flex flex-col items-center mb-6">
           <img
@@ -184,8 +233,15 @@ export function DashboardSidebar() {
           <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
         
-        <div className="mb-6">
-          <SidebarNavigation items={navItems} currentPath={currentPath} />
+        <div className="mb-6 overflow-y-auto">
+          {navGroups.map((group, index) => (
+            <SidebarNavGroup
+              key={index}
+              title={group.title}
+              items={group.items}
+              currentPath={currentPath}
+            />
+          ))}
         </div>
       </div>
       
