@@ -1,179 +1,212 @@
-
-import { 
-  LayoutDashboard, 
-  User, 
-  Settings, 
-  Users, 
-  CheckSquare, 
-  Key, 
-  Search,
-  FileUp,
-  UploadCloud,
-  BarChart3,
-  BookOpen,
-  LineChart,
-  FileBarChart,
-  Plus,
+import {
+  Home,
+  Users,
+  ClipboardCheck,
+  FileText,
   UserPlus,
+  Target,
+  Key,
+  Package,
   CreditCard,
-  LucideIcon
+  BarChart2,
+  FileSearch,
+  BookOpen,
+  User,
+  Settings,
+  CheckSquare,
 } from "lucide-react";
 
-export interface NavItem {
-  name: string;
-  path: string;
-  icon: LucideIcon;
-}
-
-export interface NavGroup {
+interface SidebarNavItem {
   title: string;
-  items: NavItem[];
+  href: string;
+  icon: keyof typeof Icons;
+  disabled?: boolean;
+  external?: boolean;
+  badge?: {
+    content: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  };
 }
 
-// User navigation groups
-export const userNavGroups: NavGroup[] = [
-  {
-    title: "Home",
-    items: [
-      {
-        name: "Dashboard",
-        path: "/dashboard",
-        icon: LayoutDashboard,
-      }
-    ]
-  },
-  {
-    title: "Content",
-    items: [
-      {
-        name: "Latest Insights",
-        path: "/insights",
-        icon: LineChart,
-      },
-      {
-        name: "Top Opportunities",
-        path: "/opportunities",
-        icon: BarChart3,
-      },
-      {
-        name: "Diagnostic Reviews",
-        path: "/diagnostic-reviews",
-        icon: FileBarChart,
-      },
-      {
-        name: "Knowledge Hub",
-        path: "/knowledge-hub",
-        icon: BookOpen,
-      },
-    ]
-  },
-  {
-    title: "Account",
-    items: [
-      {
-        name: "Data Uploads",
-        path: "/data-uploads",
-        icon: UploadCloud,
-      },
-      {
-        name: "Profile",
-        path: "/profile",
-        icon: User,
-      },
-      {
-        name: "Settings",
-        path: "/settings",
-        icon: Settings,
-      },
-    ]
-  }
-];
+interface SidebarNavGroup {
+  title: string;
+  items: SidebarNavItem[];
+}
 
-// Admin navigation groups
-export const adminNavGroups: NavGroup[] = [
+const Icons = {
+  Home,
+  Users,
+  ClipboardCheck,
+  FileText,
+  UserPlus,
+  Target,
+  Key,
+  Package,
+  CreditCard,
+  BarChart2,
+  FileSearch,
+  BookOpen,
+  User,
+  Settings,
+  CheckSquare,
+};
+
+export const adminNavGroups: SidebarNavGroup[] = [
   {
     title: "Home",
     items: [
       {
-        name: "Dashboard",
-        path: "/admin",
-        icon: LayoutDashboard,
-      }
-    ]
+        title: "Dashboard",
+        icon: "Home",
+        href: "/admin",
+      },
+    ],
   },
   {
     title: "Operations",
     items: [
       {
-        name: "Users",
-        path: "/admin/users",
-        icon: Users,
+        title: "Users",
+        icon: "Users",
+        href: "/admin/users",
       },
       {
-        name: "Checklists",
-        path: "/admin/checklists",
-        icon: CheckSquare,
+        title: "Checklists",
+        icon: "ClipboardCheck",
+        href: "/admin/checklists",
       },
       {
-        name: "Files",
-        path: "/admin/files",
-        icon: FileUp,
-      }
-    ]
+        title: "Files",
+        icon: "FileText",
+        href: "/admin/files",
+      },
+    ],
   },
   {
     title: "Client Journey",
     items: [
       {
-        name: "Onboard Client",
-        path: "/admin/onboarding",
-        icon: UserPlus,
+        title: "Onboard Client",
+        icon: "UserPlus",
+        href: "/admin/onboarding",
       },
       {
-        name: "Opportunities",
-        path: "/admin/opportunities",
-        icon: BarChart3,
-      }
-    ]
+        title: "Opportunities",
+        icon: "Target",
+        href: "/admin/opportunities",
+      },
+    ],
   },
   {
     title: "Insights & Reviews",
     items: [
       {
-        name: "Insights",
-        path: "/admin/insights",
-        icon: LineChart,
+        title: "Insights",
+        icon: "BarChart2",
+        href: "/admin/insights",
       },
       {
-        name: "Diagnostic Reviews",
-        path: "/admin/diagnostic-reviews",
-        icon: FileBarChart,
+        title: "Diagnostic Reviews",
+        icon: "FileSearch",
+        href: "/admin/diagnostic-reviews",
       },
-    ]
+    ],
   },
   {
     title: "Platform",
     items: [
       {
-        name: "API Keys",
-        path: "/admin/api-keys",
-        icon: Key,
+        title: "API Keys",
+        icon: "Key",
+        href: "/admin/api-keys",
       },
       {
-        name: "Add-ons",
-        path: "/admin/addons",
-        icon: Plus,
+        title: "Add-ons",
+        icon: "Package",
+        href: "/admin/addons",
       },
-    ]
+    ],
   },
   {
     title: "Billing",
     items: [
       {
-        name: "Subscriptions",
-        path: "/admin/subscriptions",
-        icon: CreditCard,
+        title: "Subscriptions",
+        icon: "CreditCard",
+        href: "/admin/subscriptions",
       },
-    ]
-  }
+    ],
+  },
+];
+
+export const userNavGroups: SidebarNavGroup[] = [
+  {
+    title: "Home",
+    items: [
+      {
+        title: "Dashboard",
+        icon: "Home",
+        href: "/dashboard",
+      },
+      {
+        title: "Onboarding",
+        icon: "CheckSquare",
+        href: "/onboarding",
+        badge: {
+          content: "New",
+          variant: "default",
+        },
+      },
+    ],
+  },
+  {
+    title: "Data & Insights",
+    items: [
+      {
+        title: "Insights",
+        icon: "BarChart2",
+        href: "/insights",
+      },
+      {
+        title: "Diagnostic Reviews",
+        icon: "FileSearch",
+        href: "/diagnostic-reviews",
+      },
+      {
+        title: "Data Uploads",
+        icon: "Upload",
+        href: "/data-uploads",
+      },
+    ],
+  },
+  {
+    title: "Resources",
+    items: [
+      {
+        title: "Knowledge Hub",
+        icon: "BookOpen",
+        href: "/knowledge-hub",
+      },
+      {
+        title: "Opportunities",
+        icon: "Target",
+        href: "/opportunities",
+      },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        title: "Profile",
+        icon: "User",
+        href: "/profile",
+      },
+      {
+        title: "Settings",
+        icon: "Settings",
+        href: "/settings",
+      },
+    ],
+  },
 ];

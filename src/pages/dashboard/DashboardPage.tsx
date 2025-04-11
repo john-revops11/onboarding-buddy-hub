@@ -12,10 +12,12 @@ import { AnalyticsOverview } from "@/components/dashboard/AnalyticsOverview";
 import { TopBar } from "@/components/layout/TopBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UploadIcon } from "@/components/ui/UploadIcon";
+import { UploadIcon, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
   const { state } = useAuth();
+  const navigate = useNavigate();
   const user = state.user;
   const [completedItems, setCompletedItems] = useState(2);
   const [totalItems, setTotalItems] = useState(6);
@@ -52,6 +54,17 @@ const DashboardPage = () => {
                   completedItems={completedItems} 
                   totalItems={totalItems} 
                 />
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-sm"
+                    onClick={() => navigate('/onboarding')}
+                  >
+                    View Onboarding Details
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
             

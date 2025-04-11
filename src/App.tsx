@@ -31,6 +31,7 @@ import AdminOpportunities from "./pages/admin/AdminOpportunities";
 import ChecklistEditor from "./pages/admin/ChecklistEditor";
 import AssignChecklist from "./pages/admin/AssignChecklist";
 import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
+import OnboardingPage from "./pages/dashboard/OnboardingPage";
 
 // New Pages for Revify Portal requirements
 import InsightsPage from "./pages/dashboard/InsightsPage";
@@ -70,6 +71,7 @@ const App = () => {
               {/* User Routes */}
               <Route element={<AuthGuard requiredRole="user" />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
