@@ -1,15 +1,28 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 import { useAuth } from "@/contexts/auth-context";
+import { isOnboardingComplete, skipOnboarding } from "@/utils/onboardingUtils";
 
 const DashboardPage = () => {
   const { state } = useAuth();
   const user = state.user;
+  const [completedItems, setCompletedItems] = useState(2);
+  const [totalItems, setTotalItems] = useState(6);
+  
+  // Skip onboarding on load
+  useEffect(() => {
+    if (!isOnboardingComplete()) {
+      skipOnboarding();
+    }
+  }, []);
+  
+  // Calculate progress percentage
+  const progress = Math.round((completedItems / totalItems) * 100);
 
   return (
     <DashboardLayout>
@@ -24,7 +37,11 @@ const DashboardPage = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="md:col-span-2">
             <CardContent className="p-6">
-              <ProgressOverview />
+              <ProgressOverview 
+                progress={progress} 
+                completedItems={completedItems} 
+                totalItems={totalItems} 
+              />
             </CardContent>
           </Card>
           
