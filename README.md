@@ -1,69 +1,66 @@
-# Welcome to your Lovable project
 
-## Project info
+# Revify Analytics Dashboard
 
-**URL**: https://lovable.dev/projects/0c1f2672-abe0-4baf-9453-7f3ca4c9f08f
+A clean, modern analytics dashboard for Revify SaaS platform built with React and Tailwind CSS.
 
-## How can I edit this code?
+## Component Structure
 
-There are several ways of editing your application.
+- **Layout Components**
+  - `DashboardSidebar.tsx`: Main navigation sidebar with collapsible functionality
+  - `TopBar.tsx`: Top navigation bar with search, notifications, and user profile
+  - `DashboardLayout.tsx`: Page wrapper component combining sidebar and main content area
 
-**Use Lovable**
+- **Dashboard Components**
+  - `DashboardBanner.tsx`: Welcome message with quick action links and analytics overview
+  - `ProgressOverview.tsx`: Visual representation of user progress
+  - `AnalyticsOverview.tsx`: Charts and statistics showing key metrics
+  - `OnboardingChecklist.tsx`: Interactive checklist for user onboarding
+  - `QuickActions.tsx`: Quick action buttons for common tasks
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0c1f2672-abe0-4baf-9453-7f3ca4c9f08f) and start prompting.
+- **UI Components**
+  - `Tag.tsx`: Status indicator tag (success, warning, error, etc.)
+  - `UploadIcon.tsx`: Reusable upload icon component
+  - Various shadcn/ui components for consistent design system
 
-Changes made via Lovable will be committed automatically to this repo.
+## Required Libraries
 
-**Use your preferred IDE**
+- **UI Framework**: React
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React (already included)
+- **Charts**: Recharts (already included)
+- **Component Primitives**: Radix UI (via shadcn/ui)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Color System
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The dashboard uses a custom color system based on:
+- **Primary Brand**: Revify Green (#7EC242)
+- **UI Accent**: Tech Blue (#1e3a8a)
+- **Header Background**: Deep Navy (#0f172a)
+- **Text Dark**: Jet Black (#1a1a1a)
+- **Text Light**: White (#ffffff)
 
-Follow these steps:
+These colors are configured in the `tailwind.config.ts` file and accessible through Tailwind classes. Custom color variants (light, hover, etc.) are also available.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Installation & Usage
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Run the development server with `npm run dev`
 
-# Step 3: Install the necessary dependencies.
-npm i
+The components can be easily integrated into any React project with Tailwind CSS support.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Responsiveness
 
-**Edit a file directly in GitHub**
+All components are fully responsive and adapt to various screen sizes:
+- Sidebar collapses on mobile screens
+- Card layouts reflow from multi-column to single column
+- Font sizes and spacing adjust appropriately
+- Charts resize to fit available space
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Accessibility
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/0c1f2672-abe0-4baf-9453-7f3ca4c9f08f) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+The dashboard components use Radix UI primitives to ensure proper accessibility support, including:
+- Keyboard navigation
+- ARIA attributes
+- Focus management
+- Screen reader compatibility
