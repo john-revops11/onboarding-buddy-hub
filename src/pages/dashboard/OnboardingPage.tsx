@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Check, Calendar, ExternalLink, Upload, FileText, Clock } from "lucide-react";
+import { Check, Calendar, ExternalLink, Upload, FileText, Clock, Users, BarChart2, Shield, HelpCircle, BookOpen, PhoneCall } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
@@ -55,7 +55,7 @@ const OnboardingPage = () => {
       title: "Data Health Check Review",
       description: "Revify team reviews data quality and completeness.",
       status: "pending",
-      icon: <Clock className="h-5 w-5 text-purple-500" />,
+      icon: <Shield className="h-5 w-5 text-purple-500" />,
       revifyAction: true,
       date: "Expected by Apr 25, 2025"
     },
@@ -64,7 +64,7 @@ const OnboardingPage = () => {
       title: "Activate Revify Analytics",
       description: "Your core dashboards and analytics are being prepared.",
       status: "pending",
-      icon: <Clock className="h-5 w-5 text-purple-500" />,
+      icon: <BarChart2 className="h-5 w-5 text-purple-500" />,
       revifyAction: true,
       date: "Expected by May 1, 2025"
     },
@@ -140,7 +140,10 @@ const OnboardingPage = () => {
             {/* Onboarding Checklist */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Your Onboarding Journey</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <CardTitle>Your Onboarding Journey</CardTitle>
+                </div>
                 <CardDescription>
                   Complete these steps to unlock the full power of your Revify portal.
                 </CardDescription>
@@ -238,7 +241,10 @@ const OnboardingPage = () => {
             {/* Service Tier Display */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Your Revify Services</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <CardTitle>Your Revify Services</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Platform Tier */}
@@ -251,7 +257,10 @@ const OnboardingPage = () => {
                 
                 {/* Consulting Add-On Display */}
                 <div className="border rounded-lg p-4 mt-4">
-                  <h3 className="font-medium">Consulting Add-On</h3>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <h3 className="font-medium">Consulting Add-On</h3>
+                  </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     4 Hours/Month Retainer
                   </p>
@@ -272,7 +281,10 @@ const OnboardingPage = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Need Help?</CardTitle>
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  <CardTitle>Need Help?</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
@@ -280,6 +292,7 @@ const OnboardingPage = () => {
                   className="w-full justify-start"
                   onClick={handleContactSupport}
                 >
+                  <HelpCircle className="h-4 w-4 mr-2" />
                   Contact Support
                 </Button>
                 <Button 
@@ -287,6 +300,7 @@ const OnboardingPage = () => {
                   className="w-full justify-start"
                   onClick={() => window.open('https://calendly.com/revify-team/support-call', '_blank')}
                 >
+                  <PhoneCall className="h-4 w-4 mr-2" />
                   Schedule Ad-hoc Call
                 </Button>
                 <Button 
@@ -294,6 +308,7 @@ const OnboardingPage = () => {
                   className="w-full justify-start"
                   onClick={() => window.location.href = '/knowledge-hub'}
                 >
+                  <BookOpen className="h-4 w-4 mr-2" />
                   Access Knowledge Base
                 </Button>
               </CardContent>

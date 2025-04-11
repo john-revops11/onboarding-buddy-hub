@@ -18,7 +18,14 @@ import {
   Filter,
   Download,
   ExternalLink,
-  Bookmark
+  Bookmark,
+  BarChart2,
+  TrendingUp,
+  Users,
+  PieChart,
+  Archive,
+  Clock,
+  BarChart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +39,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Sample data for insights over time
 const performanceData = [
   { name: "Jan", value: 53, target: 50 },
   { name: "Feb", value: 65, target: 55 },
@@ -42,7 +48,6 @@ const performanceData = [
   { name: "Jun", value: 85, target: 75 },
 ];
 
-// Sample monthly insights documents with more details
 const monthlyInsights = [
   {
     id: "1",
@@ -112,7 +117,6 @@ const InsightsPage = () => {
   const [filterType, setFilterType] = useState("all");
   const [selectedDocument, setSelectedDocument] = useState(monthlyInsights[0]);
   
-  // Filter insights based on search and type
   const filteredInsights = monthlyInsights.filter(insight => {
     const matchesSearch = 
       insight.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -136,7 +140,7 @@ const InsightsPage = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2">
-              <CalendarDays size={16} />
+              <Archive size={16} />
               Archive
             </Button>
             <Button size="sm" className="gap-2">
@@ -146,24 +150,33 @@ const InsightsPage = () => {
           </div>
         </div>
 
-        {/* Tabs Navigation - Ensure proper nesting */}
         <Tabs defaultValue="recent" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
           <Card>
             <CardHeader className="pb-3">
               <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="recent">Recent Insights</TabsTrigger>
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="library">Document Library</TabsTrigger>
+                <TabsTrigger value="recent">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Recent Insights
+                </TabsTrigger>
+                <TabsTrigger value="performance">
+                  <BarChart className="h-4 w-4 mr-2" />
+                  Performance
+                </TabsTrigger>
+                <TabsTrigger value="library">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Document Library
+                </TabsTrigger>
               </TabsList>
             </CardHeader>
             
             <CardContent className="p-0">
-              {/* Make sure all TabsContent are direct children of the Tabs component */}
               <TabsContent value="recent" className="m-0 p-6 space-y-6">
-                {/* Featured Insight with Embedded Document */}
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
-                    <h2 className="text-xl font-semibold mb-4">Featured Insight</h2>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                      Featured Insight
+                    </h2>
                     <Card>
                       <CardHeader className="pb-2">
                         <div className="flex justify-between">
@@ -219,10 +232,12 @@ const InsightsPage = () => {
                   </div>
                 </div>
                 
-                {/* Recent Insights List */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                    <h2 className="text-xl font-semibold">Recent Insights</h2>
+                    <h2 className="text-xl font-semibold flex items-center">
+                      <FileText className="h-5 w-5 mr-2 text-primary" />
+                      Recent Insights
+                    </h2>
                     <div className="flex gap-2">
                       <div className="relative w-full sm:w-64">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -236,6 +251,7 @@ const InsightsPage = () => {
                       </div>
                       <Select value={filterType} onValueChange={setFilterType}>
                         <SelectTrigger className="w-[130px]">
+                          <Filter className="h-4 w-4 mr-2" />
                           <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -296,7 +312,10 @@ const InsightsPage = () => {
                 <div className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Performance Overview</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <BarChart2 className="h-5 w-5 text-primary" />
+                        <CardTitle>Performance Overview</CardTitle>
+                      </div>
                       <CardDescription>Key metrics over the last 6 months</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
@@ -311,7 +330,10 @@ const InsightsPage = () => {
                   <div className="grid gap-6 sm:grid-cols-3">
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Revenue Growth</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <CardTitle className="text-base">Revenue Growth</CardTitle>
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="text-3xl font-bold">15.4%</div>
@@ -320,7 +342,10 @@ const InsightsPage = () => {
                     </Card>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Customer Retention</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-blue-500" />
+                          <CardTitle className="text-base">Customer Retention</CardTitle>
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="text-3xl font-bold">92%</div>
@@ -329,7 +354,10 @@ const InsightsPage = () => {
                     </Card>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Market Share</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <PieChart className="h-4 w-4 text-purple-500" />
+                          <CardTitle className="text-base">Market Share</CardTitle>
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="text-3xl font-bold">23%</div>

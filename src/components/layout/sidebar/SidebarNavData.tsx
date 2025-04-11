@@ -21,7 +21,7 @@ import {
 interface SidebarNavItem {
   title: string;
   href: string;
-  icon: keyof typeof Icons;
+  icon: string;
   disabled?: boolean;
   external?: boolean;
   badge?: {
@@ -35,6 +35,7 @@ interface SidebarNavGroup {
   items: SidebarNavItem[];
 }
 
+// Define icon strings that match the imported Lucide icon names
 const Icons = {
   Home,
   Users,

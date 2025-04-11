@@ -1,7 +1,7 @@
 
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
-import { icons } from "lucide-react";
+import { Home, Users, ClipboardCheck, FileText, UserPlus, Target, Key, Package, CreditCard, BarChart2, FileSearch, BookOpen, User, Settings, CheckSquare, Upload } from "lucide-react";
 
 import { SearchBar } from "./sidebar/SearchBar";
 import { LogoutButton } from "./sidebar/LogoutButton";
@@ -30,6 +30,26 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
     </div>
   );
 }
+
+// Create a mapping of icon names to components
+const iconComponentMap = {
+  Home,
+  Users,
+  ClipboardCheck,
+  FileText,
+  UserPlus,
+  Target,
+  Key,
+  Package,
+  CreditCard,
+  BarChart2,
+  FileSearch,
+  BookOpen,
+  User,
+  Settings,
+  CheckSquare,
+  Upload,
+};
 
 export function DashboardSidebar() {
   const { state } = useAuth();
@@ -62,7 +82,7 @@ export function DashboardSidebar() {
               items={group.items.map(item => ({
                 name: item.title,
                 path: item.href,
-                icon: icons[item.icon]
+                icon: iconComponentMap[item.icon as keyof typeof iconComponentMap]
               }))}
               currentPath={currentPath}
             />
