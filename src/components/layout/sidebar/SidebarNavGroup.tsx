@@ -43,28 +43,34 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
       
       {isOpen && (
         <div className="mt-1 space-y-1 pl-2">
-          {items.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                currentPath === item.path 
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon 
-                size={18} 
+          {items.map((item) => {
+            // Check if item.icon is defined before rendering
+            const IconComponent = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
                 className={cn(
+                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   currentPath === item.path 
-                    ? "text-sidebar-accent-foreground" 
-                    : "text-muted-foreground group-hover:text-sidebar-accent"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                 )}
-              />
-              <span>{item.name}</span>
-            </button>
-          ))}
+              >
+                {IconComponent && (
+                  <IconComponent 
+                    size={18} 
+                    className={cn(
+                      currentPath === item.path 
+                        ? "text-sidebar-accent-foreground" 
+                        : "text-muted-foreground group-hover:text-sidebar-accent"
+                    )}
+                  />
+                )}
+                <span>{item.name}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

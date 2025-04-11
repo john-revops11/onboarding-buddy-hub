@@ -1,6 +1,7 @@
 
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { icons } from "lucide-react";
 
 import { SearchBar } from "./sidebar/SearchBar";
 import { LogoutButton } from "./sidebar/LogoutButton";
@@ -61,7 +62,7 @@ export function DashboardSidebar() {
               items={group.items.map(item => ({
                 name: item.title,
                 path: item.href,
-                icon: Icons[item.icon]
+                icon: icons[item.icon]
               }))}
               currentPath={currentPath}
             />
@@ -79,6 +80,3 @@ export function DashboardSidebar() {
     </div>
   );
 }
-
-// Import Icons to convert icon names to components
-import { icons as Icons } from "lucide-react";
