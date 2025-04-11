@@ -1,35 +1,13 @@
 
-import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  User, 
-  FileText, 
-  Settings, 
-  Users, 
-  CheckSquare, 
-  Key, 
-  LogOut,
-  Search,
-  FileUp,
-  UploadCloud,
-  BarChart3,
-  ClipboardList,
-  BookOpen,
-  LineChart,
-  FileBarChart,
-  Package,
-  Plus,
-  UserPlus,
-  CreditCard
-} from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
+import { SearchBar } from "./sidebar/SearchBar";
+import { LogoutButton } from "./sidebar/LogoutButton";
 import { UserMenu } from "./sidebar/UserMenu";
-import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { ToolsSection } from "./sidebar/ToolsSection";
 import { SidebarNavGroup } from "./sidebar/SidebarNavGroup";
+import { adminNavGroups, userNavGroups } from "./sidebar/SidebarNavData";
 
 interface DashboardSidebarProps {
   children: React.ReactNode;
@@ -38,6 +16,7 @@ interface DashboardSidebarProps {
 export function DashboardLayout({ children }: DashboardSidebarProps) {
   const { state } = useAuth();
   const isAdmin = state.user?.role === "admin";
+  
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <DashboardSidebar />
@@ -52,165 +31,12 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
 }
 
 export function DashboardSidebar() {
-  const { state, logout } = useAuth();
-  const navigate = useNavigate();
+  const { state } = useAuth();
   const location = useLocation();
   const isAdmin = state.user?.role === "admin";
   const currentPath = location.pathname;
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  // User navigation groups
-  const userNavGroups = [
-    {
-      title: "Home",
-      items: [
-        {
-          name: "Dashboard",
-          path: "/dashboard",
-          icon: LayoutDashboard,
-        }
-      ]
-    },
-    {
-      title: "Content",
-      items: [
-        {
-          name: "Latest Insights",
-          path: "/insights",
-          icon: LineChart,
-        },
-        {
-          name: "Top Opportunities",
-          path: "/opportunities",
-          icon: BarChart3,
-        },
-        {
-          name: "Diagnostic Reviews",
-          path: "/diagnostic-reviews",
-          icon: FileBarChart,
-        },
-        {
-          name: "Knowledge Hub",
-          path: "/knowledge-hub",
-          icon: BookOpen,
-        },
-      ]
-    },
-    {
-      title: "Account",
-      items: [
-        {
-          name: "Data Uploads",
-          path: "/data-uploads",
-          icon: UploadCloud,
-        },
-        {
-          name: "Profile",
-          path: "/profile",
-          icon: User,
-        },
-        {
-          name: "Settings",
-          path: "/settings",
-          icon: Settings,
-        },
-      ]
-    }
-  ];
-
-  // Admin navigation groups
-  const adminNavGroups = [
-    {
-      title: "Home",
-      items: [
-        {
-          name: "Dashboard",
-          path: "/admin",
-          icon: LayoutDashboard,
-        }
-      ]
-    },
-    {
-      title: "Operations",
-      items: [
-        {
-          name: "Users",
-          path: "/admin/users",
-          icon: Users,
-        },
-        {
-          name: "Checklists",
-          path: "/admin/checklists",
-          icon: CheckSquare,
-        },
-        {
-          name: "Files",
-          path: "/admin/files",
-          icon: FileUp,
-        }
-      ]
-    },
-    {
-      title: "Client Journey",
-      items: [
-        {
-          name: "Onboard Client",
-          path: "/admin/onboarding",
-          icon: UserPlus,
-        },
-        {
-          name: "Opportunities",
-          path: "/admin/opportunities",
-          icon: BarChart3,
-        }
-      ]
-    },
-    {
-      title: "Insights & Reviews",
-      items: [
-        {
-          name: "Insights",
-          path: "/admin/insights",
-          icon: LineChart,
-        },
-        {
-          name: "Diagnostic Reviews",
-          path: "/admin/diagnostic-reviews",
-          icon: FileBarChart,
-        },
-      ]
-    },
-    {
-      title: "Platform",
-      items: [
-        {
-          name: "API Keys",
-          path: "/admin/api-keys",
-          icon: Key,
-        },
-        {
-          name: "Add-ons",
-          path: "/admin/addons",
-          icon: Plus,
-        },
-      ]
-    },
-    {
-      title: "Billing",
-      items: [
-        {
-          name: "Subscriptions",
-          path: "/admin/subscriptions",
-          icon: CreditCard,
-        },
-      ]
-    }
-  ];
-
+  // Use the appropriate navigation groups based on user role
   const navGroups = isAdmin ? adminNavGroups : userNavGroups;
 
   return (
@@ -225,13 +51,7 @@ export function DashboardSidebar() {
           <span className="font-medium text-xs mt-1">Revify</span>
         </div>
         
-        <div className="mb-6 relative">
-          <Input 
-            placeholder="Search..." 
-            className="w-full bg-sidebar-accent/20 border-sidebar-border pl-9"
-          />
-          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
-        </div>
+        <SearchBar />
         
         <div className="mb-6 overflow-y-auto">
           {navGroups.map((group, index) => (
@@ -249,14 +69,7 @@ export function DashboardSidebar() {
         <ToolsSection />
         
         <div className="mt-3">
-          <Button 
-            variant="ghost" 
-            className="flex w-full items-center gap-3 justify-start px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" 
-            onClick={handleLogout}
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </Button>
+          <LogoutButton />
         </div>
       </div>
     </div>
