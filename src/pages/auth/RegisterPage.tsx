@@ -1,333 +1,171 @@
-
-import { useState, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, X } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
-import { AuthBackground } from "@/components/auth/AuthBackground";
-import { useToast } from "@/hooks/use-toast";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { z } from "zod";
+import { cn } from "@/lib/utils";
+import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { register } from "@/lib/auth";
 
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+const registerFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Invalid email address.",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
   companyName: z.string().optional(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  teamMembers: z.array(z.string().email("Invalid email format")).optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+interface RegisterCredentials {
+  email: string;
+  password: string;
+  name: string;
+  companyName?: string;
+}
 
 const RegisterPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { register: registerUser, state } = useAuth();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [isInvited, setIsInvited] = useState(false);
-  const [invitedEmail, setInvitedEmail] = useState("");
-  const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
-  const [teamMemberInput, setTeamMemberInput] = useState("");
-  const [teamMembers, setTeamMembers] = useState<string[]>([]);
-
-  useEffect(() => {
-    // Parse query parameters for invitation
-    const params = new URLSearchParams(location.search);
-    const email = params.get("email");
-    
-    if (email) {
-      setIsInvited(true);
-      setInvitedEmail(email);
-    }
-  }, [location]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: invitedEmail || "",
-      companyName: "",
-      password: "",
-      teamMembers: [],
-    },
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterCredentials>({
+    resolver: zodResolver(registerFormSchema),
   });
 
-  // Update form when invited email changes
-  useEffect(() => {
-    if (invitedEmail) {
-      form.setValue("email", invitedEmail);
-    }
-  }, [invitedEmail, form]);
-
-  const addTeamMember = () => {
-    if (teamMemberInput && teamMemberInput.includes("@")) {
-      if (!teamMembers.includes(teamMemberInput)) {
-        const newTeamMembers = [...teamMembers, teamMemberInput];
-        setTeamMembers(newTeamMembers);
-        form.setValue("teamMembers", newTeamMembers);
-      }
-      setTeamMemberInput("");
-    }
-  };
-
-  const removeTeamMember = (email: string) => {
-    const newTeamMembers = teamMembers.filter((member) => member !== email);
-    setTeamMembers(newTeamMembers);
-    form.setValue("teamMembers", newTeamMembers);
-  };
-
-  const handleTeamMemberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTeamMember();
-    }
-  };
-
-  const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true);
+  const handleRegister = async (data: RegisterCredentials) => {
+    setIsLoading(true);
     try {
-      // Register the user
-      await registerUser({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        companyName: data.companyName,
+      const { email, password, name } = data;
+    
+      const credentials: RegisterCredentials = {
+        email,
+        password,
+        name,
+        ...(data.companyName && { companyName: data.companyName })
+      };
+      
+      await register({
+        email: credentials.email,
+        password: credentials.password,
+        name: credentials.name,
       });
-
-      // In a real implementation, we would also send invitations to team members here
-      if (data.teamMembers && data.teamMembers.length > 0) {
-        console.log("Would send invitations to:", data.teamMembers);
-      }
-
-      setRegistrationComplete(true);
       toast({
-        title: "Registration successful",
-        description: "Account created successfully. Awaiting approval.",
+        title: "Registration successful.",
+        description: "You will be redirected to the dashboard.",
       });
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Registration error:", error);
       toast({
-        title: "Registration failed",
-        description: "There was an error creating your account. Please try again.",
+        title: "Something went wrong.",
+        description: "There was an error registering your account. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative">
-      {/* Dynamic background */}
-      <AuthBackground />
-      
-      <div className="w-full max-w-md relative z-10">
-        <Card className="w-full shadow-lg border-green-base/20 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
-          <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <img
-                src="/lovable-uploads/6a698e8c-e0d7-4380-bf89-d405719f85fc.png"
-                alt="Revify Logo"
-                className="w-48 h-auto object-contain"
+    <div className="grid h-screen w-screen place-items-center">
+      <div className="container flex w-full max-w-[700px] flex-col items-center justify-center">
+        <div className="flex flex-col space-y-1 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Create an account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your email below to create your account
+          </p>
+        </div>
+        <div className="grid gap-6">
+          <form className="grid gap-6" onSubmit={handleSubmit(handleRegister)}>
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="John Doe"
+                type="text"
+                disabled={isLoading}
+                {...register("name")}
               />
+              {errors?.name && (
+                <p className="text-sm text-red-500">{errors.name.message}</p>
+              )}
             </div>
-            <CardDescription className="text-center">
-              {isInvited 
-                ? "Complete your registration to join your organization" 
-                : "Create an account to get started"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {registrationComplete ? (
-              <div className="space-y-4">
-                <Alert className="border-green-base/50 bg-green-base/10">
-                  <AlertTitle className="text-green-base">Registration successful!</AlertTitle>
-                  <AlertDescription>
-                    Your account has been created and is pending admin approval. You will be notified when your account is approved.
-                    {teamMembers.length > 0 && (
-                      <p className="mt-2">
-                        Invitations have been sent to {teamMembers.length} team member{teamMembers.length > 1 ? 's' : ''}.
-                      </p>
-                    )}
-                  </AlertDescription>
-                </Alert>
-                <Button 
-                  onClick={() => navigate("/login")} 
-                  className="w-full bg-green-base hover:bg-green-hover"
-                >
-                  Go to Login
-                </Button>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                placeholder="name@example.com"
+                type="email"
+                autoCapitalize="none"
+                autoComplete="email"
+                disabled={isLoading}
+                {...register("email")}
+              />
+              {errors?.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                placeholder="Password"
+                type="password"
+                autoComplete="password"
+                disabled={isLoading}
+                {...register("password")}
+              />
+              {errors?.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+            <Button disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Create account
+            </Button>
+          </form>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          <Button variant="outline" disabled={isLoading}>
+            {isLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email" 
-                            placeholder="john@example.com" 
-                            disabled={isInvited}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="companyName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Acme Corp" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="********" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Collapsible
-                    open={isTeamMembersOpen}
-                    onOpenChange={setIsTeamMembersOpen}
-                    className="border rounded-md p-3"
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="flex w-full justify-between"
-                      >
-                        <span>Want to invite your team?</span>
-                        <span>{isTeamMembersOpen ? "Hide" : "Show"}</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2 space-y-2">
-                      <div className="text-sm text-muted-foreground mb-2">
-                        Add email addresses of team members you'd like to invite
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {teamMembers.map((email) => (
-                          <Badge key={email} variant="secondary" className="flex items-center gap-1">
-                            {email}
-                            <X
-                              size={14}
-                              className="cursor-pointer"
-                              onClick={() => removeTeamMember(email)}
-                            />
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="team.member@example.com"
-                          value={teamMemberInput}
-                          onChange={(e) => setTeamMemberInput(e.target.value)}
-                          onKeyDown={handleTeamMemberKeyDown}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={addTeamMember}
-                        >
-                          <Plus size={16} />
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                  
-                  <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      "Create account"
-                    )}
-                  </Button>
-                  
-                  {state.error && (
-                    <p className="text-sm text-destructive text-center">{state.error}</p>
-                  )}
-                </form>
-              </Form>
+              <Icons.gitHub className="mr-2 h-4 w-4" />
             )}
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <div className="text-center text-sm">
-              Already have an account?{" "}
-              <Link to="/login" className="text-green-base font-semibold hover:underline">
-                Log in
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
+            Github
+          </Button>
+        </div>
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            Sign in
+          </Link>
+        </div>
       </div>
     </div>
   );

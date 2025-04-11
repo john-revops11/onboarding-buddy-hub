@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -147,7 +146,7 @@ const InsightsPage = () => {
           </div>
         </div>
 
-        {/* Tabs Navigation */}
+        {/* Tabs Navigation - Ensure proper nesting */}
         <Tabs defaultValue="recent" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
           <Card>
             <CardHeader className="pb-3">
@@ -159,6 +158,7 @@ const InsightsPage = () => {
             </CardHeader>
             
             <CardContent className="p-0">
+              {/* Make sure all TabsContent are direct children of the Tabs component */}
               <TabsContent value="recent" className="m-0 p-6 space-y-6">
                 {/* Featured Insight with Embedded Document */}
                 <div className="grid gap-6 md:grid-cols-2">
