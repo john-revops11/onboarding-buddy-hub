@@ -43,7 +43,7 @@ export function ClientOnboardingForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-5 w-full">
-            <FormTabs />
+            <FormTabs activeTab={activeTab} />
           </TabsList>
 
           <TabsContent value="client-info" className="space-y-4 mt-4">

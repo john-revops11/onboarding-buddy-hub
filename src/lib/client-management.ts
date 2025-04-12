@@ -120,10 +120,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
         addonsByClient[item.client_id] = [];
       }
       if (item.addons) {
-        addonsByClient[item.client_id].push({
-          id: item.addons.id,
-          name: item.addons.name
-        });
+        addonsByClient[item.client_id].push(item.addons);
       }
     });
     
