@@ -112,11 +112,11 @@ const DashboardPage = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="text-sm focus:ring-4 focus:ring-accentGreen-600/40"
+                    className="text-sm focus:ring-4 focus:ring-accentGreen-600/40 px-4 py-2"
                     onClick={() => navigate('/onboarding')}
                   >
-                    View Onboarding Details
-                    <ChevronRight className="ml-1 h-4 w-4" />
+                    <span className="mr-2">View Onboarding Details</span>
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </motion.div>
               </div>

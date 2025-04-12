@@ -7,27 +7,27 @@ import { motion, HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-all duration-150 ease-out focus:outline-none focus:ring-4 focus:ring-accentGreen-600/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm transition-all duration-150 ease-out focus:outline-none focus:ring-4 focus:ring-accentGreen-600/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "h-11 min-w-[136px] bg-primary-700 text-white hover:bg-primary-600 font-medium",
+        default: "h-11 min-w-[136px] px-6 py-3 bg-primary-700 text-white hover:bg-primary-600 font-medium",
         destructive:
-          "h-11 min-w-[136px] bg-error-600 text-white hover:bg-error-700 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 bg-error-600 text-white hover:bg-error-700 font-medium",
         outline:
-          "h-11 min-w-[136px] border border-neutral-200 bg-background text-primary-700 hover:bg-primary-50 hover:text-primary-700 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 border border-neutral-200 bg-background text-primary-700 hover:bg-primary-50 hover:text-primary-700 font-medium",
         secondary:
-          "h-11 min-w-[136px] bg-neutral-200 text-neutral-900 hover:bg-neutral-300 font-medium",
-        ghost: "text-primary-700 hover:bg-primary-50 hover:text-primary-700",
-        link: "text-primary-700 underline-offset-4 hover:underline",
-        icon: "h-11 w-11 p-0 bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-primary-700",
-        success: "h-11 min-w-[136px] bg-accentGreen-600 text-white hover:bg-accentGreen-600/90 font-medium",
-        warning: "h-11 min-w-[136px] bg-warning-600 text-white hover:bg-warning-700 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 font-medium",
+        ghost: "text-primary-700 hover:bg-primary-50 hover:text-primary-700 px-4 py-2",
+        link: "text-primary-700 underline-offset-4 hover:underline px-4 py-2",
+        icon: "h-11 w-11 rounded-full p-0 bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-primary-700",
+        success: "h-11 min-w-[136px] px-6 py-3 bg-accentGreen-600 text-white hover:bg-accentGreen-600/90 font-medium",
+        warning: "h-11 min-w-[136px] px-6 py-3 bg-warning-600 text-white hover:bg-warning-700 font-medium",
       },
       size: {
-        default: "h-11 px-6 py-2",
-        sm: "h-9 rounded-md px-3 text-xs",
-        lg: "h-12 rounded-md px-8",
+        default: "h-11 px-6 py-3",
+        sm: "h-9 rounded-xl px-4 py-2 text-xs",
+        lg: "h-12 rounded-2xl px-8 py-4",
         icon: "h-11 w-11",
       },
     },

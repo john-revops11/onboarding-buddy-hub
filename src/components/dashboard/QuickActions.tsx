@@ -29,10 +29,11 @@ export const QuickActions = () => {
           </p>
           <Button 
             variant="outline" 
-            className="w-full border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10"
+            className="w-full border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-4 py-2"
             onClick={() => navigate('/knowledge-hub')}
           >
-            Visit Knowledge Hub <MoveRight className="ml-2 h-4 w-4" />
+            <span className="mr-2">Visit Knowledge Hub</span>
+            <MoveRight className="h-4 w-4" />
           </Button>
         </CardContent>
       </Card>
@@ -47,7 +48,7 @@ export const QuickActions = () => {
           </p>
           <Button 
             variant="secondary" 
-            className="w-full bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046]"
+            className="w-full bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046] px-4 py-2"
             onClick={() => {
               toast({
                 title: "Support request sent",

@@ -43,10 +43,10 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
           >
             <Button 
               variant="outline" 
-              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white px-5 py-2.5"
             >
-              REVIEW INSIGHTS
-              <ChevronRight className="ml-1 h-4 w-4" />
+              <span className="mr-2">REVIEW INSIGHTS</span>
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </motion.div>
           
@@ -56,10 +56,10 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
           >
             <Button 
               variant="outline"
-              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white px-5 py-2.5"
             >
-              COMPLETE PROFILE
-              <ChevronRight className="ml-1 h-4 w-4" />
+              <span className="mr-2">COMPLETE PROFILE</span>
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </motion.div>
         </div>
@@ -81,4 +81,3 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
     </Card>
   );
 }
-
