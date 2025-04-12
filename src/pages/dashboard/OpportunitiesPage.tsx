@@ -37,6 +37,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getClientFiles } from "@/utils/googleDriveUtils";
 
 const OpportunitiesPage = () => {
@@ -208,8 +214,16 @@ const OpportunitiesPage = () => {
                               <TableHead className="text-right">
                                 <div className="flex items-center justify-end">
                                   <span>Total Annual Opportunity ($MM)</span>
-                                  <Info size={14} className="ml-1 text-muted-foreground cursor-help" 
-                                  title="Estimated total size of the prize if fully realized" />
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Estimated total size of the prize if fully realized
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </div>
                               </TableHead>
                               <TableHead>Current Level / Baseline</TableHead>
@@ -217,8 +231,16 @@ const OpportunitiesPage = () => {
                               <TableHead className="text-right">
                                 <div className="flex items-center justify-end">
                                   <span>$MM Annual Target Opportunity</span>
-                                  <Info size={14} className="ml-1 text-muted-foreground cursor-help" 
-                                  title="Estimated value tied to achieving the defined Target Level" />
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Estimated value tied to achieving the defined Target Level
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </div>
                               </TableHead>
                               <TableHead>Tracking Dashboard</TableHead>
