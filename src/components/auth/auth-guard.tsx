@@ -26,9 +26,11 @@ export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
       requiredRole &&
       state.user?.role !== requiredRole
     ) {
+      // If user is admin, send to admin dashboard
       if (state.user?.role === "admin") {
         navigate("/admin", { replace: true });
       } else {
+        // If user is regular user, send to user dashboard
         navigate("/dashboard", { replace: true });
       }
     }
