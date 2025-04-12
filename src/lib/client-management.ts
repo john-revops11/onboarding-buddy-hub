@@ -129,11 +129,11 @@ export async function getClients(): Promise<OnboardingClient[]> {
     
     // Format the response
     return data.map(client => {
-      // Fixed: properly handle subscriptions by ensuring it's not treated as an array
+      // Fixed: properly handle subscriptions object type
       const subscriptionTier: TierOption = client.subscriptions 
         ? { 
-            id: client.subscriptions.id as string, 
-            name: client.subscriptions.name as string
+            id: String(client.subscriptions.id), 
+            name: String(client.subscriptions.name)
           } 
         : { id: '', name: 'None' };
         

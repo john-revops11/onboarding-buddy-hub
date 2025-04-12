@@ -23,15 +23,12 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ showMobileMenu = false, onMobileMenuClick }: TopBarProps) => {
-  const { state } = useAuth();
+  const { state, logout } = useAuth();
   const navigate = useNavigate();
   const user = state.user;
 
   const handleLogout = async () => {
-    // Check if logout function exists in auth context
-    if (typeof state.logout === 'function') {
-      await state.logout();
-    }
+    await logout();
     navigate("/login");
   };
 
