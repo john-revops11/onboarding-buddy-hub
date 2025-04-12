@@ -27,13 +27,14 @@ const DashboardPage = () => {
   const [totalItems, setTotalItems] = useState(6);
   const [clientStatus, setClientStatus] = useState(getClientStatus());
   
-  // Check if we should redirect to onboarding
+  // Check if we should redirect to onboarding or welcome
   useEffect(() => {
     const onboardingComplete = isOnboardingComplete();
     
     // If onboarding is not complete and client status is pending
     if (!onboardingComplete && clientStatus === 'pending') {
-      navigate('/onboarding');
+      // Redirect to welcome page for new users
+      navigate('/welcome');
     }
   }, [navigate, clientStatus]);
   
@@ -113,9 +114,9 @@ const DashboardPage = () => {
                     variant="outline" 
                     size="sm"
                     className="text-sm focus:ring-4 focus:ring-accentGreen-600/40 px-4 py-2"
-                    onClick={() => navigate('/onboarding')}
+                    onClick={() => navigate('/welcome')}
                   >
-                    <span className="mr-2">View Onboarding Details</span>
+                    <span className="mr-2">View Onboarding Dashboard</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </motion.div>
