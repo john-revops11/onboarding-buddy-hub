@@ -33,7 +33,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { createClient, getSubscriptionTiers, getAddons } from "@/lib/clients";
+import { createClient } from "@/lib/client-management";
+import { getSubscriptionTiers } from "@/lib/subscription-management";
+import { getAddons } from "@/lib/addon-management";
+import { ClientFormValues } from "@/lib/types/client-types";
 import { Loader2 } from "lucide-react";
 
 const emailSchema = z.string().email("Invalid email format");

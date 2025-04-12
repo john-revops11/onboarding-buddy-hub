@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -24,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { sendClientInvitation } from "@/lib/clients";
+import { sendClientInvitation } from "@/lib/client-management";
 
 interface Invite {
   id: string;
@@ -52,7 +53,9 @@ export function ClientInvites() {
           email,
           invitation_status,
           created_at,
-          clients(company_name)
+          clients:client_id (
+            company_name
+          )
         `)
         .order('created_at', { ascending: false });
       

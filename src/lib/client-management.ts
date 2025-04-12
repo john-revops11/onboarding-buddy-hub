@@ -1,27 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import type { ClientFormValues } from "@/components/admin/onboarding/ClientOnboardingForm";
-
-export interface OnboardingClient {
-  id: string;
-  email: string;
-  companyName: string | null;
-  subscriptionTier: {
-    id: string;
-    name: string;
-  };
-  addons: {
-    id: string;
-    name: string;
-  }[];
-  teamMembers: {
-    email: string;
-    invitationStatus: string;
-  }[];
-  status: string;
-  created_at: string;
-}
+import { ClientFormValues, OnboardingClient } from "@/lib/types/client-types";
 
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues) {
@@ -147,7 +127,10 @@ export async function getClients(): Promise<OnboardingClient[]> {
       id: client.id,
       email: client.email,
       companyName: client.company_name,
-      subscriptionTier: client.subscriptions || { id: '', name: 'None' },
+      subscriptionTier: client.subscriptions ? {
+        id: client.subscriptions.id,
+        name: client.subscriptions.name
+      } : { id: '', name: 'None' },
       addons: addonsByClient[client.id] || [],
       teamMembers: teamMembersByClient[client.id] || [],
       status: client.status,
@@ -155,40 +138,6 @@ export async function getClients(): Promise<OnboardingClient[]> {
     }));
   } catch (error: any) {
     console.error("Error fetching clients:", error);
-    return [];
-  }
-}
-
-// Fetch available subscription tiers
-export async function getSubscriptionTiers() {
-  try {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('id, name, description, price')
-      .order('price', { ascending: true });
-    
-    if (error) throw error;
-    
-    return data;
-  } catch (error) {
-    console.error("Error fetching subscription tiers:", error);
-    return [];
-  }
-}
-
-// Fetch available addons
-export async function getAddons() {
-  try {
-    const { data, error } = await supabase
-      .from('addons')
-      .select('id, name, description, price, tags')
-      .order('name', { ascending: true });
-    
-    if (error) throw error;
-    
-    return data;
-  } catch (error) {
-    console.error("Error fetching addons:", error);
     return [];
   }
 }

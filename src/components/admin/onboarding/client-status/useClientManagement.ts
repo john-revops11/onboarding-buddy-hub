@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
-import { OnboardingClient, getClients, completeClientOnboarding } from "@/lib/clients";
+import { OnboardingClient } from "@/lib/types/client-types";
+import { getClients, completeClientOnboarding } from "@/lib/client-management";
 
 export function useClientManagement() {
   const [clients, setClients] = useState<OnboardingClient[]>([]);
