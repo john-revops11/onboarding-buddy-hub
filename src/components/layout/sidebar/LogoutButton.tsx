@@ -1,26 +1,45 @@
 
-import { LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
 
-export function LogoutButton() {
+interface LogoutButtonProps {
+  collapsed?: boolean;
+}
+
+export function LogoutButton({ collapsed = false }: LogoutButtonProps) {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
+  if (collapsed) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleLogout}
+        className="w-full justify-center text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
+        title="Log out"
+      >
+        <LogOut size={22} />
+      </Button>
+    );
+  }
+
   return (
-    <Button 
-      variant="ghost" 
-      className="flex w-full items-center gap-3 justify-start px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" 
+    <Button
+      variant="ghost"
       onClick={handleLogout}
+      className="w-full justify-start text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
     >
-      <LogOut size={18} />
-      <span>Logout</span>
+      <LogOut className="mr-2 h-4 w-4" />
+      Log out
     </Button>
   );
 }
