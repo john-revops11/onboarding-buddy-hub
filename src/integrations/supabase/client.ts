@@ -9,5 +9,5 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-// Use a more flexible type definition since Database type doesn't include all tables
+// Use a more flexible type definition since Database type might not include all tables
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

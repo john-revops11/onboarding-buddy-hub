@@ -125,7 +125,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
     const teamMembersByClient: Record<string, any[]> = {};
     const addonsByClient: Record<string, any[]> = {};
     
-    teamMembersData.forEach(member => {
+    teamMembersData?.forEach(member => {
       if (!teamMembersByClient[member.client_id]) {
         teamMembersByClient[member.client_id] = [];
       }
@@ -135,7 +135,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
       });
     });
     
-    addonsData.forEach(item => {
+    addonsData?.forEach(item => {
       if (!addonsByClient[item.client_id]) {
         addonsByClient[item.client_id] = [];
       }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -53,10 +52,9 @@ export function ClientInvites() {
           email,
           invitation_status,
           created_at,
-          clients:client_id (
-            company_name
-          )
-        `);
+          clients(company_name)
+        `)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
@@ -97,7 +95,6 @@ export function ClientInvites() {
           description: "The invitation has been resent successfully."
         });
         
-        // Update the invite in the UI
         setInvites(prevInvites => 
           prevInvites.map(invite => 
             invite.id === id 
@@ -137,7 +134,6 @@ export function ClientInvites() {
         description: "The invitation has been revoked successfully."
       });
       
-      // Update the invite status in the UI
       setInvites(prevInvites => 
         prevInvites.map(invite => 
           invite.id === id 
