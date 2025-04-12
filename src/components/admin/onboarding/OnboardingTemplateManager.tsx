@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,6 +66,7 @@ const templateSchema = z.object({
 });
 
 type TemplateFormValues = z.infer<typeof templateSchema>;
+type StepFormValues = z.infer<typeof stepSchema>;
 
 export function OnboardingTemplateManager() {
   const { toast } = useToast();
@@ -89,7 +89,7 @@ export function OnboardingTemplateManager() {
     },
   });
   
-  const stepForm = useForm({
+  const stepForm = useForm<StepFormValues>({
     resolver: zodResolver(stepSchema),
     defaultValues: {
       title: "",
@@ -188,7 +188,6 @@ export function OnboardingTemplateManager() {
   // Open step dialog for editing an existing step
   const handleEditStep = (step: any, index: number) => {
     stepForm.reset({
-      id: step.id,
       title: step.title,
       description: step.description,
     });
@@ -243,7 +242,7 @@ export function OnboardingTemplateManager() {
   };
 
   // Save a step (add new or update existing)
-  const onStepSubmit = (data: any) => {
+  const onStepSubmit = (data: StepFormValues) => {
     const currentSteps = form.getValues("steps") || [];
     
     if (stepIndex !== null) {
