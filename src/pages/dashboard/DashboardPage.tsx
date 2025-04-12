@@ -1,18 +1,15 @@
-
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 import { useAuth } from "@/contexts/auth-context";
 import { isOnboardingComplete, skipOnboarding } from "@/utils/onboardingUtils";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
-import { AnalyticsOverview } from "@/components/dashboard/AnalyticsOverview";
 import { TopBar } from "@/components/layout/TopBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UploadIcon, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
@@ -74,26 +71,13 @@ const DashboardPage = () => {
               </CardHeader>
               <CardContent className="pt-2">
                 <QuickActions />
-                <div className="mt-4">
-                  <Button className="w-full" variant="outline">
-                    <UploadIcon className="mr-2 h-4 w-4" />
-                    Upload Data
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
 
-          <AnalyticsOverview />
+          {/* AnalyticsOverview component removed as requested */}
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-semibold">Onboarding Checklist</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <OnboardingChecklist />
-            </CardContent>
-          </Card>
+          {/* Onboarding Checklist component removed as requested */}
         </div>
       </DashboardLayout>
     </div>
