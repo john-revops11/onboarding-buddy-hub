@@ -4,7 +4,11 @@ import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Check, Calendar, ExternalLink, Upload, FileText, Clock, Users, BarChart2, Shield, HelpCircle, BookOpen, PhoneCall } from "lucide-react";
+import { 
+  Check, Calendar, ExternalLink, Upload, FileText, Clock, Users, 
+  BarChart2, Shield, HelpCircle, BookOpen, PhoneCall, ChevronRight,
+  Clipboard, ClipboardCheck
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
@@ -31,7 +35,7 @@ const OnboardingPage = () => {
       title: "Complete Data Questionnaire",
       description: "Provide details about your data sources and structure.",
       status: "pending",
-      icon: <FileText className="h-5 w-5 text-amber-500" />,
+      icon: <ClipboardCheck className="h-5 w-5 text-amber-500" />,
       action: {
         label: "Open Questionnaire",
         url: "https://docs.google.com/forms/d/e/1FAIpQLSdG8wss8NTjT-1_3S2vM-0iJ7xJEFrX7J0sxSx4c4vKT_E0rg/viewform"
@@ -85,7 +89,7 @@ const OnboardingPage = () => {
   // Consulting tier data
   const [consultingTier, setConsultingTier] = useState({
     tier: "Elite",
-    description: "You have our premium Elite tier with enhanced features and support.",
+    description: "Access to the Elite features of the Revify analytics platform.",
     benefits: [
       "Priority support with 4-hour response time",
       "Weekly consulting sessions",
@@ -127,7 +131,7 @@ const OnboardingPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-6">
         <div className="space-y-0.5">
           <h1 className="text-3xl font-bold tracking-tight">Welcome to Revify!</h1>
           <p className="text-muted-foreground">
@@ -269,10 +273,10 @@ const OnboardingPage = () => {
                   </p>
                   <Button 
                     variant="link" 
-                    className="text-sm p-0 h-auto mt-2"
+                    className="text-sm p-0 h-auto mt-2 flex items-center"
                     onClick={() => window.open('https://revify.com/consulting', '_blank')}
                   >
-                    Explore Consulting Options →
+                    Explore Consulting Options <ChevronRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
               </CardContent>

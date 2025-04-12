@@ -20,7 +20,10 @@ import {
   Clock,
   FileText,
   Upload,
-  Calendar
+  Calendar,
+  ClipboardCheck,
+  Shield,
+  BarChart2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
@@ -67,23 +70,23 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ clientName = 
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([
     {
       id: "1",
-      title: "mNDA Signed",
-      description: "Please sign and return the mutual non-disclosure agreement.",
+      title: "Contract Signed",
+      description: "Revify agreement finalized.",
       completed: true,
       clientAction: true,
       actionType: "manual",
-      icon: <FileText size={18} className="text-primary" />,
+      icon: <FileText size={18} className="text-green-500" />,
       dueDate: "Completed"
     },
     {
       id: "2",
-      title: "Complete Questionnaire",
-      description: "Fill out our detailed questionnaire to help us understand your business needs.",
+      title: "Complete Data Questionnaire",
+      description: "Provide details about your data sources and structure.",
       completed: false,
       clientAction: true,
       actionType: "link",
-      actionTarget: "https://surveymonkey.com/example-questionnaire",
-      icon: <FileText size={18} className="text-amber-500" />,
+      actionTarget: "https://docs.google.com/forms/d/e/1FAIpQLSdG8wss8NTjT-1_3S2vM-0iJ7xJEFrX7J0sxSx4c4vKT_E0rg/viewform",
+      icon: <ClipboardCheck size={18} className="text-amber-500" />,
       dueDate: "Due in 3 days"
     },
     {
@@ -98,22 +101,22 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ clientName = 
     },
     {
       id: "4",
-      title: "Data Health Check",
+      title: "Data Health Check Review",
       description: "Our team will perform a data quality assessment on your uploaded files.",
       completed: false,
       clientAction: false,
       actionType: "manual",
-      icon: <Clock size={18} className="text-purple-500" />,
+      icon: <Shield size={18} className="text-purple-500" />,
       dueDate: "Expected by Apr 15"
     },
     {
       id: "5",
-      title: "Activate Revify",
+      title: "Activate Revify Analytics",
       description: "Your Revify instance will be activated with your data integrated.",
       completed: false,
       clientAction: false,
       actionType: "manual",
-      icon: <Clock size={18} className="text-purple-500" />,
+      icon: <BarChart2 size={18} className="text-purple-500" />,
       dueDate: "Expected by Apr 20"
     },
     {
@@ -173,7 +176,7 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ clientName = 
       )}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle>Onboarding Checklist</CardTitle>
+            <CardTitle>Your Onboarding Journey</CardTitle>
             {isFirstTimeUser && !isExpanded && (
               <Badge variant="default" className="ml-2">New</Badge>
             )}
@@ -189,10 +192,7 @@ const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ clientName = 
           </Button>
         </div>
         <CardDescription>
-          {completedCount === checklistItems.length 
-            ? "All steps completed! Your Revify account is fully configured."
-            : `Complete these steps to fully set up your Revify account (Stage: ${getStage()})`
-          }
+          Complete these steps to unlock the full power of your Revify portal.
         </CardDescription>
       </CardHeader>
       

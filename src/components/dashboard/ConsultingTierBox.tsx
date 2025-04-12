@@ -103,7 +103,7 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
             <div className={`h-8 w-8 rounded-full ${colors.iconBg} flex items-center justify-center`}>
               <Award className={`h-4 w-4 ${colors.iconColor}`} />
             </div>
-            Your Consulting Tier
+            Platform Tier
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={colors.badge}>
