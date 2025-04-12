@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -84,10 +83,8 @@ const InsightsPage = () => {
           const dateMatch = file.name.match(/^(\d{4})-(\d{2})/);
           if (dateMatch) {
             const [_, yearStr, monthStr] = dateMatch;
-            // Fix: Properly convert strings to numbers
             const year = parseInt(yearStr, 10);
             const month = parseInt(monthStr, 10);
-            // Now perform arithmetic with proper number types
             insightDate = new Date(year, month - 1);
             insightMonth = insightDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
           } else {
@@ -188,7 +185,7 @@ const InsightsPage = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="recent" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <Tabs defaultValue="recent" value={selectedTab} onValueChange={setSelectedTab}>
           <Card>
             <CardHeader className="pb-3">
               <TabsList className="w-full sm:w-auto">
