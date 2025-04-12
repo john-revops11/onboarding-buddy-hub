@@ -26,6 +26,8 @@ interface DriveFile {
     photoLink?: string;
   };
   modifiedTime: string;
+  size?: string;
+  description?: string;
 }
 
 /**
@@ -117,20 +119,60 @@ export const getClientFiles = async (
     insights: [
       {
         id: `file-insight-1-${clientId}`,
-        name: "January 2024 Insights",
+        name: "2025-04 - Insight - Client123",
         mimeType: "application/vnd.google-apps.document",
         webViewLink: `https://docs.google.com/document/d/${clientId}-insight-1`,
         embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-1/pub?embedded=true`,
-        modifiedTime: "2024-01-31T16:45:00Z",
+        modifiedTime: "2025-04-05T16:45:00Z",
       },
       {
         id: `file-insight-2-${clientId}`,
-        name: "February 2024 Insights",
+        name: "2025-03 - Insight - Client123",
         mimeType: "application/vnd.google-apps.document",
         webViewLink: `https://docs.google.com/document/d/${clientId}-insight-2`,
         embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-2/pub?embedded=true`,
-        modifiedTime: "2024-02-28T11:30:00Z",
-      }
+        modifiedTime: "2025-03-10T11:30:00Z",
+      },
+      {
+        id: `file-insight-3-${clientId}`,
+        name: "2025-02 - Insight - Client123",
+        mimeType: "application/vnd.google-apps.document",
+        webViewLink: `https://docs.google.com/document/d/${clientId}-insight-3`,
+        embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-3/pub?embedded=true`,
+        modifiedTime: "2025-02-08T09:15:00Z",
+      },
+      {
+        id: `file-insight-4-${clientId}`,
+        name: "2025-01 - Insight - Client123",
+        mimeType: "application/vnd.google-apps.document",
+        webViewLink: `https://docs.google.com/document/d/${clientId}-insight-4`,
+        embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-4/pub?embedded=true`,
+        modifiedTime: "2025-01-07T14:20:00Z",
+      },
+      {
+        id: `file-insight-5-${clientId}`,
+        name: "Q4 2024 - Quarterly Review - Client123",
+        mimeType: "application/vnd.google-apps.document",
+        webViewLink: `https://docs.google.com/document/d/${clientId}-insight-5`,
+        embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-5/pub?embedded=true`,
+        modifiedTime: "2024-12-20T10:30:00Z",
+      },
+      {
+        id: `file-insight-6-${clientId}`,
+        name: "2024-11 - Insight - Client123",
+        mimeType: "application/vnd.google-apps.document",
+        webViewLink: `https://docs.google.com/document/d/${clientId}-insight-6`,
+        embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-6/pub?embedded=true`,
+        modifiedTime: "2024-11-12T13:45:00Z",
+      },
+      {
+        id: `file-insight-7-${clientId}`,
+        name: "Growth Strategy Analysis - Q4 2024",
+        mimeType: "application/vnd.google-apps.document",
+        webViewLink: `https://docs.google.com/document/d/${clientId}-insight-7`,
+        embedLink: `https://docs.google.com/document/d/e/${clientId}-insight-7/pub?embedded=true`,
+        modifiedTime: "2024-10-30T15:00:00Z",
+      },
     ],
     data: [
       {
@@ -234,4 +276,44 @@ export const createGoogleDoc = async (
   };
   
   return createdDoc;
+};
+
+/**
+ * Downloads a file from Google Drive
+ * 
+ * @param fileId ID of the file to download
+ * @returns A blob URL that can be used to download the file
+ */
+export const downloadFile = async (fileId: string): Promise<string> => {
+  // In a real implementation, this would call the Google Drive API
+  console.log(`Downloading file with ID: ${fileId}`);
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // In a real implementation, this would return a blob URL
+  return `https://example.com/download/${fileId}`;
+};
+
+/**
+ * Gets the latest file from a folder based on modification date
+ * 
+ * @param clientId Unique identifier for the client
+ * @param folderType Type of folder to get the latest file from
+ * @returns The latest file in the folder
+ */
+export const getLatestFile = async (
+  clientId: string,
+  folderType: 'diagnostics' | 'insights' | 'data' | 'resources'
+): Promise<DriveFile | null> => {
+  const files = await getClientFiles(clientId, folderType);
+  
+  if (files.length === 0) {
+    return null;
+  }
+  
+  // Sort by modification date (newest first)
+  files.sort((a, b) => new Date(b.modifiedTime).getTime() - new Date(a.modifiedTime).getTime());
+  
+  return files[0];
 };
