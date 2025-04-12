@@ -4,6 +4,7 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LineChart } from "@/components/ui/charts/LineChart";
+import { motion } from "framer-motion";
 
 interface DashboardBannerProps {
   userName: string;
@@ -36,21 +37,31 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <Button 
-            variant="outline" 
-            className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+          <motion.div
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ y: 0, scale: 0.98 }}
           >
-            REVIEW INSIGHTS
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
+            <Button 
+              variant="outline" 
+              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+            >
+              REVIEW INSIGHTS
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </motion.div>
           
-          <Button 
-            variant="outline"
-            className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+          <motion.div
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ y: 0, scale: 0.98 }}
           >
-            COMPLETE PROFILE
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
+            <Button 
+              variant="outline"
+              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+            >
+              COMPLETE PROFILE
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </motion.div>
         </div>
       </div>
       

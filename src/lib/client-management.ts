@@ -132,8 +132,8 @@ export async function getClients(): Promise<OnboardingClient[]> {
       // Fixed: properly handle subscriptions by ensuring it's not treated as an array
       const subscriptionTier: TierOption = client.subscriptions 
         ? { 
-            id: client.subscriptions.id, 
-            name: client.subscriptions.name 
+            id: client.subscriptions.id as string, 
+            name: client.subscriptions.name as string
           } 
         : { id: '', name: 'None' };
         

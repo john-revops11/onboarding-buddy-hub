@@ -28,7 +28,8 @@ export const TopBar = ({ showMobileMenu = false, onMobileMenuClick }: TopBarProp
   const user = state.user;
 
   const handleLogout = async () => {
-    if (state.logout) {
+    // Check if logout function exists in auth context
+    if (typeof state.logout === 'function') {
       await state.logout();
     }
     navigate("/login");
