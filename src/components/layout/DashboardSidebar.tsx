@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { 
   Home, Users, ClipboardCheck, FileText, UserPlus, Target, Key, 
   Package, CreditCard, BarChart2, FileSearch, BookOpen, User, 
-  Settings, CheckSquare, Upload, Menu, X, ChevronLeft, ChevronRight
+  Settings, CheckSquare, Upload, Menu, X, ChevronLeft, ChevronRight,
+  ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
