@@ -122,7 +122,7 @@ const InsightsPage = () => {
           };
         });
         
-        insightDocuments.sort((a, b) => new Date(b.date) - new Date(a.date));
+        insightDocuments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
         setInsights(insightDocuments);
         
