@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
-// Pages
+// Pages (import statements kept as is)
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
@@ -54,12 +54,11 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+    // Ensure all providers are properly nested
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Navigate to="/login" />} />
@@ -118,10 +117,12 @@ const App = () => {
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Toaster />
+            <Sonner />
           </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 

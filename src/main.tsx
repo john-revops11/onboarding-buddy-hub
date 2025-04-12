@@ -7,7 +7,11 @@ import './index.css'
 const root = document.getElementById("root");
 
 if (root) {
-  ReactDOM.createRoot(root).render(
+  // Ensure React is properly imported before creating root
+  const reactRoot = ReactDOM.createRoot(root);
+  
+  // Wrap with React.StrictMode without nested React elements
+  reactRoot.render(
     <React.StrictMode>
       <App />
     </React.StrictMode>

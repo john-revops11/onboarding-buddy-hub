@@ -130,12 +130,15 @@ export async function getClients(): Promise<OnboardingClient[]> {
     // Format the response
     return data.map(client => {
       // Fixed: properly handle subscriptions object type
-      const subscriptionTier: TierOption = client.subscriptions 
-        ? { 
-            id: String(client.subscriptions.id), 
-            name: String(client.subscriptions.name)
-          } 
-        : { id: '', name: 'None' };
+      let subscriptionTier: TierOption = { id: '', name: 'None' };
+      
+      // Check if client.subscriptions exists and is an object with id and name properties
+      if (client.subscriptions && typeof client.subscriptions === 'object' && 'id' in client.subscriptions && 'name' in client.subscriptions) {
+        subscriptionTier = {
+          id: String(client.subscriptions.id),
+          name: String(client.subscriptions.name)
+        };
+      }
         
       return {
         id: client.id,
