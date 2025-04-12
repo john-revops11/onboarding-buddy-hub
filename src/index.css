@@ -6,19 +6,20 @@
   :root {
     /* Base colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 215 28% 17%;
 
     /* Card */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 28% 17%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 28% 17%;
 
-    /* Primary - Revify Green */
-    --primary: 93 50% 51%;  /* #7EC242 */
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Mapped to primary-600 */
+    --primary: #12366B;
+    --primary-600: #12366B;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 210 40% 96.1%;
@@ -26,39 +27,23 @@
 
     /* Muted */
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215 20% 65.1%;
 
-    /* Accent - Tech Blue */
-    --accent: 224 65% 33%; /* #1e3a8a */
+    /* Accent - Mapped to accentGreen-600 */
+    --accent: #2EBD85;
     --accent-foreground: 210 40% 98%;
 
-    /* Destructive */
-    --destructive: 0 84.2% 60.2%;
+    /* Destructive - Mapped to error-600 */
+    --destructive: #E05858;
     --destructive-foreground: 210 40% 98%;
 
     /* Border & Input */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 93 50% 51%; /* #7EC242 */
-
-    /* Header Background - Deep Navy */
-    --header-bg: 222 47% 11%; /* #0f172a */
-
-    /* Text - Jet Black */
-    --text-dark: 0 0% 10%; /* #1a1a1a */
+    --ring: 222 65% 15%;
     
     /* Border Radius */
-    --radius: 0.5rem;
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 93 50% 51%; /* #7EC242 */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 224 65% 33%; /* #1e3a8a */
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
+    --radius: 0.375rem;
   }
 
   .dark {
@@ -71,8 +56,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary - Revify Green - brighter in dark mode */
-    --primary: 93 60% 55%; /* brighter #7EC242 */
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -81,8 +65,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    /* Accent - Tech Blue - brighter in dark mode */
-    --accent: 224 65% 40%; /* brighter #1e3a8a */
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -90,20 +73,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-
-    /* Header Background - Deep Navy - slightly lighter in dark mode */
-    --header-bg: 222 40% 13%; /* slightly lighter #0f172a */
-
-    /* Sidebar */
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 93 60% 55%; /* brighter #7EC242 */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 65% 40%; /* brighter #1e3a8a */
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 224.3 76.3% 48%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -112,9 +82,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-neutral-900 font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: "Segoe UI", Roboto, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
   
   html, body, #root {
@@ -124,120 +93,158 @@
     padding: 0;
     overflow-x: hidden;
   }
-  
-  h1, h2 {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
-  }
-  
-  h3, h4 {
-    @apply text-xl font-semibold;
-  }
-  
-  .ui-label, 
-  .button-text {
-    @apply text-sm font-semibold uppercase;
-  }
-  
-  .auth-bg {
-    @apply bg-gradient-to-br from-green-light to-white dark:from-green-base/30 dark:to-darkblue-base/80;
-  }
 }
 
 @layer components {
-  .progress-ring circle {
-    @apply transition-all duration-700 ease-in-out;
+  /* Typography Scale */
+  .text-display {
+    @apply text-[2rem] leading-[2.5rem] font-bold;
   }
   
-  .checklist-item {
-    @apply transition-all duration-300 hover:bg-accent/30;
+  .text-h1 {
+    @apply text-[1.75rem] leading-[2.25rem] font-semibold;
   }
   
-  .checklist-item.completed {
-    @apply text-muted-foreground;
+  .text-h2 {
+    @apply text-[1.5rem] leading-[2rem] font-semibold;
   }
   
-  /* Dark blue accent styles */
-  .accent-dark-blue {
-    @apply text-blue-900 dark:text-blue-400;
+  .text-h3 {
+    @apply text-[1.25rem] leading-[1.75rem] font-semibold;
   }
   
-  .bg-accent-dark-blue {
-    @apply bg-blue-900 dark:bg-blue-800;
+  .text-base {
+    @apply text-[1rem] leading-[1.5rem] font-normal;
   }
   
-  .border-accent-dark-blue {
-    @apply border-blue-900 dark:border-blue-700;
+  .text-caption {
+    @apply text-[0.875rem] leading-[1.25rem] font-normal;
   }
   
-  /* Auth page animations */
-  .auth-card {
-    @apply transition-all duration-500 shadow-lg hover:shadow-xl;
+  .text-micro {
+    @apply text-[0.75rem] leading-[1rem] font-medium;
+  }
+
+  /* Apply body font to specific elements */
+  .body-copy {
+    @apply font-body;
   }
   
-  .auth-input {
-    @apply transition-all duration-300 border-2 focus:border-primary;
+  /* Apply numeric mono font */
+  .num-mono {
+    @apply font-mono-numeric;
   }
   
-  .auth-button {
-    @apply transition-all duration-300 transform hover:scale-[1.02];
-  }
-  
-  /* Primary Button */
+  /* Button Styles */
   .btn-primary {
-    @apply bg-darkblue-base text-white rounded-lg px-4 py-2 hover:opacity-90 transition-opacity;
+    @apply h-10 min-w-[120px] rounded-md font-medium text-white
+      bg-primary-700 hover:bg-primary-600 focus:outline focus:outline-2
+      focus:outline-accentGreen-600;
   }
   
-  /* Secondary Button */
-  .btn-secondary {
-    @apply border-2 border-green-base text-jetblack rounded-lg px-4 py-2 transition-colors hover:bg-green-base hover:text-white;
+  .btn-icon {
+    @apply w-10 h-10 rounded-md flex items-center justify-center
+      bg-primary-700 hover:bg-primary-600 text-white
+      focus:outline focus:outline-2 focus:outline-accentGreen-600;
+  }
+
+  /* Form Spacing */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-section {
+    @apply space-y-4;
+  }
+
+  /* Table Styles */
+  .table-standard th {
+    @apply font-medium text-left p-4 bg-neutral-200;
   }
   
-  /* Dropdown */
-  .dropdown {
-    @apply text-jetblack border border-gray-200 rounded-lg bg-white shadow-sm;
+  .table-standard th.numeric, 
+  .table-standard td.numeric {
+    @apply text-right num-mono;
   }
   
-  /* Link */
-  .link {
-    @apply text-accent hover:underline hover:text-primary transition-colors;
+  .table-standard td {
+    @apply p-4 border-b border-neutral-200;
   }
   
-  /* Successful element */
-  .success {
-    @apply text-green-base;
+  .table-standard tr:nth-child(even) {
+    @apply bg-primary-50;
   }
   
-  /* Header with Deep Navy background */
-  .header-bg {
-    @apply bg-darkblue-base text-white;
+  .table-standard tr {
+    @apply min-h-[48px];
+  }
+  
+  .table-condensed tr {
+    @apply min-h-[40px];
+  }
+  
+  /* Card Styles */
+  .card-standard {
+    @apply shadow-sm rounded-lg border border-neutral-200 bg-white p-6;
+  }
+  
+  /* Banner Styles */
+  .banner-success {
+    @apply bg-accentGreen-100 text-neutral-900 p-4 rounded-md;
+  }
+  
+  /* Progress Bar Styles */
+  .progress-bar {
+    @apply h-1.5 rounded-full bg-neutral-200 overflow-hidden;
+  }
+  
+  .progress-bar-fill {
+    @apply h-full bg-accentGreen-600 rounded-full;
   }
   
   /* Sidebar navigation item */
   .sidebar-nav-item {
-    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors;
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors;
   }
   
   .sidebar-nav-item:not(.active) {
-    @apply text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-accent;
+    @apply text-neutral-600 hover:bg-primary-50 hover:text-primary-700;
   }
   
   .sidebar-nav-item.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    @apply bg-primary-700 text-white;
   }
   
   .sidebar-nav-item:not(.active) svg {
-    @apply text-muted-foreground;
+    @apply text-neutral-600;
   }
   
   .sidebar-nav-item:hover:not(.active) svg {
-    @apply text-sidebar-accent;
+    @apply text-primary-700;
   }
   
   .sidebar-nav-item.active svg {
-    @apply text-sidebar-accent-foreground;
+    @apply text-white;
   }
 }
 
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Legacy styles maintained for backward compatibility */
 @keyframes float {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -295,10 +302,6 @@
   
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite alternate;
   }
 }
 

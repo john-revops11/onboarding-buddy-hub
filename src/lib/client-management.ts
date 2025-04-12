@@ -129,7 +129,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
     
     // Format the response
     return data.map(client => {
-      // Fixed: properly handle subscriptions by checking for existence first
+      // Fixed: properly handle subscriptions by checking for existence first and ensuring correct type
       const subscriptionTier: TierOption = client.subscriptions 
         ? { 
             id: client.subscriptions.id, 

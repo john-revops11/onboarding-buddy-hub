@@ -19,6 +19,11 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				'body': ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+				'mono-numeric': ['Roboto Mono', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -26,8 +31,26 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: 'var(--primary-600)',
+					50: '#F3F7FC',
+					600: '#12366B',
+					700: '#0B2B50',
 					foreground: 'hsl(var(--primary-foreground))'
+				},
+				accentGreen: {
+					100: '#E6F8F1',
+					600: '#2EBD85',
+				},
+				neutral: {
+					200: '#E5EAF1',
+					600: '#56637A',
+					900: '#1C2431',
+				},
+				error: {
+					600: '#E05858',
+				},
+				warning: {
+					600: '#F5A623',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,54 +75,7 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
-				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				},
-				green: {
-					50: '#f5fbeb',
-					100: '#e8f4d9',
-					200: '#d2e8b6',
-					300: '#b6d98a',
-					400: '#9aca61',
-					500: '#7ec242', // Primary Brand - Revify Green
-					600: '#629f2c',
-					700: '#4b7b22',
-					800: '#3c611c',
-					900: '#324f1b',
-					base: '#7ec242',
-					hover: '#6a9538',
-					light: '#e8f4d9',
-					medium: '#8ab454',
-				},
-				darkblue: {
-					50: '#e6ebf5',
-					100: '#c3cfea',
-					200: '#9aabdb',
-					300: '#7286cc',
-					400: '#5269bd',
-					500: '#3d53a8',
-					600: '#314287',
-					700: '#253165',
-					800: '#1a2144',
-					900: '#0f172a', // Header BG - Deep Navy
-					base: '#0a1c34',
-					hover: '#112c4e',
-					light: '#1a3c6a',
-				},
-				techblue: {
-					DEFAULT: '#1e3a8a', // UI Accent - Tech Blue
-				},
-				jetblack: {
-					DEFAULT: '#1a1a1a',  // Text (Dark) - Jet Black
-				},
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
