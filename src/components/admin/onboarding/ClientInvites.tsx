@@ -16,11 +16,11 @@ export function ClientInvites() {
   } = useInviteManagement();
 
   // Create adapter functions that convert Promise<boolean> to Promise<void>
-  const handleResend = async (id: string, clientId: string, email: string) => {
+  const handleResend = async (id: string, clientId: string, email: string): Promise<void> => {
     await resendInvite(id, clientId, email);
   };
 
-  const handleRevoke = async (id: string) => {
+  const handleRevoke = async (id: string): Promise<void> => {
     await revokeInvite(id);
   };
 
