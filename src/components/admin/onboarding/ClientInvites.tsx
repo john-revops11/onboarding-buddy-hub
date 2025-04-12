@@ -56,8 +56,7 @@ export function ClientInvites() {
           clients:client_id (
             company_name
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
       
       if (error) throw error;
       
