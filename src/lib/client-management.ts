@@ -119,7 +119,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
       if (!addonsByClient[item.client_id]) {
         addonsByClient[item.client_id] = [];
       }
-      if (item.addons) {  // Check if addons property exists
+      if (item.addons) {
         addonsByClient[item.client_id].push({
           id: item.addons.id,
           name: item.addons.name

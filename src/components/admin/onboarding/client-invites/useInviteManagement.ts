@@ -1,143 +1,154 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { toast } from "@/hooks/use-toast";
-import { Invite } from "@/lib/types/invite-types";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { sendClientInvitation } from "@/lib/client-management";
+import { Invite } from "@/lib/types/invite-types";
+import { toast } from "@/hooks/use-toast";
 
-export function useInviteManagement() {
+export const useInviteManagement = () => {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
-  const fetchInvites = useCallback(async () => {
+  useEffect(() => {
+    fetchInvites();
+  }, []);
+
+  const fetchInvites = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('team_members')
+      // Fetch team members with pending invitations
+      const { data: teamMembers, error } = await supabase
+        .from("team_members")
         .select(`
           id,
-          client_id,
           email,
           invitation_status,
           created_at,
-          clients:client_id (
+          client_id,
+          clients (
+            id,
+            email,
             company_name
           )
         `)
-        .order('created_at', { ascending: false });
-      
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
-      
-      const formattedInvites: Invite[] = data.map((invite) => ({
-        id: invite.id,
-        client_id: invite.client_id,
-        client_name: invite.clients?.company_name || 'Unknown Client',
-        email: invite.email,
-        created_at: invite.created_at,
-        invitation_status: invite.invitation_status
+
+      // Format the data
+      const formattedInvites: Invite[] = teamMembers.map((member: any) => ({
+        id: member.id,
+        client_id: member.client_id,
+        client_name: member.clients ? member.clients.company_name || member.clients.email : "Unknown",
+        email: member.email,
+        created_at: member.created_at,
+        invitation_status: member.invitation_status,
       }));
-      
+
       setInvites(formattedInvites);
-    } catch (error) {
-      console.error("Error fetching invites:", error);
+    } catch (error: any) {
+      console.error("Error fetching invites:", error.message);
       toast({
-        title: "Error",
-        description: "Failed to load invites. Please try again.",
-        variant: "destructive"
+        title: "Error fetching invites",
+        description: error.message || "Could not load invitations",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchInvites();
-  }, [fetchInvites]);
-
-  const resendInvite = async (id: string, clientId: string, email: string) => {
-    setProcessingId(id);
-    try {
-      const success = await sendClientInvitation(clientId, email);
-      
-      if (success) {
-        toast({
-          title: "Invite Resent",
-          description: "The invitation has been resent successfully."
-        });
-        
-        setInvites(prevInvites => 
-          prevInvites.map(invite => 
-            invite.id === id 
-              ? {
-                  ...invite,
-                  invitation_status: 'sent',
-                  created_at: new Date().toISOString()
-                } 
-              : invite
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error resending invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to resend invite. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingId(null);
-    }
   };
 
-  const revokeInvite = async (id: string) => {
-    setProcessingId(id);
+  const resendInvitation = async (inviteId: string) => {
     try {
       const { error } = await supabase
-        .from('team_members')
-        .update({ invitation_status: 'revoked' })
-        .eq('id', id);
-      
+        .from("team_members")
+        .update({ invitation_status: "sent" })
+        .eq("id", inviteId);
+
       if (error) throw error;
-      
-      toast({
-        title: "Invite Revoked",
-        description: "The invitation has been revoked successfully."
-      });
-      
-      setInvites(prevInvites => 
-        prevInvites.map(invite => 
-          invite.id === id 
-            ? { ...invite, invitation_status: 'revoked' } 
+
+      // Update local state
+      setInvites(
+        invites.map((invite) =>
+          invite.id === inviteId
+            ? { ...invite, invitation_status: "sent" }
             : invite
         )
       );
-    } catch (error) {
-      console.error("Error revoking invite:", error);
+
       toast({
-        title: "Error",
-        description: "Failed to revoke invite. Please try again.",
-        variant: "destructive"
+        title: "Invitation resent",
+        description: "The invitation has been resent successfully",
       });
-    } finally {
-      setProcessingId(null);
+
+      return true;
+    } catch (error: any) {
+      console.error("Error resending invitation:", error.message);
+      toast({
+        title: "Error resending invitation",
+        description: error.message || "Could not resend the invitation",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
-  const filteredInvites = invites.filter(invite => 
-    invite.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    invite.client_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const revokeInvitation = async (inviteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("team_members")
+        .update({ invitation_status: "revoked" })
+        .eq("id", inviteId);
+
+      if (error) throw error;
+
+      // Update local state
+      setInvites(
+        invites.map((invite) =>
+          invite.id === inviteId
+            ? { ...invite, invitation_status: "revoked" }
+            : invite
+        )
+      );
+
+      toast({
+        title: "Invitation revoked",
+        description: "The invitation has been revoked successfully",
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("Error revoking invitation:", error.message);
+      toast({
+        title: "Error revoking invitation",
+        description: error.message || "Could not revoke the invitation",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const filteredInvites = invites.filter((invite) => {
+    const matchesSearch =
+      invite.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      invite.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus =
+      selectedStatus === "all" || invite.invitation_status === selectedStatus;
+
+    return matchesSearch && matchesStatus;
+  });
 
   return {
     invites: filteredInvites,
     isLoading,
     searchQuery,
     setSearchQuery,
-    processingId,
-    fetchInvites,
-    resendInvite,
-    revokeInvite
+    selectedStatus,
+    setSelectedStatus,
+    resendInvitation,
+    revokeInvitation,
+    refreshInvites: fetchInvites,
   };
-}
+};
