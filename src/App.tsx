@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -6,17 +7,19 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useAuth } from './contexts/auth-context';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import OnboardingPage from './pages/dashboard/OnboardingPage';
-import DataUploadPage from './pages/dashboard/DataUploadPage';
+import DataUploadsPage from './pages/dashboard/DataUploadsPage';
 import KnowledgeHubPage from './pages/dashboard/KnowledgeHubPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminOnboardingPage from './pages/admin/onboarding/AdminOnboardingPage';
 import WelcomePage from "./pages/dashboard/WelcomePage";
+import InsightsPage from './pages/dashboard/InsightsPage';
+import OpportunitiesPage from './pages/dashboard/OpportunitiesPage';
 
 // AuthGuard component
 const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -77,7 +80,7 @@ function App() {
           path="/data-uploads"
           element={
             <AuthGuard>
-              <DataUploadPage />
+              <DataUploadsPage />
             </AuthGuard>
           }
         />
@@ -86,6 +89,22 @@ function App() {
           element={
             <AuthGuard>
               <KnowledgeHubPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <AuthGuard>
+              <InsightsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/opportunities"
+          element={
+            <AuthGuard>
+              <OpportunitiesPage />
             </AuthGuard>
           }
         />

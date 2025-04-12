@@ -1,105 +1,167 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { OpportunitiesSummary } from "@/components/opportunities/OpportunitiesSummary";
+import { DocumentLibrary } from "@/components/opportunities/DocumentLibrary";
+import { FileText, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+
+// Mock opportunities data - would come from an API in a real implementation
+const MOCK_OPPORTUNITIES = [
+  {
+    id: "1",
+    area: "Pricing Optimization",
+    description: "Potential impact: $24,500",
+    annualValue: "$24.5K",
+    impactLevel: "high" as const
+  },
+  {
+    id: "2",
+    area: "Cross-Selling",
+    description: "Potential impact: $12,300",
+    annualValue: "$12.3K",
+    impactLevel: "medium" as const
+  },
+  {
+    id: "3",
+    area: "Customer Retention",
+    description: "Potential impact: $8,900",
+    annualValue: "$8.9K",
+    impactLevel: "medium" as const
+  },
+  {
+    id: "4",
+    area: "Process Automation",
+    description: "Est. savings: $18,200",
+    annualValue: "$18.2K",
+    impactLevel: "high" as const
+  },
+  {
+    id: "5",
+    area: "Resource Allocation",
+    description: "Est. savings: $7,500",
+    annualValue: "$7.5K",
+    impactLevel: "medium" as const
+  },
+  {
+    id: "6",
+    area: "Inventory Management",
+    description: "Est. savings: $5,300",
+    annualValue: "$5.3K",
+    impactLevel: "low" as const
+  }
+];
+
+// Mock documents data - would come from an API in a real implementation
+const MOCK_DOCUMENTS = [
+  {
+    id: "1",
+    name: "Q1 2025 Diagnostic Review",
+    type: "diagnostic",
+    date: "March 15, 2025",
+    url: "https://example.com/documents/1"
+  },
+  {
+    id: "2",
+    name: "Pricing Strategy Analysis",
+    type: "report",
+    date: "February 28, 2025",
+    url: "https://example.com/documents/2"
+  },
+  {
+    id: "3",
+    name: "Customer Retention Analysis",
+    type: "report",
+    date: "January 15, 2025",
+    url: "https://example.com/documents/3"
+  },
+  {
+    id: "4",
+    name: "Q4 2024 Performance Review",
+    type: "presentation",
+    date: "December 10, 2024",
+    url: "https://example.com/documents/4"
+  },
+  {
+    id: "5",
+    name: "Market Opportunity Analysis",
+    type: "report",
+    date: "November 5, 2024",
+    url: "https://example.com/documents/5"
+  }
+];
 
 const OpportunitiesPage = () => {
+  const [activeTab, setActiveTab] = useState("summary");
+  const [opportunities, setOpportunities] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        // In a real implementation, these would be API calls
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        setOpportunities(MOCK_OPPORTUNITIES);
+        setDocuments(MOCK_DOCUMENTS);
+      } catch (error) {
+        console.error("Error fetching opportunities data:", error);
+        toast.error("Failed to load opportunities data", {
+          description: "Please try again later."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="text-left"> {/* Added text-left class */}
-          <h1 className="text-3xl font-bold tracking-tight">Opportunities</h1>
+        <div className="text-left">
+          <h1 className="text-3xl font-bold tracking-tight">Top Opportunities</h1>
           <p className="text-muted-foreground mt-1">
-            Discover and manage business opportunities
+            Review key strategic opportunities identified by Revify and access related diagnostic reports and presentations.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="card-standard">
-            <h2 className="text-xl font-semibold mb-4">Revenue Opportunities</h2>
-            <p className="text-neutral-600 mb-6">
-              Based on your data, we've identified potential revenue opportunities.
-            </p>
-            <div className="space-y-4">
-              <div className="p-4 border rounded-md bg-primary-50">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Pricing Optimization</h3>
-                    <p className="text-sm text-neutral-600">Potential impact: $24,500</p>
-                  </div>
-                  <span className="badge bg-accentGreen-100 text-accentGreen-800 px-2 py-1 rounded text-xs">
-                    High Impact
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Cross-Selling</h3>
-                    <p className="text-sm text-neutral-600">Potential impact: $12,300</p>
-                  </div>
-                  <span className="badge bg-warning-100 text-warning-800 px-2 py-1 rounded text-xs">
-                    Medium Impact
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Customer Retention</h3>
-                    <p className="text-sm text-neutral-600">Potential impact: $8,900</p>
-                  </div>
-                  <span className="badge bg-warning-100 text-warning-800 px-2 py-1 rounded text-xs">
-                    Medium Impact
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+        
+        <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="summary">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Opportunities Summary
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              <FileText className="h-4 w-4 mr-2" />
+              Document Library
+            </TabsTrigger>
+          </TabsList>
           
-          <div className="card-standard">
-            <h2 className="text-xl font-semibold mb-4">Efficiency Opportunities</h2>
-            <p className="text-neutral-600 mb-6">
-              Opportunities to improve operational efficiency and reduce costs.
-            </p>
-            <div className="space-y-4">
-              <div className="p-4 border rounded-md bg-primary-50">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Process Automation</h3>
-                    <p className="text-sm text-neutral-600">Est. savings: $18,200</p>
-                  </div>
-                  <span className="badge bg-accentGreen-100 text-accentGreen-800 px-2 py-1 rounded text-xs">
-                    High Impact
-                  </span>
-                </div>
-              </div>
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <TabsContent value="summary" className="m-0">
+                <OpportunitiesSummary 
+                  opportunities={opportunities} 
+                  isLoading={isLoading} 
+                />
+              </TabsContent>
               
-              <div className="p-4 border rounded-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Resource Allocation</h3>
-                    <p className="text-sm text-neutral-600">Est. savings: $7,500</p>
-                  </div>
-                  <span className="badge bg-warning-100 text-warning-800 px-2 py-1 rounded text-xs">
-                    Medium Impact
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Inventory Management</h3>
-                    <p className="text-sm text-neutral-600">Est. savings: $5,300</p>
-                  </div>
-                  <span className="badge bg-neutral-100 text-neutral-800 px-2 py-1 rounded text-xs">
-                    Low Impact
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              <TabsContent value="documents" className="m-0">
+                <DocumentLibrary 
+                  documents={documents} 
+                  isLoading={isLoading} 
+                />
+              </TabsContent>
+            </CardContent>
+          </Card>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
