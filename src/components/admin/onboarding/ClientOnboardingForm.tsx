@@ -41,6 +41,7 @@ import { Loader2 } from "lucide-react";
 
 const emailSchema = z.string().email("Invalid email format");
 
+// Define schema with required fields matching ClientFormValueType
 const clientSchema = z.object({
   email: emailSchema.min(1, "Client email is required"),
   companyName: z.string().optional(),
@@ -169,7 +170,16 @@ export function ClientOnboardingForm() {
   const onSubmit = async (data: ClientFormValues) => {
     setIsSubmitting(true);
     try {
-      await createClient(data);
+      // Cast data to ClientFormValueType to ensure compatibility
+      const clientData: ClientFormValueType = {
+        email: data.email,
+        companyName: data.companyName,
+        subscriptionTierId: data.subscriptionTierId,
+        addons: data.addons,
+        teamMembers: data.teamMembers
+      };
+      
+      await createClient(clientData);
       
       toast({
         title: "Client onboarding initiated",
