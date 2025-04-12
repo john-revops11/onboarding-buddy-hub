@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 
@@ -11,16 +11,6 @@ interface AuthGuardProps {
 export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
   const { state } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.pathname;
-  
-  // Determine if the current path is in admin section
-  const isAdminPath = currentPath.startsWith("/admin");
-  // Determine if the current path is in user section
-  const isUserPath = !isAdminPath && currentPath !== "/login" && 
-                    currentPath !== "/register" && currentPath !== "/forgot-password" && 
-                    currentPath !== "/reset-password" && currentPath !== "/verify" &&
-                    currentPath !== "/client-registration";
 
   useEffect(() => {
     // If not authenticated, redirect to login
@@ -29,41 +19,20 @@ export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
       return;
     }
 
-    // If authenticated but on the wrong path based on role
-    if (!state.isLoading && state.isAuthenticated && state.user) {
-      const userRole = state.user.role;
-      
-      // Admin trying to access user-only pages
-      if (userRole === "admin" && isUserPath) {
+    // If role is required and user doesn't have it, redirect based on their role
+    if (
+      !state.isLoading &&
+      state.isAuthenticated &&
+      requiredRole &&
+      state.user?.role !== requiredRole
+    ) {
+      if (state.user?.role === "admin") {
         navigate("/admin", { replace: true });
-        return;
-      }
-      
-      // User trying to access admin-only pages
-      if (userRole === "user" && isAdminPath) {
+      } else {
         navigate("/dashboard", { replace: true });
-        return;
-      }
-      
-      // If role is required and user doesn't have it
-      if (requiredRole && userRole !== requiredRole) {
-        if (userRole === "admin") {
-          navigate("/admin", { replace: true });
-        } else {
-          navigate("/dashboard", { replace: true });
-        }
-        return;
       }
     }
-  }, [
-    state.isLoading, 
-    state.isAuthenticated, 
-    state.user, 
-    navigate, 
-    requiredRole, 
-    isAdminPath, 
-    isUserPath
-  ]);
+  }, [state.isLoading, state.isAuthenticated, state.user, navigate, requiredRole]);
 
   // Show loading state while checking authentication
   if (state.isLoading) {
@@ -79,7 +48,7 @@ export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
 
   // If authentication check is complete and user is authenticated
   if (!state.isLoading && state.isAuthenticated) {
-    // If user role matches the required role, or if no role is required
+    // If role is required and user has it, or no role is required
     if (!requiredRole || state.user?.role === requiredRole) {
       return <Outlet />;
     }

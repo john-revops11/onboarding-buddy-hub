@@ -1,143 +1,215 @@
 
-import { Home, LayoutDashboard, Settings, LineChart, Upload, FileText, TrendingUp, LightbulbIcon } from "lucide-react";
+import {
+  Home,
+  Users,
+  ClipboardCheck,
+  FileText,
+  UserPlus,
+  Target,
+  Key,
+  Package,
+  CreditCard,
+  BarChart2,
+  FileSearch,
+  BookOpen,
+  User,
+  Settings,
+  CheckSquare,
+  Upload,
+} from "lucide-react";
 
-export const navItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: <LayoutDashboard className="h-5 w-5" />,
-    roles: ["user", "admin"],
-  },
-  {
-    title: "Welcome",
-    href: "/welcome",
-    icon: <Home className="h-5 w-5" />,
-    roles: ["user", "admin"]
-  },
-  {
-    title: "Insights",
-    href: "/insights",
-    icon: <LineChart className="h-5 w-5" />,
-    roles: ["user", "admin"]
-  },
-  {
-    title: "Opportunities",
-    href: "/opportunities",
-    icon: <TrendingUp className="h-5 w-5" />,
-    roles: ["user", "admin"]
-  },
-  {
-    title: "Data Uploads",
-    href: "/data-uploads",
-    icon: <Upload className="h-5 w-5" />,
-    roles: ["user", "admin"]
-  },
-  {
-    title: "Admin",
-    href: "/admin",
-    icon: <Settings className="h-5 w-5" />,
-    roles: ["admin"],
-  },
-];
+interface SidebarNavItem {
+  title: string;
+  href: string;
+  icon: string;
+  disabled?: boolean;
+  external?: boolean;
+  badge?: {
+    content: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  };
+}
 
-// Define admin navigation groups
-export const adminNavGroups = [
+interface SidebarNavGroup {
+  title: string;
+  items: SidebarNavItem[];
+}
+
+// Define icon strings that match the imported Lucide icon names
+const Icons = {
+  Home,
+  Users,
+  ClipboardCheck,
+  FileText,
+  UserPlus,
+  Target,
+  Key,
+  Package,
+  CreditCard,
+  BarChart2,
+  FileSearch,
+  BookOpen,
+  User,
+  Settings,
+  CheckSquare,
+  Upload,
+};
+
+export const adminNavGroups: SidebarNavGroup[] = [
   {
-    title: "Overview",
+    title: "Home",
     items: [
       {
         title: "Dashboard",
+        icon: "Home",
         href: "/admin",
-        icon: "LayoutDashboard",
       },
     ],
   },
   {
-    title: "Management",
+    title: "Operations",
     items: [
-      {
-        title: "Onboarding",
-        href: "/admin/onboarding",
-        icon: "UserPlus",
-      },
-      {
-        title: "Subscriptions",
-        href: "/admin/subscriptions",
-        icon: "CreditCard",
-      },
       {
         title: "Users",
-        href: "/admin/users",
         icon: "Users",
+        href: "/admin/users",
+      },
+      {
+        title: "Checklists",
+        icon: "ClipboardCheck",
+        href: "/admin/checklists",
+      },
+      {
+        title: "Files",
+        icon: "FileText",
+        href: "/admin/files",
       },
     ],
   },
   {
-    title: "Content",
+    title: "Client Journey",
     items: [
       {
-        title: "Files",
-        href: "/admin/files",
-        icon: "FileText",
+        title: "Onboard Client",
+        icon: "UserPlus",
+        href: "/admin/onboarding",
       },
       {
         title: "Opportunities",
-        href: "/admin/opportunities",
         icon: "Target",
+        href: "/admin/opportunities",
       },
+    ],
+  },
+  {
+    title: "Insights & Reviews",
+    items: [
       {
         title: "Insights",
+        icon: "BarChart2",
         href: "/admin/insights",
-        icon: "LineChart",
+      },
+      {
+        title: "Diagnostic Reviews",
+        icon: "FileSearch",
+        href: "/admin/diagnostic-reviews",
+      },
+    ],
+  },
+  {
+    title: "Platform",
+    items: [
+      {
+        title: "API Keys",
+        icon: "Key",
+        href: "/admin/api-keys",
+      },
+      {
+        title: "Add-ons",
+        icon: "Package",
+        href: "/admin/addons",
+      },
+    ],
+  },
+  {
+    title: "Billing",
+    items: [
+      {
+        title: "Subscriptions",
+        icon: "CreditCard",
+        href: "/admin/subscriptions",
       },
     ],
   },
 ];
 
-// Define user navigation groups
-export const userNavGroups = [
+export const userNavGroups: SidebarNavGroup[] = [
   {
-    title: "Overview",
+    title: "Home",
     items: [
       {
         title: "Dashboard",
+        icon: "Home",
         href: "/dashboard",
-        icon: "LayoutDashboard",
       },
       {
-        title: "Welcome",
-        href: "/welcome",
-        icon: "Home",
+        title: "Onboarding",
+        icon: "CheckSquare",
+        href: "/onboarding",
+        badge: {
+          content: "New",
+          variant: "default",
+        },
       },
     ],
   },
   {
-    title: "Insights",
+    title: "Data & Insights",
     items: [
       {
         title: "Insights",
+        icon: "BarChart2",
         href: "/insights",
-        icon: "LineChart",
       },
       {
-        title: "Opportunities",
-        href: "/opportunities",
-        icon: "TrendingUp",
+        title: "Diagnostic Reviews",
+        icon: "FileSearch",
+        href: "/diagnostic-reviews",
+      },
+      {
+        title: "Data Uploads",
+        icon: "Upload",
+        href: "/data-uploads",
       },
     ],
   },
   {
-    title: "Data",
+    title: "Resources",
     items: [
       {
-        title: "Data Uploads",
-        href: "/data-uploads",
-        icon: "Upload",
+        title: "Knowledge Hub",
+        icon: "BookOpen",
+        href: "/knowledge-hub",
       },
       {
-        title: "Reviews",
-        href: "/diagnostic-reviews",
-        icon: "ClipboardCheck",
+        title: "Opportunities",
+        icon: "Target",
+        href: "/opportunities",
+      },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        title: "Profile",
+        icon: "User",
+        href: "/profile",
+      },
+      {
+        title: "Settings",
+        icon: "Settings",
+        href: "/settings",
       },
     ],
   },

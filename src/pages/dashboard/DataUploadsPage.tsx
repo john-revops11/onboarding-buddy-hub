@@ -1,18 +1,31 @@
 
-import React, { useState, useCallback, useEffect } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { uploadFile, getUserFiles, deleteFile } from "@/utils/fileUtils";
-import { getLatestFile } from "@/utils/googleDriveUtils";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/components/ui/use-toast";
-import { UploadedFile } from "@/types/onboarding";
+import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  FileUp,
+  Calendar,
+  ArrowUpRight,
+  Check,
+  UploadCloud,
+  File,
+  X,
+  BarChart,
+  AlertTriangle,
+  ChevronRight,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { getClientFiles, getLatestFile, uploadFileToClientFolder } from "@/utils/googleDriveUtils";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -21,273 +34,316 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { FileDown, Trash2, UploadCloud, Calendar, BarChart } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileUploader } from "@/components/dashboard/FileUploader";
-import { UploadSchedule } from "@/components/dashboard/UploadSchedule";
 import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
+import { UploadSchedule } from "@/components/dashboard/UploadSchedule";
+import { motion } from "framer-motion";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const DataUploadsPage = () => {
   const { state } = useAuth();
-  const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [activeTab, setActiveTab] = useState("all");
+  const [uploadHistory, setUploadHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [healthCheckReport, setHealthCheckReport] = useState<any>(null);
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
-  // Load user files and health check report on component mount
   useEffect(() => {
-    if (state.user?.id) {
-      // Load user files
-      const files = getUserFiles(state.user.id);
-      setUploadedFiles(files);
-      
-      // Get the latest health check report
-      const fetchHealthCheckReport = async () => {
-        try {
-          const report = await getLatestFile(state.user.id, 'diagnostics');
-          setHealthCheckReport(report);
-        } catch (error) {
-          console.error("Error fetching health check report:", error);
-        }
-      };
-      
-      fetchHealthCheckReport();
-    }
-  }, [state.user]);
-
-  // Handle file upload process
-  const handleUpload = useCallback(async (files: File[]) => {
-    if (!state.user?.id) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to upload files",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
-    
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 200);
-
-    try {
-      // Process each file
-      for (const file of files) {
-        const uploadedFile = await uploadFile(file, state.user.id, 'data');
-        setUploadedFiles(prev => [uploadedFile, ...prev]);
+    // Fetch upload history
+    const fetchUploadHistory = async () => {
+      try {
+        setLoading(true);
+        const filesData = await getClientFiles("client123", "data");
+        setUploadHistory(filesData);
+        
+        // Fetch latest health check report
+        const latestReport = await getLatestFile("client123", "resources");
+        setHealthCheckReport(latestReport);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to fetch upload history");
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchUploadHistory();
+  }, []);
+
+  const handleUpload = async (files: File[]) => {
+    if (!files || files.length === 0) return;
+    
+    setUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      // Simulate upload progress
+      const interval = setInterval(() => {
+        setUploadProgress((prevProgress) => {
+          const newProgress = prevProgress + 10;
+          if (newProgress >= 90) {
+            clearInterval(interval);
+            return 90;
+          }
+          return newProgress;
+        });
+      }, 300);
       
-      // Ensure progress reaches 100%
+      // In a real app, we would upload all files
+      // For demonstration, we'll upload just the first file
+      const file = files[0];
+      
+      // Upload file to Google Drive
+      const uploadedFile = await uploadFileToClientFolder("client123", "data", file);
+      
+      // Simulate completion
       setUploadProgress(100);
+      clearInterval(interval);
       
-      toast({
-        title: "Upload complete",
-        description: `Successfully uploaded ${files.length} file(s)`,
-      });
+      // Add the new file to history
+      setUploadHistory(prev => [
+        {
+          id: uploadedFile.id,
+          name: file.name,
+          size: formatFileSize(file.size),
+          modifiedTime: new Date().toISOString(),
+          status: "processed"
+        },
+        ...prev
+      ]);
       
+      toast.success("File uploaded successfully");
     } catch (error) {
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your file(s)",
-        variant: "destructive",
-      });
+      console.error("Upload error:", error);
+      toast.error("Failed to upload file");
     } finally {
-      // Reset upload state after a short delay (to show 100% completion)
       setTimeout(() => {
         setUploading(false);
         setUploadProgress(0);
-        clearInterval(progressInterval);
       }, 500);
     }
-  }, [state.user, toast]);
-
-  // Handle file deletion
-  const handleDeleteFile = useCallback((fileId: string) => {
-    try {
-      // Call the utils function to delete the file
-      const isDeleted = deleteFile(fileId);
-      
-      if (isDeleted) {
-        // Update the local state by removing the deleted file
-        setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
-        
-        toast({
-          title: "File deleted",
-          description: "The file has been successfully deleted",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete the file",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
-
-  // Format file size for display
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  // Filter files based on active tab
-  const filteredFiles = uploadedFiles.filter(file => {
-    if (activeTab === "all") return true;
-    return file.status === activeTab;
-  });
-
-  // Get the appropriate badge for each status
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "verified":
-        return <Badge className="bg-green-500">Processed ✅</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">Failed ❌</Badge>;
-      default:
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Processing</Badge>;
-    }
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + " B";
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    else return (bytes / 1048576).toFixed(1) + " MB";
   };
 
-  const getNextUploadDate = () => {
-    const today = new Date();
-    const nextMonday = new Date();
-    nextMonday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
-    return nextMonday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
+  // Determine the next upload due date
+  const today = new Date();
+  const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+  const nextUploadDate = `${nextMonth.toLocaleString('default', { month: 'long' })} 5, ${nextMonth.getFullYear()}`;
+
+  // Card view for mobile
+  const renderMobileFileCard = (file: any) => (
+    <Card key={file.id} className="mb-4">
+      <CardHeader className="pb-3">
+        <div className="flex items-center">
+          <File size={16} className="mr-2 text-muted-foreground" />
+          <CardTitle className="text-base">{file.name}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3 space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Size</span>
+          <span className="text-sm font-medium">{file.size}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Uploaded</span>
+          <span className="text-sm font-medium">{new Date(file.modifiedTime).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <span>
+            {file.status === "processed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <Check size={12} className="mr-1" />
+                Processed
+              </span>
+            ) : file.status === "processing" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="animate-pulse mr-1">⋯</span>
+                Processing
+              </span>
+            ) : file.status === "failed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <X size={12} className="mr-1" />
+                Failed
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <UploadCloud size={12} className="mr-1" />
+                Uploaded
+              </span>
+            )}
+          </span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="ghost" size="sm" className="w-full">
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="text-left">
-          <h1 className="text-3xl font-bold tracking-tight">Data Uploads</h1>
-          <p className="text-muted-foreground mt-1">
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Data Uploads</h1>
+          <p className="text-muted-foreground mt-2">
             Manage your data submissions, schedule, and review data health.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left column - File Upload and Health Check */}
-          <div className="md:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UploadCloud className="h-5 w-5" /> Upload New Data Files
-                </CardTitle>
-                <CardDescription>
-                  Upload your data files for analysis. Supported formats: CSV, TXT, Excel (.xlsx)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FileUploader
-                  uploading={uploading}
-                  uploadProgress={uploadProgress}
-                  onUpload={handleUpload}
-                  acceptedFileTypes=".csv,.xlsx,.xls,.txt"
-                  helpText="Drag and drop files here or click to browse"
-                />
-                <div className="mt-3 text-sm text-muted-foreground">
-                  <p>Next scheduled upload due: <strong>{getNextUploadDate()}</strong></p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <DataHealthCheck report={healthCheckReport} />
-          </div>
-          
-          {/* Right column - Upload Schedule */}
-          <div>
-            <UploadSchedule />
-          </div>
-        </div>
-        
-        {/* Upload History Table - Full Width */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Upload History</CardTitle>
-            <Tabs 
-              defaultValue="all" 
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList>
-                <TabsTrigger value="all">All Files</TabsTrigger>
-                <TabsTrigger value="pending">Processing</TabsTrigger>
-                <TabsTrigger value="verified">Processed</TabsTrigger>
-                <TabsTrigger value="rejected">Failed</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardHeader>
-          <CardContent>
-            {filteredFiles.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[300px]">File Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFiles.map((file) => (
-                    <TableRow key={file.id}>
-                      <TableCell className="font-medium">{file.name}</TableCell>
-                      <TableCell>{file.type.split('/').pop()?.toUpperCase()}</TableCell>
-                      <TableCell>{formatFileSize(file.size)}</TableCell>
-                      <TableCell>{getStatusBadge(file.status)}</TableCell>
-                      <TableCell>{new Date(file.uploadedAt).toLocaleString()}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            asChild
-                          >
-                            <a href={file.url} target="_blank" rel="noopener noreferrer">
-                              <FileDown className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDeleteFile(file.id)}
-                            className="text-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No files uploaded yet.</p>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          {/* Upload New Data Panel */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg md:text-xl">
+                <UploadCloud className="mr-2" size={20} />
+                Upload New Data Files
+              </CardTitle>
+              <CardDescription>
+                Upload your latest data files for analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FileUploader 
+                uploading={uploading}
+                uploadProgress={uploadProgress}
+                onUpload={handleUpload}
+                acceptedFileTypes=".csv,.txt,.xlsx"
+                helpText="Drag and drop files here (CSV, TXT, XLSX) or click to browse"
+              />
+              <p className="text-xs text-muted-foreground">
+                Accepted formats: CSV, TXT, Excel (.xlsx)
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-between border-t bg-muted/50 py-3">
+              <div className="flex items-center text-sm">
+                <Calendar size={14} className="mr-1" />
+                <span>Next upload due: <strong>{nextUploadDate}</strong></span>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <motion.div
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ y: 0, scale: 0.98 }}
+              >
+                <Button variant="ghost" size="sm" className="text-xs focus:ring-4 focus:ring-accentGreen-600/40" asChild>
+                  <a href="https://drive.google.com/drive/folders/client-specific-folder" target="_blank" rel="noopener noreferrer">
+                    <ArrowUpRight size={12} className="mr-1" />
+                    Go to Google Drive
+                  </a>
+                </Button>
+              </motion.div>
+            </CardFooter>
+          </Card>
+          
+          {/* Data Health Check Section */}
+          <DataHealthCheck report={healthCheckReport} />
+          
+          {/* Upload Schedule Panel */}
+          <UploadSchedule />
+          
+          {/* Upload History Table */}
+          <Card className="col-span-1 md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl">Recent Upload History</CardTitle>
+              <CardDescription>
+                Your recent data submissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : uploadHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No upload history found
+                </div>
+              ) : isMobile ? (
+                // Mobile card view
+                <div>
+                  {uploadHistory.map(renderMobileFileCard)}
+                </div>
+              ) : (
+                // Desktop table view
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[300px]">File Name</TableHead>
+                        <TableHead>Size</TableHead>
+                        <TableHead>Uploaded</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {uploadHistory.map((file) => (
+                        <TableRow key={file.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <File size={16} className="mr-2 text-muted-foreground" />
+                              <span>{file.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{file.size}</TableCell>
+                          <TableCell>
+                            {new Date(file.modifiedTime).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {file.status === "processed" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <Check size={12} className="mr-1" />
+                                Processed
+                              </span>
+                            ) : file.status === "processing" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span className="animate-pulse mr-1">⋯</span>
+                                Processing
+                              </span>
+                            ) : file.status === "failed" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <X size={12} className="mr-1" />
+                                Failed
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <UploadCloud size={12} className="mr-1" />
+                                Uploaded
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <motion.div
+                              whileHover={{ y: -2, scale: 1.02 }}
+                              whileTap={{ y: 0, scale: 0.98 }}
+                            >
+                              <Button variant="ghost" size="sm" className="focus:ring-4 focus:ring-accentGreen-600/40">
+                                View Details
+                              </Button>
+                            </motion.div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
     </DashboardLayout>
   );
 };

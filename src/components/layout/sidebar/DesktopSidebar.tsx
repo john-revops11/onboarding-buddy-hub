@@ -53,19 +53,12 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
     <div className={`bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto ${collapsed ? 'w-[70px]' : 'min-w-[240px] max-w-[240px]'}`}>
       <div className="p-4 relative">
         <div className="flex flex-col items-center mb-6">
-          {collapsed ? (
-            <img
-              src="/lovable-uploads/f3d33af0-d889-42a2-bbfb-7e82d4722926.png"
-              alt="Revify Favicon"
-              className="h-10 w-auto"
-            />
-          ) : (
-            <img
-              src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
-              alt="Revify Logo"
-              className="h-16 w-auto"
-            />
-          )}
+          <img
+            src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
+            alt="Revify Logo"
+            className="h-16 w-auto"
+          />
+          {!collapsed && <span className="font-bold text-lg mt-2 text-primary-700">Revify</span>}
         </div>
         
         {/* Toggle collapse button */}
