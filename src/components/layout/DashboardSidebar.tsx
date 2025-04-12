@@ -151,12 +151,12 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
   );
 }
 
-interface DashboardSidebarProps {
+interface DashboardSidebarInternalProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
 }
 
-export function DashboardSidebar({ collapsed, setCollapsed }: DashboardSidebarProps) {
+export function DashboardSidebar({ collapsed, setCollapsed }: DashboardSidebarInternalProps) {
   const { state } = useAuth();
   const location = useLocation();
   const isAdmin = state.user?.role === "admin";
