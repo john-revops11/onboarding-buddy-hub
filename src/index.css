@@ -47,6 +47,7 @@
 
     /* Heading color */
     --heading-color: 100 40% 25%; /* HSL conversion of #5d852f */
+    --heading-hover-color: 100 50% 20%; /* Slightly darker hover color */
   }
 
   .dark {
@@ -423,5 +424,10 @@
 }
 
 h1, h2, h3, h4, h5, h6 {
+  @apply transition-colors duration-300;
   color: hsl(var(--heading-color));
+}
+
+h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
+  color: hsl(var(--heading-hover-color));
 }
