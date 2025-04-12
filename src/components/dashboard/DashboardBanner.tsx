@@ -28,7 +28,7 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
     <Card className="bg-primary-700 text-white relative overflow-hidden">
       <div className="relative z-10 p-6">
         <div className="flex flex-col gap-1 mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
             Welcome back, {userName}
           </h1>
           <p className="text-white/80 font-medium">
@@ -81,3 +81,4 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
     </Card>
   );
 }
+
