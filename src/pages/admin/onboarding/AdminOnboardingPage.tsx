@@ -1,16 +1,20 @@
 
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { ClientOnboardingForm } from "@/components/admin/onboarding/ClientOnboardingForm";
+import { BulkClientInvites } from "@/components/admin/onboarding/BulkClientInvites";
+import { OnboardingTemplateManager } from "@/components/admin/onboarding/OnboardingTemplateManager";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, FileText, Settings, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ClientInvites } from "@/components/admin/onboarding/ClientInvites";
 import { ClientStatus } from "@/components/admin/onboarding/ClientStatus";
 
 const AdminOnboardingPage = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("new-client");
   
   return (
     <DashboardLayout>
@@ -33,12 +37,13 @@ const AdminOnboardingPage = () => {
           </Button>
         </div>
         
-        <Tabs defaultValue="new-client">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="new-client">New Client</TabsTrigger>
+            <TabsTrigger value="bulk-invite">Bulk Invite</TabsTrigger>
             <TabsTrigger value="client-invites">Client Invites</TabsTrigger>
             <TabsTrigger value="client-status">Client Status</TabsTrigger>
-            <TabsTrigger value="checklist-templates">Checklist Templates</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="settings">Onboarding Settings</TabsTrigger>
           </TabsList>
           
@@ -52,6 +57,20 @@ const AdminOnboardingPage = () => {
               </CardHeader>
               <CardContent>
                 <ClientOnboardingForm />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bulk-invite" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bulk Client Invites</CardTitle>
+                <CardDescription>
+                  Invite multiple clients at once by pasting data or uploading a CSV file.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BulkClientInvites />
               </CardContent>
             </Card>
           </TabsContent>
@@ -84,16 +103,16 @@ const AdminOnboardingPage = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="checklist-templates" className="space-y-6">
+          <TabsContent value="templates" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Checklist Templates</CardTitle>
+                <CardTitle>Onboarding Templates</CardTitle>
                 <CardDescription>
-                  Manage your onboarding checklist templates to customize the client onboarding journey.
+                  Manage your onboarding templates to customize the client onboarding journey.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">This feature is coming soon.</p>
+                <OnboardingTemplateManager />
               </CardContent>
             </Card>
           </TabsContent>

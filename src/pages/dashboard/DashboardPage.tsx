@@ -10,7 +10,9 @@ import {
   isOnboardingComplete, 
   skipOnboarding, 
   getClientStatus, 
-  shouldRedirectToDashboard 
+  shouldRedirectToDashboard,
+  getPendingNotifications,
+  addNotification
 } from "@/utils/onboardingUtils";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { TopBar } from "@/components/layout/TopBar";
@@ -41,6 +43,37 @@ const DashboardPage = () => {
   useEffect(() => {
     if (!isOnboardingComplete()) {
       skipOnboarding();
+    }
+  }, []);
+  
+  // Add a welcome notification when dashboard is first loaded (demo purpose)
+  useEffect(() => {
+    const notifications = getPendingNotifications();
+    
+    // Only add welcome notification if there are no notifications yet
+    if (notifications.length === 0) {
+      addNotification({
+        title: "Welcome to the Dashboard",
+        message: "Your onboarding process has been started. Complete all steps to get started.",
+        type: "info"
+      });
+      
+      // Add additional demo notifications
+      setTimeout(() => {
+        addNotification({
+          title: "New Team Member Invited",
+          message: "You've successfully invited a team member to join your workspace.",
+          type: "success"
+        });
+      }, 15000);
+      
+      setTimeout(() => {
+        addNotification({
+          title: "Onboarding Step Completed",
+          message: "You've completed the Account Setup step. 5 more steps to go!",
+          type: "success"
+        });
+      }, 30000);
     }
   }, []);
   
