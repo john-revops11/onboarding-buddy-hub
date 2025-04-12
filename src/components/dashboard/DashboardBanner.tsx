@@ -24,13 +24,13 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
   ];
 
   return (
-    <Card className="bg-darkblue-base text-white relative overflow-hidden">
+    <Card className="bg-[#0EA5E9] text-white relative overflow-hidden">
       <div className="relative z-10 p-6">
         <div className="flex flex-col gap-1 mb-4">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Welcome back, {userName}
           </h1>
-          <p className="text-green-light font-medium">
+          <p className="text-white/80 font-medium">
             {userRole === "admin" ? "Administrator" : "Team Member"}
           </p>
         </div>
@@ -38,7 +38,7 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
         <div className="flex flex-wrap items-center gap-4">
           <Button 
             variant="outline" 
-            className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white"
+            className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
           >
             REVIEW INSIGHTS
             <ChevronRight className="ml-1 h-4 w-4" />
@@ -46,7 +46,7 @@ export function DashboardBanner({ userName, userRole }: DashboardBannerProps) {
           
           <Button 
             variant="outline"
-            className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white"
+            className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
           >
             COMPLETE PROFILE
             <ChevronRight className="ml-1 h-4 w-4" />
