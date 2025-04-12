@@ -24,6 +24,12 @@
     @apply w-11 h-11 p-0 rounded-md flex items-center justify-center;
   }
 
+  /* Knowledge Hub Button */
+  .knowledge-hub-btn {
+    @apply bg-[#F2FCE2] border border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 
+           rounded-full flex items-center justify-center transition-all duration-200;
+  }
+
   /* Form Spacing */
   .form-group {
     @apply space-y-2;
