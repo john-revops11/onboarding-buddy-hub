@@ -9,6 +9,7 @@ export const useInviteManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvites();
@@ -59,7 +60,8 @@ export const useInviteManagement = () => {
     }
   };
 
-  const resendInvitation = async (inviteId: string) => {
+  const resendInvite = async (inviteId: string, clientId: string, email: string) => {
+    setProcessingId(inviteId);
     try {
       const { error } = await supabase
         .from("team_members")
@@ -91,10 +93,13 @@ export const useInviteManagement = () => {
         variant: "destructive",
       });
       return false;
+    } finally {
+      setProcessingId(null);
     }
   };
 
-  const revokeInvitation = async (inviteId: string) => {
+  const revokeInvite = async (inviteId: string) => {
+    setProcessingId(inviteId);
     try {
       const { error } = await supabase
         .from("team_members")
@@ -126,6 +131,8 @@ export const useInviteManagement = () => {
         variant: "destructive",
       });
       return false;
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -147,8 +154,9 @@ export const useInviteManagement = () => {
     setSearchQuery,
     selectedStatus,
     setSelectedStatus,
-    resendInvitation,
-    revokeInvitation,
-    refreshInvites: fetchInvites,
+    processingId,
+    fetchInvites,
+    resendInvite,
+    revokeInvite
   };
 };
