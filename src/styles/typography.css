@@ -1,0 +1,41 @@
+
+@layer components {
+  /* Typography Scale */
+  .text-display {
+    @apply text-[1.75rem] md:text-[2rem] leading-[2.25rem] md:leading-[2.5rem] font-bold;
+  }
+  
+  .text-h1 {
+    @apply text-[1.5rem] md:text-[1.75rem] leading-[2rem] md:leading-[2.25rem] font-semibold;
+  }
+  
+  .text-h2 {
+    @apply text-[1.25rem] md:text-[1.5rem] leading-[1.75rem] md:leading-[2rem] font-semibold;
+  }
+  
+  .text-h3 {
+    @apply text-[1.125rem] md:text-[1.25rem] leading-[1.5rem] md:leading-[1.75rem] font-semibold;
+  }
+  
+  .text-base {
+    @apply text-[1rem] leading-[1.5rem] font-normal;
+  }
+  
+  .text-caption {
+    @apply text-[0.875rem] leading-[1.25rem] font-normal;
+  }
+  
+  .text-micro {
+    @apply text-[0.75rem] leading-[1rem] font-medium;
+  }
+
+  /* Apply body font to specific elements */
+  .body-copy {
+    @apply font-body;
+  }
+  
+  /* Apply numeric mono font */
+  .num-mono {
+    @apply font-mono-numeric;
+  }
+}

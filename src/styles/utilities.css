@@ -1,0 +1,37 @@
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* High contrast text utilities */
+  .text-high-contrast {
+    @apply text-neutral-900;
+  }
+  
+  .text-medium-contrast {
+    @apply text-neutral-700;
+  }
+  
+  .text-low-contrast {
+    @apply text-neutral-600;
+  }
+  
+  /* Accessible focus styles */
+  .focus-visible-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-accentGreen-600 focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+  
+  /* Responsive grid utilities */
+  .responsive-grid-1-2-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+  
+  .responsive-grid-1-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+}
