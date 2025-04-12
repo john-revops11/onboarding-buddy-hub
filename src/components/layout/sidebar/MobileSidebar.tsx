@@ -58,7 +58,6 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
             alt="Revify Logo"
             className="h-16 w-auto"
           />
-          <span className="font-bold text-lg mt-2 text-primary-700">Revify</span>
         </div>
         
         <SearchBar />
