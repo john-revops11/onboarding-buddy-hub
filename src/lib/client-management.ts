@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues, OnboardingClient } from "@/lib/types/client-types";
 
+// Type definition for subscription tier options
+type TierOption = { id: string; name: string };
+
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues) {
   try {
@@ -125,19 +128,26 @@ export async function getClients(): Promise<OnboardingClient[]> {
     });
     
     // Format the response
-    return data.map(client => ({
-      id: client.id,
-      email: client.email,
-      companyName: client.company_name,
-      subscriptionTier: client.subscriptions ? {
-        id: client.subscriptions.id,
-        name: client.subscriptions.name
-      } : { id: '', name: 'None' },
-      addons: addonsByClient[client.id] || [],
-      teamMembers: teamMembersByClient[client.id] || [],
-      status: client.status,
-      created_at: client.created_at
-    }));
+    return data.map(client => {
+      // Fixed: properly handle subscriptions by checking for existence first
+      const subscriptionTier = client.subscriptions 
+        ? { 
+            id: client.subscriptions.id, 
+            name: client.subscriptions.name 
+          } 
+        : { id: '', name: 'None' };
+        
+      return {
+        id: client.id,
+        email: client.email,
+        companyName: client.company_name,
+        subscriptionTier: subscriptionTier,
+        addons: addonsByClient[client.id] || [],
+        teamMembers: teamMembersByClient[client.id] || [],
+        status: client.status,
+        created_at: client.created_at
+      };
+    });
   } catch (error: any) {
     console.error("Error fetching clients:", error);
     return [];
