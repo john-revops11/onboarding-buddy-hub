@@ -118,7 +118,14 @@ export function useClientOnboarding() {
   const onSubmit = async (data: ClientFormValues) => {
     setIsSubmitting(true);
     try {
-      await createClient(data);
+      // Ensure we pass a proper ClientFormValues object with required fields
+      await createClient({
+        email: data.email,
+        companyName: data.companyName,
+        subscriptionTierId: data.subscriptionTierId,
+        addons: data.addons,
+        teamMembers: data.teamMembers.map(member => ({ email: member.email }))
+      });
       
       toast({
         title: "Client onboarding initiated",
