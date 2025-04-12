@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,19 +99,19 @@
 @layer components {
   /* Typography Scale */
   .text-display {
-    @apply text-[2rem] leading-[2.5rem] font-bold;
+    @apply text-[1.75rem] md:text-[2rem] leading-[2.25rem] md:leading-[2.5rem] font-bold;
   }
   
   .text-h1 {
-    @apply text-[1.75rem] leading-[2.25rem] font-semibold;
+    @apply text-[1.5rem] md:text-[1.75rem] leading-[2rem] md:leading-[2.25rem] font-semibold;
   }
   
   .text-h2 {
-    @apply text-[1.5rem] leading-[2rem] font-semibold;
+    @apply text-[1.25rem] md:text-[1.5rem] leading-[1.75rem] md:leading-[2rem] font-semibold;
   }
   
   .text-h3 {
-    @apply text-[1.25rem] leading-[1.75rem] font-semibold;
+    @apply text-[1.125rem] md:text-[1.25rem] leading-[1.5rem] md:leading-[1.75rem] font-semibold;
   }
   
   .text-base {
@@ -136,16 +137,27 @@
   }
   
   /* Button Styles */
-  .btn-primary {
-    @apply h-10 min-w-[120px] rounded-md font-medium text-white
-      bg-primary-700 hover:bg-primary-600 focus:outline focus:outline-2
-      focus:outline-accentGreen-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  .btn {
+    @apply inline-flex items-center justify-center font-medium rounded-md
+           h-11 px-6 min-w-[136px] transition-all duration-150 ease-out
+           bg-primary-700 text-white hover:bg-primary-600
+           focus:outline-none focus:ring-4 focus:ring-accentGreen-600/40;
+  }
+  
+  .btn:hover {
+    @apply transform -translate-y-0.5 scale-[1.02];
+  }
+  
+  .btn:active {
+    @apply transform translate-y-0 scale-[0.98];
+  }
+  
+  .btn-success {
+    @apply bg-accentGreen-600 hover:bg-accentGreen-600/90 text-white;
   }
   
   .btn-icon {
-    @apply w-10 h-10 rounded-md flex items-center justify-center
-      bg-primary-700 hover:bg-primary-600 text-white
-      focus:outline focus:outline-2 focus:outline-accentGreen-600;
+    @apply w-11 h-11 p-0 rounded-md flex items-center justify-center;
   }
 
   /* Form Spacing */
@@ -199,7 +211,7 @@
   }
   
   .progress-bar-fill {
-    @apply h-full bg-accentGreen-600 rounded-full;
+    @apply h-full bg-accentGreen-600 rounded-full transition-all duration-700 ease-out;
   }
   
   /* Sidebar navigation item */
@@ -227,6 +239,20 @@
     @apply text-white;
   }
   
+  /* Mobile adaptations */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Responsive table for mobile */
+  .mobile-card-row {
+    @apply border rounded-md p-4 mb-2 flex flex-col space-y-2;
+  }
+  
+  .mobile-card-row-field {
+    @apply flex justify-between items-center;
+  }
+  
   /* Auth specific styles */
   .auth-card {
     @apply shadow-lg border-green-base/20 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95;
@@ -242,6 +268,16 @@
   
   .auth-btn-outline {
     @apply border-green-base text-green-base hover:bg-green-base hover:text-white;
+  }
+  
+  /* Story link with underline animation */
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+  
+  /* Hover scale animation */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
   }
 }
 
@@ -270,6 +306,15 @@
   /* Accessible focus styles */
   .focus-visible-ring {
     @apply focus-visible:ring-2 focus-visible:ring-accentGreen-600 focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+  
+  /* Responsive grid utilities */
+  .responsive-grid-1-2-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+  
+  .responsive-grid-1-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
   }
 }
 
@@ -330,16 +375,6 @@
   }
 }
 
-@layer utilities {
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
-  }
-  
-  .animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-}
-
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -371,4 +406,16 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ModeToggle } from "@/components/ui/theme-toggle";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
@@ -15,14 +15,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
-export const TopBar = () => {
-  const { state, signOut } = useAuth();
+interface TopBarProps {
+  showMobileMenu?: boolean;
+  onMobileMenuClick?: () => void;
+}
+
+export const TopBar = ({ showMobileMenu = false, onMobileMenuClick }: TopBarProps) => {
+  const { state } = useAuth();
   const navigate = useNavigate();
   const user = state.user;
 
   const handleLogout = async () => {
-    await signOut();
+    if (state.logout) {
+      await state.logout();
+    }
     navigate("/login");
   };
 
@@ -35,20 +43,40 @@ export const TopBar = () => {
   };
 
   return (
-    <div className="h-16 sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b flex items-center justify-end px-6">
+    <div className="h-16 sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b flex items-center justify-between px-4 md:px-6">
+      {/* Left side - Mobile menu button */}
+      <div className="flex items-center">
+        {showMobileMenu && (
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onMobileMenuClick}
+            className="mr-2 p-2 rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-accentGreen-600 focus:outline-none focus:ring-2 focus:ring-accentGreen-600/40"
+            aria-label="Open menu"
+          >
+            <Menu size={24} />
+          </motion.button>
+        )}
+      </div>
+      
+      {/* Right side - User controls */}
       <div className="flex items-center gap-3">
         <NotificationsMenu />
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="p-0 h-9 hover:bg-transparent">
-              <Avatar className="h-8 w-8">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-0 rounded-full hover:ring-2 hover:ring-accentGreen-600/40 focus:outline-none focus:ring-2 focus:ring-accentGreen-600/40"
+            >
+              <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.avatar} />
                 <AvatarFallback>
                   {user?.name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
-            </Button>
+            </motion.button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">

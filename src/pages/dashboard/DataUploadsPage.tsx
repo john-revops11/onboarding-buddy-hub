@@ -37,6 +37,8 @@ import {
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
 import { UploadSchedule } from "@/components/dashboard/UploadSchedule";
+import { motion } from "framer-motion";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const DataUploadsPage = () => {
   const { state } = useAuth();
@@ -45,6 +47,7 @@ const DataUploadsPage = () => {
   const [uploadHistory, setUploadHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [healthCheckReport, setHealthCheckReport] = useState<any>(null);
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
   useEffect(() => {
     // Fetch upload history
@@ -133,21 +136,79 @@ const DataUploadsPage = () => {
   const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
   const nextUploadDate = `${nextMonth.toLocaleString('default', { month: 'long' })} 5, ${nextMonth.getFullYear()}`;
 
+  // Card view for mobile
+  const renderMobileFileCard = (file: any) => (
+    <Card key={file.id} className="mb-4">
+      <CardHeader className="pb-3">
+        <div className="flex items-center">
+          <File size={16} className="mr-2 text-muted-foreground" />
+          <CardTitle className="text-base">{file.name}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3 space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Size</span>
+          <span className="text-sm font-medium">{file.size}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Uploaded</span>
+          <span className="text-sm font-medium">{new Date(file.modifiedTime).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <span>
+            {file.status === "processed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <Check size={12} className="mr-1" />
+                Processed
+              </span>
+            ) : file.status === "processing" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="animate-pulse mr-1">⋯</span>
+                Processing
+              </span>
+            ) : file.status === "failed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <X size={12} className="mr-1" />
+                Failed
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <UploadCloud size={12} className="mr-1" />
+                Uploaded
+              </span>
+            )}
+          </span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="ghost" size="sm" className="w-full">
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Data Uploads</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Data Uploads</h1>
           <p className="text-muted-foreground mt-2">
             Manage your data submissions, schedule, and review data health.
           </p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           {/* Upload New Data Panel */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg md:text-xl">
                 <UploadCloud className="mr-2" size={20} />
                 Upload New Data Files
               </CardTitle>
@@ -172,12 +233,17 @@ const DataUploadsPage = () => {
                 <Calendar size={14} className="mr-1" />
                 <span>Next upload due: <strong>{nextUploadDate}</strong></span>
               </div>
-              <Button variant="ghost" size="sm" className="text-xs" asChild>
-                <a href="https://drive.google.com/drive/folders/client-specific-folder" target="_blank" rel="noopener noreferrer">
-                  <ArrowUpRight size={12} className="mr-1" />
-                  Go to Google Drive
-                </a>
-              </Button>
+              <motion.div
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ y: 0, scale: 0.98 }}
+              >
+                <Button variant="ghost" size="sm" className="text-xs focus:ring-4 focus:ring-accentGreen-600/40" asChild>
+                  <a href="https://drive.google.com/drive/folders/client-specific-folder" target="_blank" rel="noopener noreferrer">
+                    <ArrowUpRight size={12} className="mr-1" />
+                    Go to Google Drive
+                  </a>
+                </Button>
+              </motion.div>
             </CardFooter>
           </Card>
           
@@ -188,9 +254,9 @@ const DataUploadsPage = () => {
           <UploadSchedule />
           
           {/* Upload History Table */}
-          <Card className="col-span-2">
+          <Card className="col-span-1 md:col-span-2">
             <CardHeader>
-              <CardTitle>Recent Upload History</CardTitle>
+              <CardTitle className="text-lg md:text-xl">Recent Upload History</CardTitle>
               <CardDescription>
                 Your recent data submissions
               </CardDescription>
@@ -204,7 +270,13 @@ const DataUploadsPage = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   No upload history found
                 </div>
+              ) : isMobile ? (
+                // Mobile card view
+                <div>
+                  {uploadHistory.map(renderMobileFileCard)}
+                </div>
               ) : (
+                // Desktop table view
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -253,9 +325,14 @@ const DataUploadsPage = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm">
-                              View Details
-                            </Button>
+                            <motion.div
+                              whileHover={{ y: -2, scale: 1.02 }}
+                              whileTap={{ y: 0, scale: 0.98 }}
+                            >
+                              <Button variant="ghost" size="sm" className="focus:ring-4 focus:ring-accentGreen-600/40">
+                                View Details
+                              </Button>
+                            </motion.div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -266,7 +343,7 @@ const DataUploadsPage = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 };

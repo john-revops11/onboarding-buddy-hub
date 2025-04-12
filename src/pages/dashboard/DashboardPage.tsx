@@ -17,6 +17,7 @@ import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const DashboardPage = () => {
   const { state } = useAuth();
@@ -79,52 +80,60 @@ const DashboardPage = () => {
   const progress = Math.round((completedItems / totalItems) * 100);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
-      <DashboardLayout>
-        <div className="space-y-6">
-          <DashboardBanner 
-            userName={user?.name || "User"} 
-            userRole={user?.role || "Member"}
-          />
-          
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="md:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xl font-semibold">Progress Overview</CardTitle>
-                <Badge variant="success" className="ml-2">Active</Badge>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <ProgressOverview 
-                  progress={progress} 
-                  completedItems={completedItems} 
-                  totalItems={totalItems} 
-                />
-                <div className="mt-4 flex justify-end">
+    <DashboardLayout>
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <DashboardBanner 
+          userName={user?.name || "User"} 
+          userRole={user?.role || "Member"}
+        />
+        
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="md:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg md:text-xl font-semibold">Progress Overview</CardTitle>
+              <Badge variant="success" className="ml-2">Active</Badge>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ProgressOverview 
+                progress={progress} 
+                completedItems={completedItems} 
+                totalItems={totalItems} 
+              />
+              <div className="mt-4 flex justify-end">
+                <motion.div
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ y: 0, scale: 0.98 }}
+                >
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="text-sm"
+                    className="text-sm focus:ring-4 focus:ring-accentGreen-600/40"
                     onClick={() => navigate('/onboarding')}
                   >
                     View Onboarding Details
                     <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-semibold">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <QuickActions />
-              </CardContent>
-            </Card>
-          </div>
+                </motion.div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg md:text-xl font-semibold">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <QuickActions />
+            </CardContent>
+          </Card>
         </div>
-      </DashboardLayout>
-    </div>
+      </motion.div>
+    </DashboardLayout>
   );
 };
 
