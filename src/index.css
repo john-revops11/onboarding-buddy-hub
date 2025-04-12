@@ -139,7 +139,7 @@
   .btn-primary {
     @apply h-10 min-w-[120px] rounded-md font-medium text-white
       bg-primary-700 hover:bg-primary-600 focus:outline focus:outline-2
-      focus:outline-accentGreen-600;
+      focus:outline-accentGreen-600 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .btn-icon {
@@ -159,7 +159,7 @@
 
   /* Table Styles */
   .table-standard th {
-    @apply font-medium text-left p-4 bg-neutral-200;
+    @apply font-medium text-left p-4 bg-neutral-200 text-neutral-900;
   }
   
   .table-standard th.numeric, 
@@ -168,7 +168,7 @@
   }
   
   .table-standard td {
-    @apply p-4 border-b border-neutral-200;
+    @apply p-4 border-b border-neutral-200 text-neutral-900;
   }
   
   .table-standard tr:nth-child(even) {
@@ -226,6 +226,23 @@
   .sidebar-nav-item.active svg {
     @apply text-white;
   }
+  
+  /* Auth specific styles */
+  .auth-card {
+    @apply shadow-lg border-green-base/20 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95;
+  }
+  
+  .auth-link {
+    @apply text-green-base font-semibold hover:underline;
+  }
+  
+  .auth-btn {
+    @apply bg-green-base hover:bg-green-hover text-white font-medium;
+  }
+  
+  .auth-btn-outline {
+    @apply border-green-base text-green-base hover:bg-green-base hover:text-white;
+  }
 }
 
 @layer utilities {
@@ -235,6 +252,24 @@
   
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* High contrast text utilities */
+  .text-high-contrast {
+    @apply text-neutral-900;
+  }
+  
+  .text-medium-contrast {
+    @apply text-neutral-700;
+  }
+  
+  .text-low-contrast {
+    @apply text-neutral-600;
+  }
+  
+  /* Accessible focus styles */
+  .focus-visible-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-accentGreen-600 focus-visible:ring-offset-2 focus-visible:outline-none;
   }
 }
 

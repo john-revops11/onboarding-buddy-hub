@@ -33,24 +33,63 @@ export default {
 				primary: {
 					DEFAULT: 'var(--primary-600)',
 					50: '#F3F7FC',
+					100: '#E9F0F8',
+					200: '#C5D7EB',
+					300: '#9BBCDE',
+					400: '#5A8DC2',
+					500: '#2E67A5',
 					600: '#12366B',
 					700: '#0B2B50',
+					800: '#081F3A',
+					900: '#051425',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				accentGreen: {
 					100: '#E6F8F1',
+					200: '#CEF1E3',
+					300: '#9FE4C6',
+					400: '#71D7AA',
+					500: '#42CA8D',
 					600: '#2EBD85',
+					700: '#249E6D',
+					800: '#1A7F56',
+					900: '#10503A',
 				},
 				neutral: {
 					200: '#E5EAF1',
+					300: '#D3DAE5',
+					400: '#A4AFBF',
+					500: '#8797AC',
 					600: '#56637A',
+					700: '#3F4859',
+					800: '#293141',
 					900: '#1C2431',
 				},
 				error: {
+					100: '#FDEBEB',
+					200: '#FAD6D6',
+					300: '#F5ACAD',
+					400: '#F08384',
+					500: '#EA595A',
 					600: '#E05858',
+					700: '#C73E3F',
+					800: '#A32A2A',
+					900: '#7A2021',
 				},
 				warning: {
+					100: '#FFF5E6',
+					200: '#FEEACC',
+					300: '#FDD599',
+					400: '#FCC066',
+					500: '#FAAB33',
 					600: '#F5A623',
+					700: '#D88A0C',
+					800: '#AD6D0A',
+					900: '#825105',
+				},
+				success: {
+					DEFAULT: 'var(--accent)',
+					foreground: 'var(--accent-foreground)',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -75,7 +114,10 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
-				}
+				},
+				// Define green-base for compatibility with existing codebase
+				'green-base': '#2EBD85',
+				'green-hover': '#249E6D',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

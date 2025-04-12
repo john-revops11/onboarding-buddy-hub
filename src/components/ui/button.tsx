@@ -12,14 +12,16 @@ const buttonVariants = cva(
       variant: {
         default: "h-10 min-w-[120px] bg-primary-700 text-white hover:bg-primary-600 font-medium",
         destructive:
-          "h-10 min-w-[120px] bg-error-600 text-white hover:bg-error-600/90 font-medium",
+          "h-10 min-w-[120px] bg-error-600 text-white hover:bg-error-700 font-medium",
         outline:
-          "h-10 min-w-[120px] border border-neutral-200 bg-background hover:bg-primary-50 hover:text-primary-700 font-medium",
+          "h-10 min-w-[120px] border border-neutral-200 bg-background text-primary-700 hover:bg-primary-50 hover:text-primary-700 font-medium",
         secondary:
-          "h-10 min-w-[120px] bg-neutral-200 text-neutral-900 hover:bg-neutral-200/80 font-medium",
-        ghost: "hover:bg-primary-50 hover:text-primary-700",
+          "h-10 min-w-[120px] bg-neutral-200 text-neutral-900 hover:bg-neutral-300 font-medium",
+        ghost: "text-primary-700 hover:bg-primary-50 hover:text-primary-700",
         link: "text-primary-700 underline-offset-4 hover:underline",
-        icon: "h-10 w-10 p-0",
+        icon: "h-10 w-10 p-0 bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-primary-700",
+        success: "h-10 min-w-[120px] bg-accentGreen-600 text-white hover:bg-accentGreen-700 font-medium",
+        warning: "h-10 min-w-[120px] bg-warning-600 text-white hover:bg-warning-700 font-medium",
       },
       size: {
         default: "h-10 px-4 py-2",
