@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -229,7 +228,6 @@ export function ClientOnboardingForm() {
   );
 }
 
-// Small component for form tabs
 function FormTabs() {
   return (
     <>
@@ -252,7 +250,6 @@ function FormTabs() {
   );
 }
 
-// Icons imports from lucide-react
 import { Building as ClientInfoIcon, Package as SubscriptionIcon, Plus as AddonIcon, Users as TeamIcon, User as ConfirmIcon } from "lucide-react";
 
 export default ClientOnboardingForm;

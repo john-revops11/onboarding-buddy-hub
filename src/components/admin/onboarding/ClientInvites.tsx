@@ -15,6 +15,15 @@ export function ClientInvites() {
     revokeInvite
   } = useInviteManagement();
 
+  // Create adapter functions that convert Promise<boolean> to Promise<void>
+  const handleResend = async (id: string, clientId: string, email: string) => {
+    await resendInvite(id, clientId, email);
+  };
+
+  const handleRevoke = async (id: string) => {
+    await revokeInvite(id);
+  };
+
   return (
     <div className="space-y-4">
       <InviteSearchHeader 
@@ -27,8 +36,8 @@ export function ClientInvites() {
         invites={invites}
         isLoading={isLoading}
         processingId={processingId}
-        onResend={resendInvite}
-        onRevoke={revokeInvite}
+        onResend={handleResend}
+        onRevoke={handleRevoke}
       />
     </div>
   );
