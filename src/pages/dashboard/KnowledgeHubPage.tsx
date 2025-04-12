@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -7,47 +6,37 @@ import {
 } from "@/components/ui/card";
 
 const KnowledgeHubPage = () => {
-  // Add event listeners to disable inspect element
   useEffect(() => {
     const disableInspect = () => {
-      // Disable right-click context menu
       const handleContextMenu = (e: MouseEvent) => {
         e.preventDefault();
       };
 
-      // Disable keyboard shortcuts for inspect element
       const handleKeyDown = (e: KeyboardEvent) => {
-        // Disable F12 key
         if (e.key === "F12") {
           e.preventDefault();
         }
 
-        // Disable Ctrl+Shift+I / Cmd+Option+I
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "I" || e.key === "i")) {
           e.preventDefault();
         }
 
-        // Disable Ctrl+Shift+C / Cmd+Option+C
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "C" || e.key === "c")) {
           e.preventDefault();
         }
 
-        // Disable Ctrl+Shift+J / Cmd+Option+J
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "J" || e.key === "j")) {
           e.preventDefault();
         }
 
-        // Disable Ctrl+U (View Source)
         if ((e.ctrlKey || e.metaKey) && (e.key === "U" || e.key === "u")) {
           e.preventDefault();
         }
       };
 
-      // Add event listeners
       document.addEventListener("contextmenu", handleContextMenu);
       document.addEventListener("keydown", handleKeyDown);
 
-      // Clean up event listeners when component unmounts
       return () => {
         document.removeEventListener("contextmenu", handleContextMenu);
         document.removeEventListener("keydown", handleKeyDown);
@@ -61,7 +50,13 @@ const KnowledgeHubPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Seamless full-width card with iframe only */}
+        <div className="text-left">
+          <h1 className="text-3xl font-bold tracking-tight">Knowledge Hub</h1>
+          <p className="text-muted-foreground mt-1">
+            Access comprehensive guides, documentation, and resources
+          </p>
+        </div>
+
         <Card className="overflow-hidden border-0 shadow-lg">
           <CardContent className="p-0">
             <div className="min-h-[80vh]">
@@ -81,7 +76,6 @@ const KnowledgeHubPage = () => {
           </CardContent>
         </Card>
 
-        {/* Hidden information cards section for mobile view only */}
         <div className="md:hidden mt-6">
           <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
           <div className="space-y-4">
