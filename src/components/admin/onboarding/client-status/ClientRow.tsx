@@ -4,7 +4,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { OnboardingClient } from "@/lib/clients";
+import { OnboardingClient } from "@/lib/types/client-types";
 import { ClientProgressIndicator } from "./ClientProgressIndicator";
 import { CompleteOnboardingButton } from "./CompleteOnboardingButton";
 

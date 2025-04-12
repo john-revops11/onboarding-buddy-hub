@@ -1,7 +1,7 @@
 
 import { Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { OnboardingClient } from "@/lib/clients";
+import { OnboardingClient } from "@/lib/types/client-types";
 import { ClientRow } from "./ClientRow";
 
 interface ClientsTableProps {
