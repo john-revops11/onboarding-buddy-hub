@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues, OnboardingClient } from "@/lib/types/client-types";
@@ -119,7 +120,10 @@ export async function getClients(): Promise<OnboardingClient[]> {
         addonsByClient[item.client_id] = [];
       }
       if (item.addons) {  // Check if addons property exists
-        addonsByClient[item.client_id].push(item.addons);
+        addonsByClient[item.client_id].push({
+          id: item.addons.id,
+          name: item.addons.name
+        });
       }
     });
     

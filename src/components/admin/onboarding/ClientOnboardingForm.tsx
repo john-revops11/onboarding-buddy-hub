@@ -176,7 +176,9 @@ export function ClientOnboardingForm() {
         companyName: data.companyName,
         subscriptionTierId: data.subscriptionTierId,
         addons: data.addons,
-        teamMembers: data.teamMembers
+        teamMembers: data.teamMembers.map(member => ({
+          email: member.email // Ensure email is not optional here
+        }))
       };
       
       await createClient(clientData);
