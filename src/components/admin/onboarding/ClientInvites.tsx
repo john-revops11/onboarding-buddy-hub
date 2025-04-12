@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { sendClientInvitation } from "@/lib/clients";
 
 interface Invite {
   id: string;
@@ -32,8 +33,7 @@ interface Invite {
   client_name: string;
   email: string;
   created_at: string;
-  expires_at: string;
-  status: "pending" | "used" | "revoked";
+  invitation_status: string;
 }
 
 export function ClientInvites() {
@@ -45,38 +45,32 @@ export function ClientInvites() {
   const fetchInvites = async () => {
     setIsLoading(true);
     try {
-      // In a real implementation, this would fetch from an API
-      // Mock data for this implementation
-      const mockInvites: Invite[] = [
-        {
-          id: "1",
-          client_id: "101",
-          client_name: "Acme Corp",
-          email: "john@acmecorp.com",
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 86400000).toISOString(), // 24 hours from now
-          status: "pending"
-        },
-        {
-          id: "2",
-          client_id: "102",
-          client_name: "Globex Inc",
-          email: "jane@globex.com",
-          created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          expires_at: new Date(Date.now() + 82800000).toISOString(), // 23 hours from now
-          status: "pending"
-        },
-        {
-          id: "3",
-          client_id: "103",
-          client_name: "Initech",
-          email: "mike@initech.com",
-          created_at: new Date(Date.now() - 172800000).toISOString(), // 48 hours ago
-          expires_at: new Date(Date.now() - 86400000).toISOString(), // 24 hours ago (expired)
-          status: "used"
-        }
-      ];
-      setInvites(mockInvites);
+      const { data, error } = await supabase
+        .from('team_members')
+        .select(`
+          id,
+          client_id,
+          email,
+          invitation_status,
+          created_at,
+          clients:client_id (
+            company_name
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const formattedInvites: Invite[] = data.map((invite) => ({
+        id: invite.id,
+        client_id: invite.client_id,
+        client_name: invite.clients?.company_name || 'Unknown Client',
+        email: invite.email,
+        created_at: invite.created_at,
+        invitation_status: invite.invitation_status
+      }));
+      
+      setInvites(formattedInvites);
     } catch (error) {
       console.error("Error fetching invites:", error);
       toast({
@@ -93,29 +87,30 @@ export function ClientInvites() {
     fetchInvites();
   }, []);
 
-  const resendInvite = async (id: string) => {
+  const resendInvite = async (id: string, clientId: string, email: string) => {
     setProcessingId(id);
     try {
-      // In a real implementation, this would call an API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const success = await sendClientInvitation(clientId, email);
       
-      toast({
-        title: "Invite Resent",
-        description: "The invitation has been resent successfully."
-      });
-      
-      // Update the invite in the UI with a new expiration date
-      setInvites(prevInvites => 
-        prevInvites.map(invite => 
-          invite.id === id 
-            ? {
-                ...invite,
-                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                created_at: new Date().toISOString()
-              } 
-            : invite
-        )
-      );
+      if (success) {
+        toast({
+          title: "Invite Resent",
+          description: "The invitation has been resent successfully."
+        });
+        
+        // Update the invite in the UI
+        setInvites(prevInvites => 
+          prevInvites.map(invite => 
+            invite.id === id 
+              ? {
+                  ...invite,
+                  invitation_status: 'sent',
+                  created_at: new Date().toISOString()
+                } 
+              : invite
+          )
+        );
+      }
     } catch (error) {
       console.error("Error resending invite:", error);
       toast({
@@ -131,8 +126,12 @@ export function ClientInvites() {
   const revokeInvite = async (id: string) => {
     setProcessingId(id);
     try {
-      // In a real implementation, this would call an API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const { error } = await supabase
+        .from('team_members')
+        .update({ invitation_status: 'revoked' })
+        .eq('id', id);
+      
+      if (error) throw error;
       
       toast({
         title: "Invite Revoked",
@@ -143,7 +142,7 @@ export function ClientInvites() {
       setInvites(prevInvites => 
         prevInvites.map(invite => 
           invite.id === id 
-            ? { ...invite, status: "revoked" as const } 
+            ? { ...invite, invitation_status: 'revoked' } 
             : invite
         )
       );
@@ -192,7 +191,6 @@ export function ClientInvites() {
                 <TableHead>Client</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Expires</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -207,28 +205,25 @@ export function ClientInvites() {
                       {new Date(invite.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {new Date(invite.expires_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
                       <Badge 
                         variant={
-                          invite.status === "pending" 
+                          invite.invitation_status === "pending" 
                             ? "default" 
-                            : invite.status === "used" 
+                            : invite.invitation_status === "accepted" 
                               ? "success" 
                               : "destructive"
                         }
                       >
-                        {invite.status}
+                        {invite.invitation_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {invite.status === "pending" && (
+                      {invite.invitation_status === "pending" || invite.invitation_status === "sent" ? (
                         <>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => resendInvite(invite.id)}
+                            onClick={() => resendInvite(invite.id, invite.client_id, invite.email)}
                             disabled={!!processingId}
                             className="mr-2"
                           >
@@ -275,7 +270,7 @@ export function ClientInvites() {
                             </AlertDialogContent>
                           </AlertDialog>
                         </>
-                      )}
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))

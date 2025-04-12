@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,20 +33,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data - this would come from API in a real implementation
-const MOCK_SUBSCRIPTIONS = [
-  { id: "1", name: "Basic" },
-  { id: "2", name: "Professional" },
-  { id: "3", name: "Enterprise" },
-];
-
-const MOCK_ADDONS = [
-  { id: "1", name: "Weekly Reports", description: "Receive detailed reports every week" },
-  { id: "2", name: "Dedicated Consultant", description: "Get a dedicated consultant for your business" },
-  { id: "3", name: "Custom Dashboard", description: "Customized dashboard for your business needs" },
-  { id: "4", name: "API Access", description: "Full API access for integrations" },
-];
+import { createClient, getSubscriptionTiers, getAddons } from "@/lib/clients";
+import { Loader2 } from "lucide-react";
 
 const emailSchema = z.string().email("Invalid email format");
 
@@ -62,13 +50,16 @@ const clientSchema = z.object({
   ),
 });
 
-type ClientFormValues = z.infer<typeof clientSchema>;
+export type ClientFormValues = z.infer<typeof clientSchema>;
 
 export function ClientOnboardingForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("client-info");
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [addons, setAddons] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
@@ -87,6 +78,32 @@ export function ClientOnboardingForm() {
   });
 
   const selectedAddons = form.watch("addons");
+
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const [subscriptionsData, addonsData] = await Promise.all([
+          getSubscriptionTiers(),
+          getAddons()
+        ]);
+        
+        setSubscriptions(subscriptionsData);
+        setAddons(addonsData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Failed to load data",
+          description: "Could not load subscription tiers and add-ons",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadData();
+  }, [toast]);
 
   const handleTabChange = (value: string) => {
     form.trigger();
@@ -149,8 +166,7 @@ export function ClientOnboardingForm() {
   const onSubmit = async (data: ClientFormValues) => {
     setIsSubmitting(true);
     try {
-      // In a real implementation, this would call an API endpoint
-      console.log("Onboarding data:", data);
+      await createClient(data);
       
       toast({
         title: "Client onboarding initiated",
@@ -158,7 +174,7 @@ export function ClientOnboardingForm() {
       });
       
       // Navigate back to admin dashboard
-      navigate("/admin");
+      navigate("/admin/onboarding");
     } catch (error) {
       console.error("Error submitting client onboarding:", error);
       toast({
@@ -170,6 +186,15 @@ export function ClientOnboardingForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading data...</p>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -256,9 +281,9 @@ export function ClientOnboardingForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {MOCK_SUBSCRIPTIONS.map((sub) => (
+                          {subscriptions.map((sub) => (
                             <SelectItem key={sub.id} value={sub.id}>
-                              {sub.name}
+                              {sub.name} - ${sub.price}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -292,7 +317,7 @@ export function ClientOnboardingForm() {
                 </FormDescription>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {MOCK_ADDONS.map((addon) => (
+                  {addons.map((addon) => (
                     <div
                       key={addon.id}
                       className={`border rounded-md p-4 cursor-pointer transition-colors ${
@@ -308,10 +333,19 @@ export function ClientOnboardingForm() {
                           onCheckedChange={() => toggleAddon(addon.id)}
                         />
                         <div>
-                          <p className="font-medium">{addon.name}</p>
+                          <p className="font-medium">{addon.name} - ${addon.price}</p>
                           <p className="text-sm text-muted-foreground">
                             {addon.description}
                           </p>
+                          {addon.tags && addon.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {addon.tags.map((tag: string) => (
+                                <Badge key={tag} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -410,7 +444,7 @@ export function ClientOnboardingForm() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Subscription</h3>
                   <div>
-                    {MOCK_SUBSCRIPTIONS.find(
+                    {subscriptions.find(
                       (s) => s.id === form.getValues("subscriptionTierId")
                     )?.name || "None selected"}
                   </div>
@@ -422,7 +456,7 @@ export function ClientOnboardingForm() {
                     <div className="flex flex-wrap gap-2">
                       {selectedAddons.map((addonId) => (
                         <Badge key={addonId} variant="secondary">
-                          {MOCK_ADDONS.find((a) => a.id === addonId)?.name}
+                          {addons.find((a) => a.id === addonId)?.name}
                         </Badge>
                       ))}
                     </div>
