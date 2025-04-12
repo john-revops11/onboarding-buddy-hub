@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
@@ -10,6 +9,7 @@ import { UserMenu } from "./sidebar/UserMenu";
 import { ToolsSection } from "./sidebar/ToolsSection";
 import { SidebarNavGroup } from "./sidebar/SidebarNavGroup";
 import { adminNavGroups, userNavGroups } from "./sidebar/SidebarNavData";
+import { TopBar } from "./TopBar";
 
 interface DashboardSidebarProps {
   children: React.ReactNode;
@@ -23,9 +23,7 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
     <div className="flex h-screen w-full overflow-hidden">
       <DashboardSidebar />
       <main className="flex-1 overflow-auto">
-        <div className="flex items-center justify-end p-4 border-b">
-          <UserMenu />
-        </div>
+        <TopBar />
         <div className="p-6">{children}</div>
       </main>
     </div>
@@ -68,7 +66,7 @@ export function DashboardSidebar() {
           <img
             src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
-            className="h-12 w-auto" // Increased logo height
+            className="h-12 w-auto"
           />
           <span className="font-bold text-sm mt-2 text-primary-700">Revify</span>
         </div>

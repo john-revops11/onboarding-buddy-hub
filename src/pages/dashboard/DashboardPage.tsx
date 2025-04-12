@@ -10,12 +10,10 @@ import {
   isOnboardingComplete, 
   skipOnboarding, 
   getClientStatus, 
-  shouldRedirectToDashboard,
   getPendingNotifications,
   addNotification
 } from "@/utils/onboardingUtils";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
-import { TopBar } from "@/components/layout/TopBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
@@ -83,8 +81,7 @@ const DashboardPage = () => {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <DashboardLayout>
-        <TopBar />
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
           <DashboardBanner 
             userName={user?.name || "User"} 
             userRole={user?.role || "Member"}
