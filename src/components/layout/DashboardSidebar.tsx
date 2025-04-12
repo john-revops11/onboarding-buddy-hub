@@ -1,4 +1,5 @@
 
+import React from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { Home, Users, ClipboardCheck, FileText, UserPlus, Target, Key, Package, CreditCard, BarChart2, FileSearch, BookOpen, User, Settings, CheckSquare, Upload } from "lucide-react";
@@ -67,9 +68,9 @@ export function DashboardSidebar() {
           <img
             src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
             alt="Revify Logo"
-            className="h-8 w-auto"
+            className="h-12 w-auto" // Increased logo height
           />
-          <span className="font-medium text-xs mt-1">Revify</span>
+          <span className="font-bold text-sm mt-2 text-primary-700">Revify</span>
         </div>
         
         <SearchBar />
