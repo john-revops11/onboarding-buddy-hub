@@ -1,5 +1,4 @@
 
-
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { RegisterCredentials } from "@/types/auth";
@@ -70,4 +69,3 @@ export async function registerClient(
     throw error;
   }
 }
-
