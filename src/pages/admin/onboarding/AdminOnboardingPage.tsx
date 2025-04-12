@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ClientInvites } from "@/components/admin/onboarding/ClientInvites";
+import { ClientStatus } from "@/components/admin/onboarding/ClientStatus";
 
 const AdminOnboardingPage = () => {
   const navigate = useNavigate();
@@ -34,6 +36,8 @@ const AdminOnboardingPage = () => {
         <Tabs defaultValue="new-client">
           <TabsList className="mb-4">
             <TabsTrigger value="new-client">New Client</TabsTrigger>
+            <TabsTrigger value="client-invites">Client Invites</TabsTrigger>
+            <TabsTrigger value="client-status">Client Status</TabsTrigger>
             <TabsTrigger value="checklist-templates">Checklist Templates</TabsTrigger>
             <TabsTrigger value="settings">Onboarding Settings</TabsTrigger>
           </TabsList>
@@ -48,6 +52,34 @@ const AdminOnboardingPage = () => {
               </CardHeader>
               <CardContent>
                 <ClientOnboardingForm />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="client-invites" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Client Invites</CardTitle>
+                <CardDescription>
+                  Manage invitations sent to clients. You can resend or revoke invitations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClientInvites />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="client-status" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Client Status</CardTitle>
+                <CardDescription>
+                  View and manage client onboarding status. Mark onboarding as complete when all steps are finished.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClientStatus />
               </CardContent>
             </Card>
           </TabsContent>

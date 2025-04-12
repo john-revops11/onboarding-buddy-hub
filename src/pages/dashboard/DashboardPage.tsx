@@ -1,16 +1,22 @@
+
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { useAuth } from "@/contexts/auth-context";
-import { isOnboardingComplete, skipOnboarding } from "@/utils/onboardingUtils";
+import { 
+  isOnboardingComplete, 
+  skipOnboarding, 
+  getClientStatus, 
+  shouldRedirectToDashboard 
+} from "@/utils/onboardingUtils";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { TopBar } from "@/components/layout/TopBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
   const { state } = useAuth();
@@ -18,8 +24,20 @@ const DashboardPage = () => {
   const user = state.user;
   const [completedItems, setCompletedItems] = useState(2);
   const [totalItems, setTotalItems] = useState(6);
+  const [clientStatus, setClientStatus] = useState(getClientStatus());
   
-  // Skip onboarding on load
+  // Check if we should redirect to onboarding
+  useEffect(() => {
+    const onboardingComplete = isOnboardingComplete();
+    
+    // If onboarding is not complete and client status is pending
+    if (!onboardingComplete && clientStatus === 'pending') {
+      navigate('/onboarding');
+    }
+  }, [navigate, clientStatus]);
+  
+  // Skip onboarding on load for demo purposes
+  // In a real app, this would be based on client state
   useEffect(() => {
     if (!isOnboardingComplete()) {
       skipOnboarding();
@@ -74,10 +92,6 @@ const DashboardPage = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* AnalyticsOverview component removed as requested */}
-
-          {/* Onboarding Checklist component removed as requested */}
         </div>
       </DashboardLayout>
     </div>

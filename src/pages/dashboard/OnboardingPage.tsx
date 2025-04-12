@@ -1,324 +1,291 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Check, Calendar, ExternalLink, Upload, FileText, Clock, Users, 
-  BarChart2, Shield, HelpCircle, BookOpen, PhoneCall, ChevronRight,
-  Clipboard, ClipboardCheck
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, ChevronRight, Save } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
-import { useToast } from "@/components/ui/use-toast";
+import { 
+  completeOnboardingStep, 
+  getOnboardingProgress, 
+  shouldRedirectToDashboard 
+} from "@/utils/onboardingUtils";
+import { toast } from "@/hooks/use-toast";
+
+// Define onboarding steps
+const ONBOARDING_STEPS = [
+  {
+    id: "welcome",
+    title: "Welcome to Revify",
+    description: "Let's get you set up with Revify's powerful data analysis platform."
+  },
+  {
+    id: "contract",
+    title: "Contract & Terms",
+    description: "Review and agree to our terms of service."
+  },
+  {
+    id: "questionnaire",
+    title: "Data Questionnaire",
+    description: "Tell us about your data so we can better serve your needs."
+  },
+  {
+    id: "upload",
+    title: "Initial Data Upload",
+    description: "Upload your first dataset to get started."
+  },
+  {
+    id: "integration",
+    title: "Integration Setup",
+    description: "Configure any necessary integrations with your existing systems."
+  },
+  {
+    id: "training",
+    title: "Schedule Training",
+    description: "Schedule a training session for your team."
+  }
+];
 
 const OnboardingPage = () => {
+  const navigate = useNavigate();
   const { state } = useAuth();
-  const { toast } = useToast();
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState(ONBOARDING_STEPS[0].id);
+  const [progress, setProgress] = useState(getOnboardingProgress());
   
-  // Mock data - in a real app this would come from an API
-  const [onboardingItems, setOnboardingItems] = useState([
-    {
-      id: "contract",
-      title: "Contract Signed",
-      description: "Revify agreement finalized.",
-      status: "complete",
-      icon: <FileText className="h-5 w-5 text-green-500" />,
-      date: "Completed on Apr 5, 2025"
-    },
-    {
-      id: "questionnaire",
-      title: "Complete Data Questionnaire",
-      description: "Provide details about your data sources and structure.",
-      status: "pending",
-      icon: <ClipboardCheck className="h-5 w-5 text-amber-500" />,
-      action: {
-        label: "Open Questionnaire",
-        url: "https://docs.google.com/forms/d/e/1FAIpQLSdG8wss8NTjT-1_3S2vM-0iJ7xJEFrX7J0sxSx4c4vKT_E0rg/viewform"
-      },
-      date: "Due by Apr 15, 2025"
-    },
-    {
-      id: "data-submission",
-      title: "Initial Data Submission",
-      description: "Upload your initial dataset via the Data Uploads module.",
-      status: "pending",
-      icon: <Upload className="h-5 w-5 text-blue-500" />,
-      action: {
-        label: "Upload Files",
-        url: "/data-uploads"
-      },
-      date: "Due by Apr 20, 2025"
-    },
-    {
-      id: "health-check",
-      title: "Data Health Check Review",
-      description: "Revify team reviews data quality and completeness.",
-      status: "pending",
-      icon: <Shield className="h-5 w-5 text-purple-500" />,
-      revifyAction: true,
-      date: "Expected by Apr 25, 2025"
-    },
-    {
-      id: "activate",
-      title: "Activate Revify Analytics",
-      description: "Your core dashboards and analytics are being prepared.",
-      status: "pending",
-      icon: <BarChart2 className="h-5 w-5 text-purple-500" />,
-      revifyAction: true,
-      date: "Expected by May 1, 2025"
-    },
-    {
-      id: "diagnostic",
-      title: "Schedule Initial Diagnostic Review",
-      description: "Book your first strategy session with your Revify consultant.",
-      status: "pending",
-      icon: <Calendar className="h-5 w-5 text-green-500" />,
-      action: {
-        label: "Schedule Now",
-        url: "https://calendly.com/revify-team/diagnostic-review"
-      },
-      date: "Available after May 3, 2025"
+  // Redirect if onboarding is complete and client is active
+  useEffect(() => {
+    if (shouldRedirectToDashboard()) {
+      toast({
+        title: "Onboarding Complete",
+        description: "You've completed onboarding and your account is now active."
+      });
+      navigate("/dashboard");
     }
-  ]);
+  }, [navigate]);
   
-  // Consulting tier data
-  const [consultingTier, setConsultingTier] = useState({
-    tier: "Elite",
-    description: "Access to the Elite features of the Revify analytics platform.",
-    benefits: [
-      "Priority support with 4-hour response time",
-      "Weekly consulting sessions",
-      "Custom dashboard development",
-      "Advanced data integration features",
-      "Dedicated account manager"
-    ]
-  });
-  
-  // Calculate progress
-  const completedCount = onboardingItems.filter(item => item.status === "complete").length;
-  const progress = Math.round((completedCount / onboardingItems.length) * 100);
-  
-  const toggleItem = (itemId: string) => {
-    setExpandedItem(expandedItem === itemId ? null : itemId);
-  };
-  
-  // Helper function to get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "complete":
-        return <Badge variant="success">Complete</Badge>;
-      case "in-progress":
-        return <Badge className="bg-blue-500">In Progress</Badge>;
-      case "pending":
-        return <Badge variant="outline" className="text-muted-foreground">Pending</Badge>;
-      default:
-        return null;
+  const handleContinue = () => {
+    const currentIndex = ONBOARDING_STEPS.findIndex(step => step.id === activeStep);
+    
+    // Mark the current step as complete
+    completeOnboardingStep(currentIndex);
+    
+    // Update progress
+    setProgress(getOnboardingProgress());
+    
+    // Move to next step if not at the end
+    if (currentIndex < ONBOARDING_STEPS.length - 1) {
+      setActiveStep(ONBOARDING_STEPS[currentIndex + 1].id);
+    } else {
+      toast({
+        title: "Onboarding Steps Completed",
+        description: "Your administrator will review and activate your account soon."
+      });
     }
   };
   
-  // Handle support contact
-  const handleContactSupport = () => {
+  const handleFinishLater = () => {
     toast({
-      title: "Support request sent",
-      description: "A support representative will contact you shortly.",
+      title: "Progress Saved",
+      description: "Your onboarding progress has been saved. You can continue later."
     });
+    navigate("/dashboard");
   };
-
+  
+  // Get the current step index
+  const currentStepIndex = ONBOARDING_STEPS.findIndex(step => step.id === activeStep);
+  const isLastStep = currentStepIndex === ONBOARDING_STEPS.length - 1;
+  
+  // Check if current step is completed
+  const isCurrentStepCompleted = currentStepIndex < progress.completedCount;
+  
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="space-y-0.5">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome to Revify!</h1>
-          <p className="text-muted-foreground">
-            Let's get your account set up. Follow the steps below to complete your onboarding.
+      <div className="container max-w-5xl py-6 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome to Revify</h1>
+          <p className="text-muted-foreground mt-2">
+            Complete the following steps to set up your account and get started with Revify.
           </p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
-            {/* Onboarding Checklist */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <CardTitle>Your Onboarding Journey</CardTitle>
-                </div>
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Onboarding Progress</CardTitle>
                 <CardDescription>
-                  Complete these steps to unlock the full power of your Revify portal.
+                  Complete these steps to get started with Revify.
                 </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress: {completedCount} of {onboardingItems.length} complete</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{progress.progress}%</div>
+                <div className="text-sm text-muted-foreground">
+                  {progress.completedCount} of {progress.totalSteps} steps completed
                 </div>
-                
-                {/* Checklist Items */}
-                <div className="space-y-3 mt-4">
-                  {onboardingItems.map((item) => (
-                    <div 
-                      key={item.id}
-                      className={cn(
-                        "border rounded-lg p-4 transition-all",
-                        item.status === "complete" 
-                          ? "bg-muted/30 border-muted-foreground/20" 
-                          : "border-border hover:border-primary/30"
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Progress value={progress.progress} className="h-2 mb-6" />
+            
+            <div className="grid gap-4">
+              {ONBOARDING_STEPS.map((step, index) => (
+                <button
+                  key={step.id}
+                  className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                    activeStep === step.id 
+                      ? "border-primary bg-primary/5" 
+                      : index < progress.completedCount 
+                        ? "border-green-200 bg-green-50"
+                        : "border-muted-foreground/20"
+                  }`}
+                  onClick={() => setActiveStep(step.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      index < progress.completedCount 
+                        ? "bg-green-100 text-green-600" 
+                        : "bg-muted-foreground/10 text-muted-foreground"
+                    }`}>
+                      {index < progress.completedCount ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <span>{index + 1}</span>
                       )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                          {item.icon}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className={cn(
-                              "font-medium",
-                              item.status === "complete" && "text-muted-foreground"
-                            )}>
-                              {item.title}
-                            </h3>
-                            {getStatusBadge(item.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {item.description}
-                          </p>
-                          
-                          {item.date && (
-                            <p className={cn(
-                              "text-xs mt-2",
-                              item.date.includes("Due") ? "text-amber-600" : 
-                              item.date.includes("Completed") ? "text-green-600" : 
-                              "text-muted-foreground"
-                            )}>
-                              {item.date}
-                            </p>
-                          )}
-                          
-                          {item.revifyAction && (
-                            <div className="mt-2">
-                              <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
-                                Revify Action
-                              </Badge>
-                            </div>
-                          )}
-                          
-                          {item.action && (
-                            <div className="mt-3">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="text-sm"
-                                onClick={() => window.location.href = item.action!.url}
-                              >
-                                {item.action.label.includes("Questionnaire") || item.action.label.includes("Schedule") ? 
-                                  <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> : 
-                                  <Upload className="h-3.5 w-3.5 mr-1.5" />
-                                }
-                                {item.action.label}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        {item.status === "complete" && (
-                          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <Check className="w-3 h-3 text-green-500" />
-                          </div>
-                        )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{step.title}</div>
+                      <div className="text-sm text-muted-foreground">{step.description}</div>
+                    </div>
+                  </div>
+                  {activeStep === step.id && (
+                    <ChevronRight className="h-5 w-5 text-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={handleFinishLater}>
+              <Save className="mr-2 h-4 w-4" />
+              Finish Later
+            </Button>
+            <Button onClick={handleContinue} disabled={isLastStep && isCurrentStepCompleted}>
+              {isLastStep ? "Complete Onboarding" : "Continue"}
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>{ONBOARDING_STEPS[currentStepIndex].title}</CardTitle>
+            <CardDescription>
+              {ONBOARDING_STEPS[currentStepIndex].description}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="form">
+              <TabsList className="mb-4">
+                <TabsTrigger value="form">Form</TabsTrigger>
+                <TabsTrigger value="resources">Resources</TabsTrigger>
+                <TabsTrigger value="help">Help</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="form" className="space-y-4">
+                {/* This would be replaced with actual form components for each step */}
+                <div className="min-h-[200px] border rounded-lg p-6 flex items-center justify-center">
+                  {activeStep === "welcome" && (
+                    <div className="text-center space-y-4">
+                      <h2 className="text-2xl font-bold">Welcome to Revify!</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        We're excited to have you onboard. Complete this onboarding process
+                        to get started with our powerful data analysis platform.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {activeStep === "contract" && (
+                    <div className="space-y-4 w-full">
+                      <h2 className="text-xl font-semibold">Terms of Service</h2>
+                      <div className="bg-muted p-4 rounded-lg h-40 overflow-y-auto text-sm">
+                        <p>
+                          This is a placeholder for the Terms of Service document.
+                          In a real implementation, this would include the actual legal text.
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="agree" className="rounded" />
+                        <label htmlFor="agree">I agree to the terms and conditions</label>
                       </div>
                     </div>
-                  ))}
+                  )}
+                  
+                  {activeStep === "questionnaire" && (
+                    <div className="text-center">
+                      <p className="text-muted-foreground">
+                        This is where the data questionnaire form would appear.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {activeStep === "upload" && (
+                    <div className="text-center">
+                      <p className="text-muted-foreground">
+                        This is where the data upload interface would appear.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {activeStep === "integration" && (
+                    <div className="text-center">
+                      <p className="text-muted-foreground">
+                        This is where the integration setup options would appear.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {activeStep === "training" && (
+                    <div className="text-center">
+                      <p className="text-muted-foreground">
+                        This is where the training scheduling interface would appear.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="space-y-6">
-            {/* Service Tier Display */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <CardTitle>Your Revify Services</CardTitle>
+              </TabsContent>
+              
+              <TabsContent value="resources">
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-medium mb-2">Helpful Resources</h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Documentation for this step</li>
+                    <li>Video tutorials</li>
+                    <li>FAQ about this process</li>
+                    <li>Best practices guide</li>
+                  </ul>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Platform Tier */}
-                <ConsultingTierBox
-                  tier={consultingTier.tier}
-                  description={consultingTier.description}
-                  benefits={consultingTier.benefits}
-                  showDetails={false}
-                />
-                
-                {/* Consulting Add-On Display */}
-                <div className="border rounded-lg p-4 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <h3 className="font-medium">Consulting Add-On</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    4 Hours/Month Retainer
+              </TabsContent>
+              
+              <TabsContent value="help">
+                <div className="bg-muted p-4 rounded-lg">
+                  <h3 className="font-medium mb-2">Need Help?</h3>
+                  <p className="text-sm mb-4">
+                    If you're having trouble with this step, you can:
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Dedicated monthly consulting hours for strategic support.
-                  </p>
-                  <Button 
-                    variant="link" 
-                    className="text-sm p-0 h-auto mt-2 flex items-center"
-                    onClick={() => window.open('https://revify.com/consulting', '_blank')}
-                  >
-                    Explore Consulting Options <ChevronRight className="h-3 w-3 ml-1" />
-                  </Button>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Contact your account manager</li>
+                    <li>Schedule a call with our support team</li>
+                    <li>Email support@revify.com</li>
+                  </ul>
                 </div>
-              </CardContent>
-            </Card>
-            
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                  <CardTitle>Need Help?</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={handleContactSupport}
-                >
-                  <HelpCircle className="h-4 w-4 mr-2" />
-                  Contact Support
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.open('https://calendly.com/revify-team/support-call', '_blank')}
-                >
-                  <PhoneCall className="h-4 w-4 mr-2" />
-                  Schedule Ad-hoc Call
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = '/knowledge-hub'}
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Access Knowledge Base
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

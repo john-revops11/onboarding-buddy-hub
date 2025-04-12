@@ -16,6 +16,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ClientRegistrationPage from "./pages/auth/ClientRegistrationPage";
+import VerifyPage from "./pages/auth/VerifyPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
@@ -67,6 +68,7 @@ const App = () => {
               <Route path="/client-registration" element={<ClientRegistrationPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify" element={<VerifyPage />} />
 
               {/* User Routes */}
               <Route element={<AuthGuard requiredRole="user" />}>
@@ -97,6 +99,7 @@ const App = () => {
                 <Route path="/admin/files" element={<AdminFiles />} />
                 <Route path="/admin/opportunities" element={<AdminOpportunities />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
+                <Route path="/admin/clients/:id" element={<AdminDashboard />} />
                 
                 {/* New Admin Routes */}
                 <Route path="/admin/insights" element={<AdminInsightsPage />} />

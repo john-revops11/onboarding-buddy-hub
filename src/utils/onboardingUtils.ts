@@ -22,3 +22,74 @@ export const skipOnboarding = () => {
 export const isOnboardingComplete = () => {
   return localStorage.getItem('onboardingComplete') === 'true';
 };
+
+/**
+ * Gets the client status from localStorage
+ * In a real implementation, this would come from the API
+ */
+export const getClientStatus = () => {
+  const status = localStorage.getItem('clientStatus');
+  return status || 'pending';
+};
+
+/**
+ * Sets the client status in localStorage
+ * In a real implementation, this would be done via API
+ */
+export const setClientStatus = (status: 'pending' | 'active') => {
+  localStorage.setItem('clientStatus', status);
+};
+
+/**
+ * Checks if the user should be redirected from onboarding to dashboard
+ * based on client status and onboarding completion
+ */
+export const shouldRedirectToDashboard = () => {
+  const onboardingComplete = isOnboardingComplete();
+  const clientStatus = getClientStatus();
+  
+  // If onboarding is marked as complete by admin and client status is active
+  return onboardingComplete && clientStatus === 'active';
+};
+
+/**
+ * Get the onboarding steps progress
+ * In a real implementation, this would come from the API
+ */
+export const getOnboardingProgress = () => {
+  // Mock data for demonstration
+  const completedSteps = localStorage.getItem('completedOnboardingSteps');
+  const completedCount = completedSteps ? parseInt(completedSteps, 10) : 0;
+  const totalSteps = 6; // Total number of onboarding steps
+  
+  return {
+    completedCount,
+    totalSteps,
+    progress: Math.round((completedCount / totalSteps) * 100)
+  };
+};
+
+/**
+ * Updates the onboarding progress
+ * In a real implementation, this would be done via API
+ */
+export const updateOnboardingProgress = (completedCount: number) => {
+  localStorage.setItem('completedOnboardingSteps', completedCount.toString());
+};
+
+/**
+ * Mark a specific onboarding step as complete
+ * In a real implementation, this would be done via API
+ */
+export const completeOnboardingStep = (stepIndex: number) => {
+  const { completedCount, totalSteps } = getOnboardingProgress();
+  const newCompletedCount = Math.min(completedCount + 1, totalSteps);
+  updateOnboardingProgress(newCompletedCount);
+  
+  // If all steps are complete, mark onboarding as complete locally
+  if (newCompletedCount === totalSteps) {
+    skipOnboarding();
+  }
+  
+  return newCompletedCount;
+};
