@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: session.user.user_metadata.name || "",
             role: session.user.user_metadata.role || "user",
             avatar: session.user.user_metadata.avatar_url || null,
-            status: "approved",  // Default for logged in users
+            status: "approved" as "approved" | "pending" | "rejected",  // Explicitly cast to the correct union type
             createdAt: session.user.created_at,
           };
 
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: session.user.user_metadata.name || "",
           role: session.user.user_metadata.role || "user",
           avatar: session.user.user_metadata.avatar_url || null,
-          status: "approved",  // Default for logged in users
+          status: "approved" as "approved" | "pending" | "rejected",  // Explicitly cast to the correct union type
           createdAt: session.user.created_at,
         };
 
