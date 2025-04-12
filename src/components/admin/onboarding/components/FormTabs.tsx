@@ -8,7 +8,11 @@ import {
 } from "lucide-react";
 import { TabsTrigger } from "@/components/ui/tabs";
 
-export function FormTabs() {
+interface FormTabsProps {
+  activeTab?: string;
+}
+
+export function FormTabs({ activeTab }: FormTabsProps) {
   return (
     <>
       <TabsTrigger value="client-info" className="flex gap-2 items-center">
