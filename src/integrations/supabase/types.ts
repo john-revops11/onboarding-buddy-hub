@@ -36,6 +36,76 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_items: {
+        Row: {
+          checklist_id: string | null
+          completed: boolean | null
+          description: string | null
+          id: string
+          order: number
+          title: string
+        }
+        Insert: {
+          checklist_id?: string | null
+          completed?: boolean | null
+          description?: string | null
+          id?: string
+          order: number
+          title: string
+        }
+        Update: {
+          checklist_id?: string | null
+          completed?: boolean | null
+          description?: string | null
+          id?: string
+          order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_addons: {
         Row: {
           addon_id: string
