@@ -6,33 +6,7 @@ import { SearchBar } from "./SearchBar";
 import { LogoutButton } from "./LogoutButton";
 import { ToolsSection } from "./ToolsSection";
 import { SidebarNavGroup } from "./SidebarNavGroup";
-import { adminNavGroups, userNavGroups } from "./SidebarNavData";
-
-// Create a mapping of icon names to components
-import {
-  Home, Users, ClipboardCheck, FileText, UserPlus, Target, Key,
-  Package, CreditCard, BarChart2, FileSearch, BookOpen, User,
-  Settings, CheckSquare, Upload
-} from "lucide-react";
-
-const iconComponentMap = {
-  Home,
-  Users,
-  ClipboardCheck,
-  FileText,
-  UserPlus,
-  Target,
-  Key,
-  Package,
-  CreditCard,
-  BarChart2,
-  FileSearch,
-  BookOpen,
-  User,
-  Settings,
-  CheckSquare,
-  Upload,
-};
+import { adminNavGroups, userNavGroups, IconComponentMap } from "./SidebarNavData";
 
 export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }) {
   const { state } = useAuth();
@@ -71,7 +45,7 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
               items={group.items.map(item => ({
                 name: item.title,
                 path: item.href,
-                icon: iconComponentMap[item.icon as keyof typeof iconComponentMap],
+                icon: IconComponentMap[item.icon as keyof typeof IconComponentMap],
                 onClick: () => handleNavClick(item.href)
               }))}
               currentPath={currentPath}

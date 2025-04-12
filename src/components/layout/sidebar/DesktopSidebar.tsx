@@ -7,33 +7,7 @@ import { SearchBar } from "./SearchBar";
 import { LogoutButton } from "./LogoutButton";
 import { ToolsSection } from "./ToolsSection";
 import { CollapsibleSidebarNavGroup } from "./CollapsibleSidebarNavGroup";
-import { adminNavGroups, userNavGroups } from "./SidebarNavData";
-
-// Create a mapping of icon names to components
-import {
-  Home, Users, ClipboardCheck, FileText, UserPlus, Target, Key,
-  Package, CreditCard, BarChart2, FileSearch, BookOpen, User,
-  Settings, CheckSquare, Upload
-} from "lucide-react";
-
-const iconComponentMap = {
-  Home,
-  Users,
-  ClipboardCheck,
-  FileText,
-  UserPlus,
-  Target,
-  Key,
-  Package,
-  CreditCard,
-  BarChart2,
-  FileSearch,
-  BookOpen,
-  User,
-  Settings,
-  CheckSquare,
-  Upload,
-};
+import { adminNavGroups, userNavGroups, IconComponentMap } from "./SidebarNavData";
 
 interface DesktopSidebarProps {
   collapsed: boolean;
@@ -80,7 +54,7 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
               items={group.items.map(item => ({
                 name: item.title,
                 path: item.href,
-                icon: iconComponentMap[item.icon as keyof typeof iconComponentMap],
+                icon: IconComponentMap[item.icon as keyof typeof IconComponentMap],
               }))}
               currentPath={currentPath}
               collapsed={collapsed}
