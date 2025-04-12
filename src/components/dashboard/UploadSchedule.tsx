@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar, Check, Clock } from "lucide-react";
+import { Calendar, Clock, CheckCircle } from "lucide-react";
 
 export const UploadSchedule = () => {
   return (
@@ -45,7 +45,7 @@ export const UploadSchedule = () => {
           
           <div className="flex items-center p-3 bg-muted rounded-md">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-              <Check className="h-5 w-5 text-primary" />
+              <CheckCircle className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-medium">Quarterly Sales Report</p>

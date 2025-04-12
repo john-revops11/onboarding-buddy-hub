@@ -1,8 +1,8 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { FileUploader } from "@/components/dashboard/FileUploader";
-import { uploadFile, getUserFiles } from "@/utils/fileUtils";
+import { uploadFile, getUserFiles, deleteFile } from "@/utils/fileUtils";
+import { getLatestFile } from "@/utils/googleDriveUtils";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 import { UploadedFile } from "@/types/onboarding";
@@ -21,23 +21,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, Trash2, UploadCloud } from "lucide-react";
+import { FileDown, Trash2, UploadCloud, Calendar, BarChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileUploader } from "@/components/dashboard/FileUploader";
+import { UploadSchedule } from "@/components/dashboard/UploadSchedule";
+import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
 
 const DataUploadsPage = () => {
   const { state } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(() => {
-    if (state.user?.id) {
-      return getUserFiles(state.user.id);
-    }
-    return [];
-  });
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [activeTab, setActiveTab] = useState("all");
+  const [healthCheckReport, setHealthCheckReport] = useState<any>(null);
+
+  // Load user files and health check report on component mount
+  useEffect(() => {
+    if (state.user?.id) {
+      // Load user files
+      const files = getUserFiles(state.user.id);
+      setUploadedFiles(files);
+      
+      // Get the latest health check report
+      const fetchHealthCheckReport = async () => {
+        try {
+          const report = await getLatestFile(state.user.id, 'diagnostics');
+          setHealthCheckReport(report);
+        } catch (error) {
+          console.error("Error fetching health check report:", error);
+        }
+      };
+      
+      fetchHealthCheckReport();
+    }
+  }, [state.user]);
 
   // Handle file upload process
   const handleUpload = useCallback(async (files: File[]) => {
@@ -66,7 +87,7 @@ const DataUploadsPage = () => {
     try {
       // Process each file
       for (const file of files) {
-        const uploadedFile = await uploadFile(file, state.user.id);
+        const uploadedFile = await uploadFile(file, state.user.id, 'data');
         setUploadedFiles(prev => [uploadedFile, ...prev]);
       }
       
@@ -98,7 +119,7 @@ const DataUploadsPage = () => {
   const handleDeleteFile = useCallback((fileId: string) => {
     try {
       // Call the utils function to delete the file
-      const isDeleted = true; // Replace with actual deletion function
+      const isDeleted = deleteFile(fileId);
       
       if (isDeleted) {
         // Update the local state by removing the deleted file
@@ -135,12 +156,19 @@ const DataUploadsPage = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "verified":
-        return <Badge className="bg-green-500">Verified</Badge>;
+        return <Badge className="bg-green-500">Processed ✅</Badge>;
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return <Badge variant="destructive">Failed ❌</Badge>;
       default:
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Processing</Badge>;
     }
+  };
+
+  const getNextUploadDate = () => {
+    const today = new Date();
+    const nextMonday = new Date();
+    nextMonday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
+    return nextMonday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   return (
@@ -149,33 +177,49 @@ const DataUploadsPage = () => {
         <div className="text-left">
           <h1 className="text-3xl font-bold tracking-tight">Data Uploads</h1>
           <p className="text-muted-foreground mt-1">
-            Upload and manage your business data files
+            Manage your data submissions, schedule, and review data health.
           </p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UploadCloud className="h-5 w-5" /> Upload Files
-            </CardTitle>
-            <CardDescription>
-              Upload your data files for analysis. Supported formats: CSV, Excel, PDF, and images.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FileUploader
-              uploading={uploading}
-              uploadProgress={uploadProgress}
-              onUpload={handleUpload}
-              acceptedFileTypes=".csv,.xlsx,.xls,.pdf,.jpg,.jpeg,.png"
-              helpText="Drag and drop your files here or click to browse"
-            />
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left column - File Upload and Health Check */}
+          <div className="md:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UploadCloud className="h-5 w-5" /> Upload New Data Files
+                </CardTitle>
+                <CardDescription>
+                  Upload your data files for analysis. Supported formats: CSV, TXT, Excel (.xlsx)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FileUploader
+                  uploading={uploading}
+                  uploadProgress={uploadProgress}
+                  onUpload={handleUpload}
+                  acceptedFileTypes=".csv,.xlsx,.xls,.txt"
+                  helpText="Drag and drop files here or click to browse"
+                />
+                <div className="mt-3 text-sm text-muted-foreground">
+                  <p>Next scheduled upload due: <strong>{getNextUploadDate()}</strong></p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <DataHealthCheck report={healthCheckReport} />
+          </div>
+          
+          {/* Right column - Upload Schedule */}
+          <div>
+            <UploadSchedule />
+          </div>
+        </div>
         
+        {/* Upload History Table - Full Width */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Uploaded Files</CardTitle>
+            <CardTitle>Recent Upload History</CardTitle>
             <Tabs 
               defaultValue="all" 
               value={activeTab}
@@ -184,9 +228,9 @@ const DataUploadsPage = () => {
             >
               <TabsList>
                 <TabsTrigger value="all">All Files</TabsTrigger>
-                <TabsTrigger value="pending">Pending</TabsTrigger>
-                <TabsTrigger value="verified">Verified</TabsTrigger>
-                <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                <TabsTrigger value="pending">Processing</TabsTrigger>
+                <TabsTrigger value="verified">Processed</TabsTrigger>
+                <TabsTrigger value="rejected">Failed</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
