@@ -49,8 +49,29 @@ export async function createClient(data: ClientFormValues) {
     
     if (teamError) throw teamError;
     
-    // Step 4: Send invitations (handled separately)
-    // This would typically involve sending emails via a server function
+    // Step 4: Create a Google Drive for the client
+    try {
+      const { data: driveData, error: driveError } = await supabase.functions.invoke('create-google-drive', {
+        body: {
+          userEmail: data.email,
+          companyName: data.companyName || `Client-${clientId}`
+        }
+      });
+      
+      if (driveError) {
+        console.error('Error creating Google Drive:', driveError);
+        // Continue with client creation despite Drive creation failure
+      } else if (driveData && driveData.driveId) {
+        // Update client with the drive ID
+        await supabase
+          .from('clients')
+          .update({ drive_id: driveData.driveId })
+          .eq('id', clientId);
+      }
+    } catch (driveError) {
+      console.error('Failed to create Google Drive:', driveError);
+      // Continue with client creation despite Drive creation failure
+    }
     
     return clientId;
   } catch (error: any) {

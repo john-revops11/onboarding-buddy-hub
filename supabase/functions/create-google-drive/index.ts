@@ -63,11 +63,13 @@ serve(async (req: Request) => {
     const authClient = await auth.getClient();
     const driveService = google.drive({ version: 'v3', auth: authClient });
 
-    // Create Shared Drive
+    // Create Shared Drive - Using the correct API parameters
     const driveResponse = await driveService.drives.create({
       requestBody: {
         name: companyName,
       },
+      // Fix for "Missing required parameters: requestId"
+      requestId: `create-drive-${Date.now()}`, // Add a unique request ID
       fields: 'id,name',
     });
 

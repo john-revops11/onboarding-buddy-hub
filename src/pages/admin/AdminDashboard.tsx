@@ -9,6 +9,7 @@ import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight } from "luc
 import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
 import { BarChart } from "@/components/ui/charts/BarChart";
 import { LineChart } from "@/components/ui/charts/LineChart";
+import { Input, Label } from "@/components/ui/input";
 
 interface GoogleDriveLog {
   id: string;
@@ -23,6 +24,9 @@ interface GoogleDriveLog {
 const GoogleDriveIntegration = () => {
   const [logs, setLogs] = useState<GoogleDriveLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [testEmail, setTestEmail] = useState('');
+  const [testCompanyName, setTestCompanyName] = useState('');
+  const [isCreatingDrive, setIsCreatingDrive] = useState(false);
 
   useEffect(() => {
     const fetchGoogleDriveLogs = async () => {
@@ -50,12 +54,99 @@ const GoogleDriveIntegration = () => {
     fetchGoogleDriveLogs();
   }, []);
 
+  const createTestDrive = async () => {
+    if (!testEmail || !testCompanyName) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both email and company name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreatingDrive(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-google-drive', {
+        body: {
+          userEmail: testEmail,
+          companyName: testCompanyName
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: data.message,
+          variant: "default"
+        });
+
+        // Refresh logs
+        const { data: newLogs, error: logsError } = await supabase
+          .from('google_drive_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (!logsError) setLogs(newLogs || []);
+
+      } else {
+        throw new Error(data.error || 'Failed to create drive');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create Google Drive",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingDrive(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Google Drive Integration</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Test Drive Creation</h3>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="testEmail">Email</Label>
+              <Input 
+                id="testEmail" 
+                placeholder="user@example.com" 
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="testCompanyName">Company Name</Label>
+              <Input 
+                id="testCompanyName" 
+                placeholder="Acme Inc" 
+                value={testCompanyName}
+                onChange={(e) => setTestCompanyName(e.target.value)}
+              />
+            </div>
+            <Button 
+              onClick={createTestDrive} 
+              disabled={isCreatingDrive}
+              className="w-full"
+            >
+              {isCreatingDrive ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : "Create Test Drive"}
+            </Button>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center items-center">
             <Loader2 className="animate-spin" />
