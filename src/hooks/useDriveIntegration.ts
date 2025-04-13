@@ -180,7 +180,7 @@ export function useDriveIntegration() {
       
       toast({
         title: "Success",
-        description: response.data?.results?.length > 0
+        description: response.data?.results && response.data.results.length > 0
           ? `Created ${response.data.results.filter(r => r.success).length} shared drives successfully.`
           : "Shared drive creation process completed.",
         variant: "success",
