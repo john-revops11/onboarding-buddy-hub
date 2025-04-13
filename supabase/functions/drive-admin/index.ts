@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { google } from "https://esm.sh/googleapis@126.0.1";
@@ -384,11 +383,8 @@ async function handleFixPermission(payload: { driveId: string }, supabase: Retur
         sendNotificationEmail: false
       });
     } catch (e) {
-      if (e.code === 409) {
-        return { success: true, message: "Service account already has permission" };
-      }
+      if (e.code !== 409) throw e; // ignore duplicates
       console.warn("handleFixPermission create user perm", e);
-      throw e;
     }
 
     /* audit */
@@ -557,64 +553,113 @@ async function handleCreateSharedDrive(payload: { clientId?: string }, supabase:
 
     const drive = await initializeDriveClient();
     const driveName = `${client.company_name} Drive`;
-    const requestId = clientId; // idempotent key
-
-    /* create Shared Drive */
-    console.log(`Creating shared drive: ${driveName}`);
-    const { data: driveData } = await drive.drives.create({ 
-      requestId, 
-      requestBody: { name: driveName } 
-    });
     
-    const driveId = driveData.id!;
-    console.log(`Created drive with ID: ${driveId}`);
+    // Use clientId as the requestId for idempotency
+    const requestId = clientId; 
 
-    /* add permissions */
-    const serviceAccountEmail = JSON.parse(Deno.env.get("GOOGLE_SERVICE_ACCOUNT_KEY")!).client_email;
-    const addPerm = async (email: string, type: "user" | "group" = "group") => {
-      try {
-        console.log(`Adding ${type} permission for ${email}`);
-        await drive.permissions.create({
-          fileId: driveId,
-          supportsAllDrives: true,
-          requestBody: { role: "manager", type, emailAddress: email },
-          sendNotificationEmail: false
-        });
-        console.log(`Successfully added permission for ${email}`);
-      } catch (e) {
-        if (e.code !== 409) {
-          console.error(`Error adding permission for ${email}:`, e);
-          throw e;
-        }
-        console.warn(`Permission already exists for ${email}`);
-      }
-    };
+    console.log(`Creating shared drive: "${driveName}" with requestId: ${requestId}`);
     
-    await addPerm(GROUP_EMAIL, "group");
-    await addPerm(serviceAccountEmail, "user");
-
-    /* persist mapping */
-    console.log(`Updating client record with drive ID: ${driveId}`);
-    const { error: updateError } = await supabase
-      .from("clients")
-      .update({ drive_id: driveId, drive_name: driveName })
-      .eq("id", clientId);
+    /* create Shared Drive with proper requestId parameter */
+    try {
+      const { data: driveData } = await drive.drives.create({ 
+        requestId, 
+        requestBody: { name: driveName },
+        fields: 'id,name,kind'
+      });
       
-    if (updateError) {
-      console.error("Error updating client with drive ID:", updateError);
-      throw new Error(`Failed to update client with drive ID: ${updateError.message}`);
+      if (!driveData || !driveData.id) {
+        throw new Error("No drive data returned from API");
+      }
+      
+      const driveId = driveData.id;
+      console.log(`Created drive with ID: ${driveId}, name: "${driveName}", kind: ${driveData.kind}`);
+
+      /* add permissions */
+      const serviceAccountEmail = JSON.parse(Deno.env.get("GOOGLE_SERVICE_ACCOUNT_KEY")!).client_email;
+      const addPerm = async (email: string, type: "user" | "group" = "group") => {
+        try {
+          console.log(`Adding ${type} permission for ${email} to drive ${driveId}`);
+          await drive.permissions.create({
+            fileId: driveId,
+            supportsAllDrives: true,
+            requestBody: { role: "manager", type, emailAddress: email },
+            sendNotificationEmail: false
+          });
+          console.log(`Successfully added permission for ${email}`);
+        } catch (e) {
+          if (e.code !== 409) {
+            console.error(`Error adding permission for ${email}:`, e);
+            throw e;
+          }
+          console.warn(`Permission already exists for ${email}`);
+        }
+      };
+      
+      await addPerm(GROUP_EMAIL, "group");
+      await addPerm(serviceAccountEmail, "user");
+
+      /* persist mapping */
+      console.log(`Updating client record with drive ID: ${driveId}`);
+      const { error: updateError } = await supabase
+        .from("clients")
+        .update({ drive_id: driveId, drive_name: driveName })
+        .eq("id", clientId);
+        
+      if (updateError) {
+        console.error("Error updating client with drive ID:", updateError);
+        throw new Error(`Failed to update client with drive ID: ${updateError.message}`);
+      }
+
+      /* audit */
+      await supabase.from("drive_audit").insert({
+        id: `drive-create-${uuid()}`,
+        action: "DRIVE_CREATE",
+        username: currentUserEmail,
+        timestamp: new Date().toISOString(),
+        details: `Created drive ${driveId} (${driveName}) for client ${clientId}`
+      });
+
+      return { 
+        success: true, 
+        driveId, 
+        driveName,
+        kind: driveData.kind
+      };
+    } catch (createError) {
+      console.error("Error creating shared drive:", createError);
+      
+      // Check if the drive might have already been created but not recorded
+      try {
+        // List drives to check if one with this name exists
+        const { data: { drives } } = await drive.drives.list({});
+        
+        const existingDrive = drives?.find(d => d.name === driveName);
+        if (existingDrive && existingDrive.id) {
+          console.log(`Found existing drive with name "${driveName}" and ID ${existingDrive.id}`);
+          
+          // Update client with the found drive ID
+          const { error: updateError } = await supabase
+            .from("clients")
+            .update({ drive_id: existingDrive.id, drive_name: driveName })
+            .eq("id", clientId);
+            
+          if (updateError) {
+            console.error("Error updating client with existing drive ID:", updateError);
+          } else {
+            return { 
+              success: true, 
+              driveId: existingDrive.id, 
+              driveName,
+              recovered: true
+            };
+          }
+        }
+      } catch (recoveryError) {
+        console.error("Error during drive recovery attempt:", recoveryError);
+      }
+      
+      throw createError;
     }
-
-    /* audit */
-    await supabase.from("drive_audit").insert({
-      id: `drive-create-${uuid()}`,
-      action: "DRIVE_CREATE",
-      username: currentUserEmail,
-      timestamp: new Date().toISOString(),
-      details: `Created drive ${driveId} (${driveName}) for client ${clientId}`
-    });
-
-    return { success: true, driveId, driveName };
   } catch (err) {
     console.error("handleCreateSharedDrive:", err);
     return { success: false, message: err.message };

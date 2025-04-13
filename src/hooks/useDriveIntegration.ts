@@ -20,25 +20,28 @@ export function useDriveIntegration() {
     try {
       console.log(`Invoking Drive function ${action} with payload:`, payload);
       
-      // Use a more reliable timeout mechanism with AbortController
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
-      
+      // Use timeout without AbortController
       let attempts = 0;
       const maxAttempts = 3;
       let response;
       
       while (attempts < maxAttempts) {
         try {
-          response = await supabase.functions.invoke("drive-admin", { 
+          // Create a promise that will be rejected after the timeout
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timeout')), 15000);
+          });
+          
+          // Create the actual request promise
+          const requestPromise = supabase.functions.invoke("drive-admin", { 
             body: { action, payload },
             headers: {
               'Cache-Control': 'no-cache',
-            },
-            signal: controller.signal
+            }
           });
           
-          clearTimeout(timeoutId);
+          // Race the two promises
+          response = await Promise.race([requestPromise, timeoutPromise]);
           
           if (response.error) {
             console.error(`Error in ${action} response:`, response.error);
@@ -51,8 +54,8 @@ export function useDriveIntegration() {
           attempts++;
           console.error(`Attempt ${attempts} failed:`, error);
           
-          // Check if it was an abort error
-          if (error.name === 'AbortError') {
+          // Check if it was a timeout error
+          if (error.message === 'Request timeout') {
             throw new Error(`Request timeout for ${action} operation. Please try again.`);
           }
           
@@ -76,7 +79,7 @@ export function useDriveIntegration() {
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
                                     errorMessage.includes('Network') ||
-                                    error.name === 'AbortError';
+                                    errorMessage === 'Request timeout';
       
       if (!errorMessage.includes('silent')) {
         toast({
@@ -102,19 +105,21 @@ export function useDriveIntegration() {
     try {
       console.log("Checking secret configuration status");
       
-      // Add a timeout for the secret configuration check
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout
+      // Create a promise that will be rejected after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 8000);
+      });
       
-      const response = await supabase.functions.invoke("drive-admin", {
+      // Create the actual request promise
+      const requestPromise = supabase.functions.invoke("drive-admin", {
         body: { action: 'checkSecretConfiguration' },
         headers: {
           'Cache-Control': 'no-cache',
-        },
-        signal: controller.signal
+        }
       });
       
-      clearTimeout(timeoutId);
+      // Race the two promises
+      const response = await Promise.race([requestPromise, timeoutPromise]);
       
       console.log("Secret configuration check response:", response);
       
@@ -131,7 +136,7 @@ export function useDriveIntegration() {
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
                                     errorMessage.includes('Network') ||
-                                    error.name === 'AbortError';
+                                    error.message === 'Request timeout';
       
       return { 
         configured: false, 

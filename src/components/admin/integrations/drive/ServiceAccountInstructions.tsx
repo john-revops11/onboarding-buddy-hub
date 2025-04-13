@@ -56,7 +56,22 @@ export const ServiceAccountInstructions: React.FC = () => {
             <li>The service account needs to be added to any Shared Drives it should access</li>
             <li>The API must be enabled in the Google Cloud Console project</li>
             <li>For shared drives, make sure to include <code className="bg-blue-100 px-1 rounded">supportsAllDrives: true</code> in your API calls</li>
+            <li>When creating drives, include a unique <code className="bg-blue-100 px-1 rounded">requestId</code> parameter to ensure idempotency</li>
           </ul>
+        </div>
+        
+        <div>
+          <p className="font-semibold">API Request Format Example</p>
+          <pre className="bg-blue-100 p-2 rounded text-xs mt-1 overflow-x-auto">
+{`POST /drive/v3/drives?requestId=<UUID> HTTP/1.1
+Host: www.googleapis.com
+Content-type: application/json
+Authorization: Bearer <YOUR_TOKEN>
+
+{
+  "name": "Company Drive Name"
+}`}
+          </pre>
         </div>
         
         <div className="text-xs italic mt-2">

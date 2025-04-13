@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { google } from "https://esm.sh/googleapis@126.0.1";
@@ -87,16 +86,17 @@ serve(async (req) => {
         
         // Create the shared drive
         const response = await drive.drives.create({
+          requestId: `client-${client.id}-${Date.now()}`, // Unique requestId for idempotency
           requestBody: {
             name: `${client.company_name} - Files`,
           },
-          fields: 'id,name',
+          fields: 'id,name,kind',
         });
         
         const driveId = response.data.id;
         const driveName = response.data.name;
         
-        console.log(`Created drive with ID ${driveId} and name "${driveName}"`);
+        console.log(`Created drive with ID ${driveId}, name "${driveName}", and kind ${response.data.kind}`);
         
         // Add group permission
         try {

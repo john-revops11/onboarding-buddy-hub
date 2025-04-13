@@ -27,7 +27,7 @@ export const ConnectionErrorAlert: React.FC<ConnectionErrorAlertProps> = ({ onRe
           </ul>
         )}
         
-        <div className="flex gap-3 mt-3">
+        <div className="flex flex-col gap-3 mt-3">
           <Button 
             variant="outline" 
             size="sm"
@@ -37,6 +37,16 @@ export const ConnectionErrorAlert: React.FC<ConnectionErrorAlertProps> = ({ onRe
             <RefreshCw className="h-3.5 w-3.5 mr-2" />
             Retry Connection
           </Button>
+          
+          <div className="text-xs">
+            <p className="font-semibold">Troubleshooting Tips:</p>
+            <ul className="list-disc pl-5 mt-1">
+              <li>Wait a minute and try again (edge functions may take time to deploy)</li>
+              <li>Check that your network connection is stable</li>
+              <li>Refresh the page and try again</li>
+              <li>If the issue persists, check the service account permissions</li>
+            </ul>
+          </div>
         </div>
       </AlertDescription>
     </Alert>
