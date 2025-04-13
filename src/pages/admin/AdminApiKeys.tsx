@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -8,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -29,54 +29,47 @@ import {
 import { DriveIntegrationDrawer } from "@/components/admin/integrations/DriveIntegrationDrawer";
 import { DriveIntegrationModal } from "@/components/admin/integrations/DriveIntegrationModal";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
-import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ConnectionErrorAlert } from "@/components/admin/integrations/ConnectionErrorAlert";
+import { ApiKeysTable } from "@/components/admin/integrations/ApiKeysTable";
 
 const AdminApiKeys = () => {
   const [driveDrawerOpen, setDriveDrawerOpen] = useState(false);
   const [driveModalOpen, setDriveModalOpen] = useState(false);
   const [newApiKeyOpen, setNewApiKeyOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("existing");
   const [isDriveActive, setIsDriveActive] = useState(false);
   const [isDriveInError, setIsDriveInError] = useState(false);
   const [isCheckingDrive, setIsCheckingDrive] = useState(true);
   const { ping } = useDriveIntegration();
-  const { toast } = useToast();
+
+  // API integrations data
+  const integrations = [
+    {
+      id: "google-drive",
+      service: "Google Drive",
+      name: "File Upload Integration",
+      isChecking: isCheckingDrive,
+      isActive: isDriveActive,
+      isError: isDriveInError,
+      lastUsed: "Today, 10:30 AM"
+    },
+    {
+      id: "notion",
+      service: "Notion",
+      name: "Knowledge Hub",
+      isChecking: false,
+      isActive: true,
+      isError: false,
+      lastUsed: "Yesterday, 3:45 PM"
+    }
+  ];
 
   // Check if Google Drive integration is active on component mount
   useEffect(() => {
-    const checkDriveStatus = async () => {
-      setIsCheckingDrive(true);
-      try {
-        const response = await ping();
-        
-        if (response.error) {
-          if (response.error.isNetworkError) {
-            setIsDriveInError(true);
-            setIsDriveActive(false);
-          } else {
-            setIsDriveInError(false);
-            setIsDriveActive(false);
-          }
-        } else {
-          setIsDriveActive(response.data?.success || false);
-          setIsDriveInError(false);
-        }
-      } catch (error) {
-        console.error("Error checking Drive status:", error);
-        setIsDriveActive(false);
-        setIsDriveInError(true);
-      } finally {
-        setIsCheckingDrive(false);
-      }
-    };
-
     checkDriveStatus();
   }, []);
 
-  // Function to refresh integration status after successful upload/revoke
-  const refreshDriveStatus = async () => {
+  // Function to check Drive integration status
+  const checkDriveStatus = async () => {
     setIsCheckingDrive(true);
     try {
       const response = await ping();
@@ -94,7 +87,7 @@ const AdminApiKeys = () => {
         setIsDriveInError(false);
       }
     } catch (error) {
-      console.error("Error refreshing Drive status:", error);
+      console.error("Error checking Drive status:", error);
       setIsDriveActive(false);
       setIsDriveInError(true);
     } finally {
@@ -102,8 +95,30 @@ const AdminApiKeys = () => {
     }
   };
 
+  // Function to refresh integration status after successful upload/revoke
+  const refreshDriveStatus = async () => {
+    await checkDriveStatus();
+  };
+
   const handleRetryCheck = () => {
     refreshDriveStatus();
+  };
+
+  const handleEditIntegration = (id: string) => {
+    if (id === "google-drive") {
+      setDriveModalOpen(true);
+    }
+  };
+
+  const handleViewIntegration = (id: string) => {
+    if (id === "google-drive") {
+      setDriveDrawerOpen(true);
+    }
+  };
+
+  const handleDeleteIntegration = (id: string) => {
+    // This would handle deletion logic
+    console.log(`Delete integration with id: ${id}`);
   };
 
   return (
@@ -115,24 +130,7 @@ const AdminApiKeys = () => {
         </p>
 
         {isDriveInError && (
-          <Alert className="bg-orange-50 border-orange-200">
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
-            <AlertTitle className="text-orange-800">Connection Issue</AlertTitle>
-            <AlertDescription className="space-y-2 text-orange-700">
-              <p>
-                Unable to connect to the Supabase Edge Function to verify integration status.
-                This may be because the Edge Function is not deployed or there's a network issue.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleRetryCheck}
-                className="mt-2"
-              >
-                Retry Connection
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <ConnectionErrorAlert onRetry={handleRetryCheck} />
         )}
 
         <div className="flex items-center justify-between">
@@ -190,106 +188,12 @@ const AdminApiKeys = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="py-3 px-4 text-left">Service</th>
-                    <th className="py-3 px-4 text-left">Name</th>
-                    <th className="py-3 px-4 text-left">Status</th>
-                    <th className="py-3 px-4 text-left">Last Used</th>
-                    <th className="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Google Drive</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">File Upload Integration</td>
-                    <td className="py-3 px-4">
-                      {isCheckingDrive ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                          <div className="flex items-center">
-                            <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse mr-2"></div>
-                            Checking...
-                          </div>
-                        </Badge>
-                      ) : isDriveInError ? (
-                        <Badge variant="outline" className="bg-orange-50 text-orange-700 hover:bg-orange-50">
-                          Connection error
-                        </Badge>
-                      ) : isDriveActive ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-700 hover:bg-red-50">
-                          Missing key
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">Today, 10:30 AM</td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setDriveModalOpen(true)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setDriveDrawerOpen(true)}
-                          disabled={isDriveInError}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-destructive hover:text-destructive"
-                          disabled={!isDriveActive && !isDriveInError}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Notion</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">Knowledge Hub</td>
-                    <td className="py-3 px-4">
-                      <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
-                        Active
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">Yesterday, 3:45 PM</td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <ApiKeysTable 
+              integrations={integrations}
+              onEdit={handleEditIntegration}
+              onView={handleViewIntegration}
+              onDelete={handleDeleteIntegration}
+            />
           </CardContent>
         </Card>
       </div>
