@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,7 +8,8 @@ import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight } from "luc
 import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
 import { BarChart } from "@/components/ui/charts/BarChart";
 import { LineChart } from "@/components/ui/charts/LineChart";
-import { Input, Label } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface GoogleDriveLog {
   id: string;
@@ -82,7 +82,6 @@ const GoogleDriveIntegration = () => {
           variant: "default"
         });
 
-        // Refresh logs
         const { data: newLogs, error: logsError } = await supabase
           .from('google_drive_logs')
           .select('*')
@@ -200,7 +199,6 @@ const GoogleDriveIntegration = () => {
 };
 
 const AdminDashboard = () => {
-  // Mock data for the charts
   const userActivityData = [
     { name: "Mon", value: 12 },
     { name: "Tue", value: 18 },
@@ -218,7 +216,6 @@ const AdminDashboard = () => {
     { name: "Week 4", completed: 32, new: 22 },
   ];
 
-  // Mock data for the tier box
   const tierBenefits = [
     "Priority access to support",
     "Custom reporting dashboards",
@@ -241,7 +238,6 @@ const AdminDashboard = () => {
         </p>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Admin consulting tier */}
           <ConsultingTierBox
             tier="Elite"
             description="Administrator access with all platform capabilities"
@@ -250,7 +246,6 @@ const AdminDashboard = () => {
             onChange={handleTierChange}
           />
 
-          {/* Stats Cards - 3 columns layout */}
           <div className="col-span-2 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -311,7 +306,6 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Files card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
@@ -327,7 +321,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Charts */}
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
