@@ -101,6 +101,9 @@ serve(async (req) => {
       case "backfillPermissions":
         result = await handleBackfillPermissions(supabaseClient);
         break;
+      case "checkSecretConfiguration":
+        result = await handleCheckSecretConfiguration();
+        break;
       default:
         return new Response(
           JSON.stringify({ error: 'Unknown action', action }),
@@ -403,5 +406,65 @@ async function handleBackfillPermissions(supabaseClient) {
   } catch (error) {
     console.error('Error in backfillPermissions:', error);
     return { success: false, message: error.message };
+  }
+}
+
+async function handleCheckSecretConfiguration() {
+  try {
+    // Check if the secret exists
+    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
+    
+    if (!serviceAccountKey) {
+      return { 
+        configured: false, 
+        message: 'Google service account key not found in secrets' 
+      };
+    }
+    
+    // Try to parse the key to validate it
+    try {
+      const json = JSON.parse(serviceAccountKey);
+      
+      // Validate required fields for service account
+      if (!json.type || json.type !== 'service_account') {
+        return { 
+          configured: false, 
+          message: 'Invalid service account format: missing or incorrect "type" field' 
+        };
+      }
+      
+      if (!json.client_email) {
+        return { 
+          configured: false, 
+          message: 'Invalid service account format: missing "client_email" field' 
+        };
+      }
+      
+      if (!json.private_key) {
+        return { 
+          configured: false, 
+          message: 'Invalid service account format: missing "private_key" field' 
+        };
+      }
+      
+      // All validations pass
+      return { 
+        configured: true, 
+        message: 'Service account key configured correctly',
+        serviceAccount: json.client_email
+      };
+    } catch (error) {
+      console.error('Error parsing service account key:', error);
+      return { 
+        configured: false, 
+        message: `Service account key exists but is not valid JSON: ${error.message}` 
+      };
+    }
+  } catch (error) {
+    console.error('Error checking secret configuration:', error);
+    return { 
+      configured: false, 
+      message: `Error checking configuration: ${error.message}` 
+    };
   }
 }

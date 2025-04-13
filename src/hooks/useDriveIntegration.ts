@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,6 +32,34 @@ export function useDriveIntegration() {
         variant: "destructive",
       });
       throw error;
+    }
+  };
+
+  const checkSecretConfiguration = async () => {
+    try {
+      console.log("Checking secret configuration status");
+      const response = await supabase.functions.invoke("drive-admin", {
+        body: { action: 'checkSecretConfiguration' },
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      });
+      
+      console.log("Secret configuration check response:", response);
+      
+      if (response.error) {
+        throw new Error(response.error.message || "Error checking secret configuration");
+      }
+      
+      return response.data || { configured: false, message: "Unknown status" };
+    } catch (error) {
+      console.error("Error checking secret configuration:", error);
+      toast({
+        title: "Configuration Check Failed",
+        description: "Unable to verify the Drive service account configuration.",
+        variant: "destructive",
+      });
+      return { configured: false, message: error.message };
     }
   };
 
@@ -74,6 +101,7 @@ export function useDriveIntegration() {
     fixPermission: (driveId: string) => 
       invoke("fixPermission", { driveId }),
     backfillPermissions: () => invoke("backfillPermissions"),
-    triggerSharedDriveCreation
+    triggerSharedDriveCreation,
+    checkSecretConfiguration
   };
 }

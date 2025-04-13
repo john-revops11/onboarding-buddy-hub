@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DriveIntegrationModalProps {
   open: boolean;
@@ -39,9 +40,38 @@ export function DriveIntegrationModal({
   const [isUploading, setIsUploading] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [secretConfigStatus, setSecretConfigStatus] = useState<{ 
+    configured: boolean; 
+    message: string;
+    serviceAccount?: string;
+  } | null>(null);
+  const [isCheckingSecret, setIsCheckingSecret] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadKey, revoke } = useDriveIntegration();
+  const { uploadKey, revoke, checkSecretConfiguration } = useDriveIntegration();
   const { toast } = useToast();
+
+  // Check secret configuration when modal opens
+  useEffect(() => {
+    if (open) {
+      checkSecretConfig();
+    }
+  }, [open]);
+
+  const checkSecretConfig = async () => {
+    setIsCheckingSecret(true);
+    try {
+      const status = await checkSecretConfiguration();
+      setSecretConfigStatus(status);
+    } catch (error) {
+      console.error("Error checking secret configuration:", error);
+      setSecretConfigStatus({
+        configured: false,
+        message: `Error checking configuration: ${error.message}`
+      });
+    } finally {
+      setIsCheckingSecret(false);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -223,45 +253,74 @@ export function DriveIntegrationModal({
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                isDragging ? "border-primary bg-primary/10" : "border-gray-300 hover:border-primary/50"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              {selectedFile ? (
-                <div className="flex flex-col items-center">
-                  <p className="text-sm font-medium">{selectedFile.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {(selectedFile.size / 1024).toFixed(2)} KB
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <p className="text-sm font-medium">
-                    Drag and drop your service account JSON file here
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    or click to browse
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            {uploadError && (
-              <div className="text-sm text-red-500 mt-2">
-                {uploadError}
+            {isCheckingSecret ? (
+              <div className="flex items-center justify-center p-4">
+                <Icons.spinner className="h-6 w-6 animate-spin mr-2" />
+                <span>Checking configuration...</span>
               </div>
+            ) : secretConfigStatus?.configured ? (
+              <Alert className="bg-green-50 border-green-200">
+                <Icons.check className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-800">Service account key is already configured</AlertTitle>
+                <AlertDescription className="text-green-700">
+                  The Google Drive integration is already set up with service account: 
+                  <code className="ml-1 p-1 bg-green-100 text-xs rounded font-mono">
+                    {secretConfigStatus.serviceAccount}
+                  </code>
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                {secretConfigStatus && !secretConfigStatus.configured && (
+                  <Alert className="bg-yellow-50 border-yellow-200 mb-4">
+                    <Icons.alertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800">Configuration Status</AlertTitle>
+                    <AlertDescription className="text-yellow-700">
+                      {secretConfigStatus.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                    isDragging ? "border-primary bg-primary/10" : "border-gray-300 hover:border-primary/50"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {selectedFile ? (
+                    <div className="flex flex-col items-center">
+                      <p className="text-sm font-medium">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(selectedFile.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <p className="text-sm font-medium">
+                        Drag and drop your service account JSON file here
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        or click to browse
+                      </p>
+                    </div>
+                  )}
+                </div>
+              
+                {uploadError && (
+                  <div className="text-sm text-red-500 mt-2">
+                    {uploadError}
+                  </div>
+                )}
+              </>
             )}
           </div>
           
@@ -272,19 +331,21 @@ export function DriveIntegrationModal({
             >
               Revoke Integration
             </Button>
-            <Button
-              onClick={handleUpload}
-              disabled={!selectedFile || isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                "Upload"
-              )}
-            </Button>
+            {!secretConfigStatus?.configured && (
+              <Button
+                onClick={handleUpload}
+                disabled={!selectedFile || isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  "Upload"
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
