@@ -31,6 +31,7 @@ import { DriveIntegrationModal } from "@/components/admin/integrations/DriveInte
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
 import { ConnectionErrorAlert } from "@/components/admin/integrations/ConnectionErrorAlert";
 import { ApiKeysTable } from "@/components/admin/integrations/ApiKeysTable";
+import { Icons } from "@/components/icons";
 
 const AdminApiKeys = () => {
   const [driveDrawerOpen, setDriveDrawerOpen] = useState(false);
@@ -39,10 +40,12 @@ const AdminApiKeys = () => {
   const [isDriveActive, setIsDriveActive] = useState(false);
   const [isDriveInError, setIsDriveInError] = useState(false);
   const [isCheckingDrive, setIsCheckingDrive] = useState(true);
-  const { ping } = useDriveIntegration();
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isCreatingDrives, setIsCreatingDrives] = useState(false);
+  const { ping, triggerSharedDriveCreation } = useDriveIntegration();
 
   // API integrations data
-  const integrations = [
+  const [integrations, setIntegrations] = useState([
     {
       id: "google-drive",
       service: "Google Drive",
@@ -61,16 +64,33 @@ const AdminApiKeys = () => {
       isError: false,
       lastUsed: "Yesterday, 3:45 PM"
     }
-  ];
+  ]);
 
   // Check if Google Drive integration is active on component mount
   useEffect(() => {
     checkDriveStatus();
   }, []);
 
+  // Update integrations when drive status changes
+  useEffect(() => {
+    setIntegrations(prev => 
+      prev.map(integration => 
+        integration.id === "google-drive" 
+          ? {
+              ...integration,
+              isChecking: isCheckingDrive,
+              isActive: isDriveActive,
+              isError: isDriveInError
+            }
+          : integration
+      )
+    );
+  }, [isCheckingDrive, isDriveActive, isDriveInError]);
+
   // Function to check Drive integration status
   const checkDriveStatus = async () => {
     setIsCheckingDrive(true);
+    setConnectionError(null);
     try {
       const response = await ping();
       
@@ -78,6 +98,7 @@ const AdminApiKeys = () => {
         if (response.error.isNetworkError) {
           setIsDriveInError(true);
           setIsDriveActive(false);
+          setConnectionError("Network error connecting to Edge Function. Please check your connection and try again.");
         } else {
           setIsDriveInError(false);
           setIsDriveActive(false);
@@ -90,6 +111,7 @@ const AdminApiKeys = () => {
       console.error("Error checking Drive status:", error);
       setIsDriveActive(false);
       setIsDriveInError(true);
+      setConnectionError(error.message || "Unknown error occurred");
     } finally {
       setIsCheckingDrive(false);
     }
@@ -121,16 +143,49 @@ const AdminApiKeys = () => {
     console.log(`Delete integration with id: ${id}`);
   };
 
+  const handleCreateSharedDrives = async () => {
+    setIsCreatingDrives(true);
+    try {
+      await triggerSharedDriveCreation();
+    } catch (error) {
+      console.error("Error creating shared drives:", error);
+    } finally {
+      setIsCreatingDrives(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">API Keys Management</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">API Keys Management</h1>
+          
+          {isDriveActive && (
+            <Button 
+              onClick={handleCreateSharedDrives}
+              disabled={isCreatingDrives}
+            >
+              {isCreatingDrives ? (
+                <>
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Shared Drives...
+                </>
+              ) : (
+                "Create Shared Drives"
+              )}
+            </Button>
+          )}
+        </div>
+        
         <p className="text-muted-foreground">
           Manage API keys for various integrations.
         </p>
 
-        {isDriveInError && (
-          <ConnectionErrorAlert onRetry={handleRetryCheck} />
+        {isDriveInError && connectionError && (
+          <ConnectionErrorAlert 
+            onRetry={handleRetryCheck} 
+            error={connectionError}
+          />
         )}
 
         <div className="flex items-center justify-between">
@@ -203,6 +258,7 @@ const AdminApiKeys = () => {
         open={driveDrawerOpen} 
         onOpenChange={setDriveDrawerOpen}
         isActive={isDriveActive}
+        onSuccessfulAction={refreshDriveStatus}
       />
 
       {/* Google Drive Integration Modal */}

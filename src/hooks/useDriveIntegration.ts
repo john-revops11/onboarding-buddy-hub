@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -9,7 +10,7 @@ export function useDriveIntegration() {
       console.log(`Invoking Drive function ${action} with payload:`, payload);
       
       let attempts = 0;
-      const maxAttempts = 2;
+      const maxAttempts = 3;
       let response;
       
       while (attempts < maxAttempts) {
@@ -21,6 +22,12 @@ export function useDriveIntegration() {
             }
           });
           
+          if (response.error) {
+            console.error(`Error in ${action} response:`, response.error);
+            throw new Error(response.error.message || `Error in ${action} operation`);
+          }
+          
+          console.log(`Response from ${action}:`, response);
           break;
         } catch (error) {
           attempts++;
@@ -30,15 +37,11 @@ export function useDriveIntegration() {
             throw error;
           }
           
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          // Exponential backoff with jitter
+          const delay = Math.min(1000 * Math.pow(2, attempts) + Math.random() * 1000, 10000);
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
-      }
-      
-      console.log(`Response from ${action}:`, response);
-      
-      if (response.error) {
-        console.error(`Error in ${action} response:`, response.error);
-        throw new Error(response.error.message || `Error in ${action} operation`);
       }
       
       return response;
@@ -47,15 +50,19 @@ export function useDriveIntegration() {
       
       const errorMessage = error.message || `Failed to execute ${action} operation. Please try again.`;
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
-                                    errorMessage.includes('Failed to send a request');
+                                    errorMessage.includes('Failed to send a request') ||
+                                    errorMessage.includes('network') ||
+                                    errorMessage.includes('Network');
       
-      toast({
-        title: "Error",
-        description: isProbablyNetworkError 
-          ? "Network error: Unable to connect to the server. Please check your connection and try again."
-          : `Failed to execute ${action} operation: ${errorMessage}`,
-        variant: "destructive",
-      });
+      if (!errorMessage.includes('silent')) {
+        toast({
+          title: "Error",
+          description: isProbablyNetworkError 
+            ? "Network error: Unable to connect to the server. Please check your connection and try again."
+            : `Failed to execute ${action} operation: ${errorMessage}`,
+          variant: "destructive",
+        });
+      }
       
       return {
         data: null,
@@ -71,6 +78,7 @@ export function useDriveIntegration() {
     try {
       console.log("Checking secret configuration status");
       
+      // In development/demo environments, provide mock data for testing
       if (window.location.hostname.includes('localhost') || 
           window.location.hostname.includes('lovableproject.com')) {
         
@@ -89,17 +97,27 @@ export function useDriveIntegration() {
             return { 
               configured: true, 
               message: "Mock configuration for development",
-              serviceAccount: "mock-service-account@example.com"
+              serviceAccount: "mock-service-account@example.com",
+              isDevelopment: true
             };
           }
           
-          return response.data || { configured: false, message: "Unknown status" };
+          // Add isDevelopment flag to actual response as well
+          return { 
+            ...response.data, 
+            isDevelopment: true 
+          } || { 
+            configured: false, 
+            message: "Unknown status", 
+            isDevelopment: true 
+          };
         } catch (error) {
           console.warn("Using mock data due to edge function error:", error);
           return { 
             configured: true, 
             message: "Mock configuration for development",
-            serviceAccount: "mock-service-account@example.com"
+            serviceAccount: "mock-service-account@example.com",
+            isDevelopment: true
           };
         }
       }
@@ -123,7 +141,9 @@ export function useDriveIntegration() {
       
       const errorMessage = error.message || "Unable to verify the Drive service account configuration.";
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
-                                    errorMessage.includes('Failed to send a request');
+                                    errorMessage.includes('Failed to send a request') ||
+                                    errorMessage.includes('network') ||
+                                    errorMessage.includes('Network');
       
       toast({
         title: "Configuration Check Failed",
@@ -137,7 +157,8 @@ export function useDriveIntegration() {
         configured: false, 
         message: isProbablyNetworkError 
           ? "Network error: Unable to connect to the server" 
-          : errorMessage
+          : errorMessage,
+        isNetworkError: isProbablyNetworkError
       };
     }
   };
@@ -157,6 +178,14 @@ export function useDriveIntegration() {
         throw new Error(response.error.message || "Error creating shared drive");
       }
       
+      toast({
+        title: "Success",
+        description: response.data?.results?.length > 0
+          ? `Created ${response.data.results.filter(r => r.success).length} shared drives successfully.`
+          : "Shared drive creation process completed.",
+        variant: "success",
+      });
+      
       return response;
     } catch (error) {
       console.error("Error triggering shared drive creation:", error);
@@ -172,7 +201,7 @@ export function useDriveIntegration() {
   return {
     ping: () => invoke("ping"),
     usage: () => invoke("usage"),
-    audit: () => invoke("audit", { limit: 20 }),
+    audit: (limit = 20) => invoke("audit", { limit }),
     uploadKey: (b64: string) => invoke("setSecret", { secret: b64 }),
     revoke: () => invoke("revoke"),
     checkServiceAccountPermission: (driveId: string) => 
