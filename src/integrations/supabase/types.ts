@@ -189,6 +189,51 @@ export type Database = {
           },
         ]
       }
+      drive_audit: {
+        Row: {
+          action: string
+          details: string | null
+          id: string
+          timestamp: string
+          username: string
+        }
+        Insert: {
+          action: string
+          details?: string | null
+          id: string
+          timestamp?: string
+          username: string
+        }
+        Update: {
+          action?: string
+          details?: string | null
+          id?: string
+          timestamp?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      drive_usage: {
+        Row: {
+          bytes_used: number
+          created_at: string
+          id: string
+          total_quota: number
+        }
+        Insert: {
+          bytes_used: number
+          created_at?: string
+          id?: string
+          total_quota: number
+        }
+        Update: {
+          bytes_used?: number
+          created_at?: string
+          id?: string
+          total_quota?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -286,7 +331,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_table_exists: {
+        Args: { table_name: string }
+        Returns: boolean
+      }
+      create_drive_audit_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_drive_usage_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      get_secret: {
+        Args: { secret_name: string }
+        Returns: Json
+      }
+      revoke_secret: {
+        Args: { secret_name: string }
+        Returns: undefined
+      }
+      set_secret: {
+        Args: { secret_name: string; secret_value: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

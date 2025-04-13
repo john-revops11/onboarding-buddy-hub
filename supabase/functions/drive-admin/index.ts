@@ -1,4 +1,5 @@
 
+// Supabase Edge Function for Google Drive Administration
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { google } from "https://esm.sh/googleapis@126.0.1";
@@ -89,22 +90,22 @@ serve(async (req) => {
         result = await handleAudit(supabaseClient, payload);
         break;
       case "setSecret":
-        result = await handleSetSecret(payload, supabaseClient);
+        result = await handleSetSecret(payload, supabaseClient, user);
         break;
       case "getSecret":
         result = await handleGetSecret(supabaseClient);
         break; 
       case "revoke":
-        result = await handleRevoke(supabaseClient);
+        result = await handleRevoke(supabaseClient, user);
         break;
       case "checkServiceAccountPermission":
         result = await handleCheckPermission(payload, supabaseClient);
         break;
       case "fixPermission":
-        result = await handleFixPermission(payload, supabaseClient);
+        result = await handleFixPermission(payload, supabaseClient, user);
         break;
       case "backfillPermissions":
-        result = await handleBackfillPermissions(supabaseClient);
+        result = await handleBackfillPermissions(supabaseClient, user);
         break;
       case "checkSecretConfiguration":
         result = await handleCheckSecretConfiguration(supabaseClient);
@@ -317,7 +318,7 @@ async function handleAudit(supabaseClient, payload) {
           const activities = response.data.activities.map(activity => ({
             id: activity.id,
             action: activity.primaryActionDetail?.type || 'UNKNOWN',
-            user: activity.actors?.[0]?.user?.knownUser?.personName || 'Unknown',
+            username: activity.actors?.[0]?.user?.knownUser?.personName || 'Unknown',
             timestamp: activity.timestamp,
             details: JSON.stringify(activity.targets || {})
           }));
@@ -332,9 +333,9 @@ async function handleAudit(supabaseClient, payload) {
       
       // Return dummy data if API call fails or no activities found
       return [
-        { id: '1', action: 'FILE_UPLOAD', user: 'admin@example.com', timestamp: '2023-06-10T15:30:00Z', details: 'Uploaded quarterly_report.pdf' },
-        { id: '2', action: 'FOLDER_CREATE', user: 'admin@example.com', timestamp: '2023-06-09T12:45:00Z', details: 'Created folder Projects/2023' },
-        { id: '3', action: 'FILE_DOWNLOAD', user: 'user@example.com', timestamp: '2023-06-08T09:15:00Z', details: 'Downloaded financial_summary.xlsx' },
+        { id: '1', action: 'FILE_UPLOAD', username: 'admin@example.com', timestamp: '2023-06-10T15:30:00Z', details: 'Uploaded quarterly_report.pdf' },
+        { id: '2', action: 'FOLDER_CREATE', username: 'admin@example.com', timestamp: '2023-06-09T12:45:00Z', details: 'Created folder Projects/2023' },
+        { id: '3', action: 'FILE_DOWNLOAD', username: 'user@example.com', timestamp: '2023-06-08T09:15:00Z', details: 'Downloaded financial_summary.xlsx' },
       ];
     }
 
@@ -343,14 +344,14 @@ async function handleAudit(supabaseClient, payload) {
     console.error('Error getting audit logs:', error);
     // Return dummy data on error
     return [
-      { id: '1', action: 'FILE_UPLOAD', user: 'admin@example.com', timestamp: '2023-06-10T15:30:00Z', details: 'Uploaded quarterly_report.pdf' },
-      { id: '2', action: 'FOLDER_CREATE', user: 'admin@example.com', timestamp: '2023-06-09T12:45:00Z', details: 'Created folder Projects/2023' },
-      { id: '3', action: 'FILE_DOWNLOAD', user: 'user@example.com', timestamp: '2023-06-08T09:15:00Z', details: 'Downloaded financial_summary.xlsx' },
+      { id: '1', action: 'FILE_UPLOAD', username: 'admin@example.com', timestamp: '2023-06-10T15:30:00Z', details: 'Uploaded quarterly_report.pdf' },
+      { id: '2', action: 'FOLDER_CREATE', username: 'admin@example.com', timestamp: '2023-06-09T12:45:00Z', details: 'Created folder Projects/2023' },
+      { id: '3', action: 'FILE_DOWNLOAD', username: 'user@example.com', timestamp: '2023-06-08T09:15:00Z', details: 'Downloaded financial_summary.xlsx' },
     ];
   }
 }
 
-async function handleSetSecret(payload, supabaseClient) {
+async function handleSetSecret(payload, supabaseClient, user) {
   try {
     console.log("Handling setSecret request");
     const { secret } = payload;
@@ -419,8 +420,9 @@ async function handleSetSecret(payload, supabaseClient) {
           // Log the service account setup in the audit table
           try {
             await supabaseClient.from('drive_audit').insert({
+              id: `setup-${Date.now()}`,
               action: 'SERVICE_ACCOUNT_SETUP',
-              user: user?.email || 'admin',
+              username: user?.email || 'admin',
               timestamp: new Date().toISOString(),
               details: `Service account ${json.client_email} configured`
             });
@@ -456,7 +458,7 @@ async function handleSetSecret(payload, supabaseClient) {
   }
 }
 
-async function handleRevoke(supabaseClient) {
+async function handleRevoke(supabaseClient, user) {
   try {
     // Revoke the secret in Supabase
     const { error: revokeError } = await supabaseClient.rpc('revoke_secret', {
@@ -479,8 +481,9 @@ async function handleRevoke(supabaseClient) {
     // Log the revocation in the audit table
     try {
       await supabaseClient.from('drive_audit').insert({
+        id: `revoke-${Date.now()}`,
         action: 'SERVICE_ACCOUNT_REVOKED',
-        user: user?.email || 'admin',
+        username: user?.email || 'admin',
         timestamp: new Date().toISOString(),
         details: 'Service account key revoked'
       });
@@ -567,7 +570,7 @@ async function handleCheckPermission(payload, supabaseClient) {
   }
 }
 
-async function handleFixPermission(payload, supabaseClient) {
+async function handleFixPermission(payload, supabaseClient, user) {
   try {
     const { driveId } = payload;
     if (!driveId) {
@@ -649,8 +652,9 @@ async function handleFixPermission(payload, supabaseClient) {
       // Log the permission fix in the audit table
       try {
         await supabaseClient.from('drive_audit').insert({
+          id: `fix-permission-${Date.now()}`,
           action: 'PERMISSION_FIX',
-          user: user?.email || 'admin',
+          username: user?.email || 'admin',
           timestamp: new Date().toISOString(),
           details: `Fixed permissions for drive ${driveId}: ${results.join(', ')}`
         });
@@ -695,7 +699,7 @@ async function handleGetSecret(supabaseClient) {
     
     let serviceAccountKey;
     
-    if (secretError || !secretData) {
+    if (secretError || !secretData || !secretData.found) {
       console.warn('Error getting secret from Supabase, trying Deno environment:', secretError);
       serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
     } else {
@@ -730,7 +734,7 @@ async function handleGetSecret(supabaseClient) {
   }
 }
 
-async function handleBackfillPermissions(supabaseClient) {
+async function handleBackfillPermissions(supabaseClient, user) {
   try {
     // Get all clients with drive_id
     const { data: clients, error: clientsError } = await supabaseClient
@@ -753,7 +757,7 @@ async function handleBackfillPermissions(supabaseClient) {
       if (!client.drive_id) continue;
       
       try {
-        const fixResult = await handleFixPermission({ driveId: client.drive_id }, supabaseClient);
+        const fixResult = await handleFixPermission({ driveId: client.drive_id }, supabaseClient, user);
         results.push({
           clientId: client.id,
           companyName: client.company_name,
@@ -789,8 +793,9 @@ async function handleBackfillPermissions(supabaseClient) {
     // Log the backfill operation in the audit table
     try {
       await supabaseClient.from('drive_audit').insert({
+        id: `backfill-${Date.now()}`,
         action: 'PERMISSION_BACKFILL',
-        user: user?.email || 'admin',
+        username: user?.email || 'admin',
         timestamp: new Date().toISOString(),
         details: `Backfilled permissions for ${results.length} drives`
       });
@@ -820,7 +825,7 @@ async function handleCheckSecretConfiguration(supabaseClient) {
     
     let serviceAccountKey;
     
-    if (secretError || !secretData) {
+    if (secretError || !secretData || !secretData.found) {
       console.warn('Error getting secret from Supabase, trying Deno environment:', secretError);
       serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
     } else {
@@ -884,14 +889,14 @@ async function handleCheckSecretConfiguration(supabaseClient) {
       console.error('Error parsing service account key:', error);
       return { 
         configured: false, 
-        message: `Service account key exists but is not valid JSON: ${error.message}` 
+        message: `Invalid service account key format: ${error.message}`
       };
     }
   } catch (error) {
     console.error('Error checking secret configuration:', error);
     return { 
       configured: false, 
-      message: `Error checking configuration: ${error.message}` 
+      message: `Error checking configuration: ${error.message}`
     };
   }
 }

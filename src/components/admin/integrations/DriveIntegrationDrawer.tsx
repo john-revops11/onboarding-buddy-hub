@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Sheet, 
@@ -26,12 +27,14 @@ interface DriveIntegrationDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isActive: boolean;
+  onSuccessfulAction?: () => Promise<void>;
 }
 
 export function DriveIntegrationDrawer({ 
   open, 
   onOpenChange, 
-  isActive 
+  isActive,
+  onSuccessfulAction 
 }: DriveIntegrationDrawerProps) {
   const { ping, usage, audit, checkServiceAccountPermission, fixPermission, backfillPermissions } = useDriveIntegration();
   const { toast } = useToast();
@@ -141,6 +144,11 @@ export function DriveIntegrationDrawer({
           description: "Service account now has manager access to the drive.",
           variant: "success",
         });
+        
+        // Call the onSuccessfulAction callback if provided
+        if (onSuccessfulAction) {
+          await onSuccessfulAction();
+        }
       } else {
         throw new Error(response.data?.message || "Failed to fix permission");
       }
@@ -168,6 +176,11 @@ export function DriveIntegrationDrawer({
           description: response.data.message,
           variant: "success",
         });
+        
+        // Call the onSuccessfulAction callback if provided
+        if (onSuccessfulAction) {
+          await onSuccessfulAction();
+        }
       } else {
         throw new Error(response.data?.message || "Failed to backfill permissions");
       }
@@ -192,6 +205,11 @@ export function DriveIntegrationDrawer({
           description: "Google Drive integration is working properly.",
           variant: "success",
         });
+        
+        // Call the onSuccessfulAction callback if provided
+        if (onSuccessfulAction) {
+          await onSuccessfulAction();
+        }
       } else {
         toast({
           title: "Connection failed",
