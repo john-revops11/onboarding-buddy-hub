@@ -38,7 +38,6 @@ const LoginPage = () => {
   // If already authenticated, redirect to the appropriate dashboard
   useEffect(() => {
     if (state.isAuthenticated) {
-      // Redirect based on user role
       const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
       navigate(redirectPath, { replace: true });
     }
@@ -58,13 +57,12 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      const result = await login({
+      await login({
         email: data.email,
         password: data.password,
       });
       
-      // The redirect will happen in the useEffect hook when state.isAuthenticated becomes true
-      console.log("Login successful", result);
+      // Auth state changes will trigger the useEffect for redirect
       
     } catch (error: any) {
       console.error("Login error:", error);

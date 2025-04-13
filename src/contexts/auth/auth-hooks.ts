@@ -1,3 +1,4 @@
+
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -16,7 +17,8 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
       
       if (error) throw error;
       
-      // The onAuthStateChange handler will update the user state
+      // Return data but don't update state directly - 
+      // the onAuthStateChange handler will update the user state
       return data;
       
     } catch (error: any) {

@@ -4,7 +4,6 @@ import { AuthContextType, AuthState } from "./auth/types";
 import { authReducer, initialState } from "./auth/auth-reducer";
 import { useAuthService } from "./auth/auth-hooks";
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { User } from "@/types/auth";
 
 // Create the Auth Context
@@ -18,76 +17,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // First set up the auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session) {
           // Get the user profile when authenticated
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
+          setTimeout(async () => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
 
-          // Convert Supabase user to our app User type
-          const user: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || session.user.user_metadata?.name || 'User',
-            role: profile?.role as "admin" | "user",
-            avatar: profile?.avatar_url,
-            status: profile?.status as "pending" | "approved" | "rejected",
-            createdAt: profile?.created_at || session.user.created_at,
-            onboardingStatus: profile?.onboarding_status
-          };
+            // Convert Supabase user to our app User type
+            const user: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: profile?.name || session.user.user_metadata?.name || 'User',
+              role: profile?.role as "admin" | "user",
+              avatar: profile?.avatar_url,
+              status: profile?.status as "pending" | "approved" | "rejected",
+              createdAt: profile?.created_at || session.user.created_at,
+              onboardingStatus: profile?.onboarding_status
+            };
 
-          dispatch({
-            type: "LOGIN_SUCCESS",
-            payload: {
-              user,
-              token: session.access_token
-            }
-          });
+            dispatch({
+              type: "LOGIN_SUCCESS",
+              payload: {
+                user,
+                token: session.access_token
+              }
+            });
+          }, 0);
         } else {
           dispatch({ type: "LOGOUT" });
         }
       }
     );
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session (faster initial load)
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         dispatch({ type: "LOGOUT" });
         return;
       }
 
       // Get user profile data
-      setTimeout(async () => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-        // Convert Supabase user to our app User type
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: profile?.name || session.user.user_metadata?.name || 'User',
-          role: profile?.role as "admin" | "user",
-          avatar: profile?.avatar_url,
-          status: profile?.status as "pending" | "approved" | "rejected",
-          createdAt: profile?.created_at || session.user.created_at,
-          onboardingStatus: profile?.onboarding_status
-        };
+      // Convert Supabase user to our app User type
+      const user: User = {
+        id: session.user.id,
+        email: session.user.email || '',
+        name: profile?.name || session.user.user_metadata?.name || 'User',
+        role: profile?.role as "admin" | "user",
+        avatar: profile?.avatar_url,
+        status: profile?.status as "pending" | "approved" | "rejected",
+        createdAt: profile?.created_at || session.user.created_at,
+        onboardingStatus: profile?.onboarding_status
+      };
 
-        dispatch({
-          type: "LOGIN_SUCCESS",
-          payload: {
-            user,
-            token: session.access_token
-          }
-        });
-      }, 0);
-    });
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user,
+          token: session.access_token
+        }
+      });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
