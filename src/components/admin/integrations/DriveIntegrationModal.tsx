@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react"; // Import AlertTriangle directly from lucide-react
 
 interface DriveIntegrationModalProps {
   open: boolean;
@@ -273,7 +274,7 @@ export function DriveIntegrationModal({
               <>
                 {secretConfigStatus && !secretConfigStatus.configured && (
                   <Alert className="bg-yellow-50 border-yellow-200 mb-4">
-                    <Icons.alertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
                     <AlertTitle className="text-yellow-800">Configuration Status</AlertTitle>
                     <AlertDescription className="text-yellow-700">
                       {secretConfigStatus.message}
