@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -27,8 +27,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DriveIntegrationDrawer } from "@/components/admin/integrations/DriveIntegrationDrawer";
+import { DriveIntegrationModal } from "@/components/admin/integrations/DriveIntegrationModal";
+import { useDriveIntegration } from "@/hooks/useDriveIntegration";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminApiKeys = () => {
+  const [driveDrawerOpen, setDriveDrawerOpen] = useState(false);
+  const [driveModalOpen, setDriveModalOpen] = useState(false);
+  const [newApiKeyOpen, setNewApiKeyOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("existing");
+  const [isDriveActive, setIsDriveActive] = useState(false);
+  const { ping } = useDriveIntegration();
+  const { toast } = useToast();
+
+  // Check if Google Drive integration is active on component mount
+  useEffect(() => {
+    const checkDriveStatus = async () => {
+      try {
+        const response = await ping();
+        setIsDriveActive(response.data?.success || false);
+      } catch (error) {
+        console.error("Error checking Drive status:", error);
+        setIsDriveActive(false);
+      }
+    };
+
+    checkDriveStatus();
+  }, []);
+
+  // Function to refresh integration status after successful upload/revoke
+  const refreshDriveStatus = async () => {
+    try {
+      const response = await ping();
+      setIsDriveActive(response.data?.success || false);
+    } catch (error) {
+      console.error("Error refreshing Drive status:", error);
+      setIsDriveActive(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -41,7 +79,7 @@ const AdminApiKeys = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold">Integration Keys</h2>
           </div>
-          <Dialog>
+          <Dialog open={newApiKeyOpen} onOpenChange={setNewApiKeyOpen}>
             <DialogTrigger asChild>
               <Button>Add New API Key</Button>
             </DialogTrigger>
@@ -55,9 +93,9 @@ const AdminApiKeys = () => {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="service">Service</Label>
-                  <Select>
+                  <Select disabled>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select service" />
+                      <SelectValue placeholder="Coming soon" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="google-drive">Google Drive</SelectItem>
@@ -70,15 +108,15 @@ const AdminApiKeys = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="name">Key Name</Label>
-                  <Input id="name" placeholder="e.g. Production Google Drive" />
+                  <Input id="name" placeholder="e.g. Production Google Drive" disabled />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="key">API Key</Label>
-                  <Input id="key" type="password" />
+                  <Input id="key" type="password" disabled />
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button type="submit">Save API Key</Button>
+                <Button type="submit" disabled>Coming Soon</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -112,17 +150,31 @@ const AdminApiKeys = () => {
                     </td>
                     <td className="py-3 px-4">File Upload Integration</td>
                     <td className="py-3 px-4">
-                      <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
-                        Active
-                      </Badge>
+                      {isDriveActive ? (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-red-50 text-red-700 hover:bg-red-50">
+                          Missing key
+                        </Badge>
+                      )}
                     </td>
                     <td className="py-3 px-4">Today, 10:30 AM</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setDriveModalOpen(true)}
+                        >
                           Edit
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setDriveDrawerOpen(true)}
+                        >
                           View
                         </Button>
                         <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
@@ -164,6 +216,20 @@ const AdminApiKeys = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Google Drive Integration Drawer */}
+      <DriveIntegrationDrawer 
+        open={driveDrawerOpen} 
+        onOpenChange={setDriveDrawerOpen}
+        isActive={isDriveActive}
+      />
+
+      {/* Google Drive Integration Modal */}
+      <DriveIntegrationModal 
+        open={driveModalOpen} 
+        onOpenChange={setDriveModalOpen}
+        onSuccess={refreshDriveStatus}
+      />
     </DashboardLayout>
   );
 };
