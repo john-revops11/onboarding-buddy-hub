@@ -20,6 +20,10 @@ export function useDriveIntegration() {
     try {
       console.log(`Invoking Drive function ${action} with payload:`, payload);
       
+      // Use a more reliable timeout mechanism with AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+      
       let attempts = 0;
       const maxAttempts = 3;
       let response;
@@ -30,8 +34,11 @@ export function useDriveIntegration() {
             body: { action, payload },
             headers: {
               'Cache-Control': 'no-cache',
-            }
+            },
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           if (response.error) {
             console.error(`Error in ${action} response:`, response.error);
@@ -43,6 +50,11 @@ export function useDriveIntegration() {
         } catch (error) {
           attempts++;
           console.error(`Attempt ${attempts} failed:`, error);
+          
+          // Check if it was an abort error
+          if (error.name === 'AbortError') {
+            throw new Error(`Request timeout for ${action} operation. Please try again.`);
+          }
           
           if (attempts >= maxAttempts) {
             throw error;
@@ -63,13 +75,14 @@ export function useDriveIntegration() {
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
-                                    errorMessage.includes('Network');
+                                    errorMessage.includes('Network') ||
+                                    error.name === 'AbortError';
       
       if (!errorMessage.includes('silent')) {
         toast({
           title: "Error",
           description: isProbablyNetworkError 
-            ? "Network error: Unable to connect to the server. Please check your connection and try again."
+            ? "Network error: Unable to connect to Edge Function. This may be due to an internal server error, deployment delay, or connectivity issue. Please wait a moment and try again."
             : `Failed to execute ${action} operation: ${errorMessage}`,
           variant: "destructive",
         });
@@ -89,12 +102,19 @@ export function useDriveIntegration() {
     try {
       console.log("Checking secret configuration status");
       
+      // Add a timeout for the secret configuration check
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout
+      
       const response = await supabase.functions.invoke("drive-admin", {
         body: { action: 'checkSecretConfiguration' },
         headers: {
           'Cache-Control': 'no-cache',
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       console.log("Secret configuration check response:", response);
       
@@ -110,12 +130,13 @@ export function useDriveIntegration() {
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
-                                    errorMessage.includes('Network');
+                                    errorMessage.includes('Network') ||
+                                    error.name === 'AbortError';
       
       return { 
         configured: false, 
         message: isProbablyNetworkError 
-          ? "Network error: Unable to connect to the server" 
+          ? "Network error: Unable to connect to the Edge Function. Please check if it is deployed properly."
           : errorMessage,
         isNetworkError: isProbablyNetworkError
       };

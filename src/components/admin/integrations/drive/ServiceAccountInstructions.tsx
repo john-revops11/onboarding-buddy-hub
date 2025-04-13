@@ -8,7 +8,7 @@ export const ServiceAccountInstructions: React.FC = () => {
     <Alert className="bg-blue-50 border-blue-200">
       <Info className="h-4 w-4 text-blue-600" />
       <AlertTitle className="text-blue-800">How to set up a Google Drive service account</AlertTitle>
-      <AlertDescription className="text-blue-700 space-y-2 mt-2">
+      <AlertDescription className="text-blue-700 space-y-3 mt-2">
         <div>
           <p className="font-semibold">Step 1: Create a Google Cloud Project</p>
           <ol className="list-decimal pl-5 text-xs mt-1">
@@ -22,6 +22,7 @@ export const ServiceAccountInstructions: React.FC = () => {
           <ol className="list-decimal pl-5 text-xs mt-1">
             <li>In your project, go to "APIs & Services" &gt; "Library"</li>
             <li>Search for "Google Drive API" and enable it</li>
+            <li>Make sure to also enable "Google Shared Drive API" if you plan to use shared drives</li>
           </ol>
         </div>
         
@@ -46,6 +47,20 @@ export const ServiceAccountInstructions: React.FC = () => {
             <li>The key file will be downloaded to your computer</li>
             <li>Upload this JSON file here</li>
           </ol>
+        </div>
+
+        <div>
+          <p className="font-semibold">Step 5: Important Configuration Notes</p>
+          <ul className="list-disc pl-5 text-xs mt-1">
+            <li>The service account <span className="font-semibold">must</span> have Domain-Wide Delegation enabled if you're working with a Google Workspace</li>
+            <li>The service account needs to be added to any Shared Drives it should access</li>
+            <li>The API must be enabled in the Google Cloud Console project</li>
+            <li>For shared drives, make sure to include <code className="bg-blue-100 px-1 rounded">supportsAllDrives: true</code> in your API calls</li>
+          </ul>
+        </div>
+        
+        <div className="text-xs italic mt-2">
+          If you're not seeing your drives after configuration, try the "Backfill Permissions" option after setting up the integration.
         </div>
       </AlertDescription>
     </Alert>
