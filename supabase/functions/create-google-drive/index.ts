@@ -68,6 +68,20 @@ async function logDriveCreationAttempt(userEmail: string, companyName: string, s
   }
 }
 
+// --- Helper function to simulate drive creation for development/testing ---
+async function simulateDriveCreation(companyName: string) {
+  // Generate a fake drive ID using the company name and a timestamp
+  const timestamp = new Date().getTime();
+  const simulatedDriveId = `sim-drive-${companyName.replace(/[^\w]/g, '')}-${timestamp}`;
+  
+  // Return a simulated success response
+  return {
+    id: simulatedDriveId,
+    name: companyName,
+    simulated: true
+  };
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -102,6 +116,29 @@ serve(async (req: Request) => {
     }
 
     console.log(`Processing request for: ${userEmail}, Company: ${companyName}`);
+
+    // Check if we should simulate drive creation (for development/testing)
+    const shouldSimulate = Deno.env.get('SIMULATE_DRIVE_CREATION') === 'true';
+    
+    if (shouldSimulate) {
+      console.log('Using simulation mode for drive creation');
+      const simulatedDrive = await simulateDriveCreation(companyName);
+      
+      await logDriveCreationAttempt(userEmail, companyName, "success", simulatedDrive.id, "Simulated creation");
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        driveId: simulatedDrive.id,
+        message: `Simulated Shared Drive created for ${companyName}`,
+        simulated: true
+      }), {
+        status: 200,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+      });
+    }
 
     // Get Service Account Credentials
     const credentials = getServiceAccountCredentials();
@@ -151,12 +188,15 @@ serve(async (req: Request) => {
       console.error('Google Drive API error:', driveError);
       
       let errorMessage = driveError.message || 'Unknown Google Drive API error';
+      let errorCode = 500;
       
       // Check for common errors
       if (errorMessage.includes('already exists')) {
         errorMessage = `A drive with the requestId '${requestId}' already exists. Please use a different company name.`;
-      } else if (errorMessage.includes('permission')) {
-        errorMessage = 'The service account lacks permission to create shared drives.';
+      } else if (errorMessage.includes('cannot create') || errorMessage.includes('permission')) {
+        errorMessage = 'The service account lacks permission to create shared drives. The Google Workspace admin needs to grant "Create shared drives" permission to the service account.';
+        // This is not a server error but a configuration issue, so use 403
+        errorCode = 403;
       } else if (errorMessage.includes('quota')) {
         errorMessage = 'Drive creation quota exceeded. Please try again later.';
       }
@@ -168,7 +208,7 @@ serve(async (req: Request) => {
         success: false, 
         error: errorMessage
       }), {
-        status: 500,
+        status: errorCode,
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
