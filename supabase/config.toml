@@ -54,3 +54,6 @@ enabled = true
 [functions]
 [functions.drive-admin]
 verify_jwt = true
+
+[functions.create-shared-drive]
+verify_jwt = true

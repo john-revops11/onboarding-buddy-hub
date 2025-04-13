@@ -20,11 +20,27 @@ export function useDriveIntegration() {
     }
   };
 
+  const triggerSharedDriveCreation = async () => {
+    try {
+      const response = await supabase.functions.invoke("create-shared-drive", {});
+      return response;
+    } catch (error) {
+      console.error("Error triggering shared drive creation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create shared drives. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return {
     ping: () => invoke("ping"),
     usage: () => invoke("usage"),           // returns bytes_used
     audit: () => invoke("audit", { limit: 20 }),
     uploadKey: (b64: string) => invoke("setSecret", { secret: b64 }),
-    revoke: () => invoke("revoke")
+    revoke: () => invoke("revoke"),
+    triggerSharedDriveCreation
   };
 }
