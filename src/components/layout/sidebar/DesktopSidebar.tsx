@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
@@ -28,9 +27,9 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
       <div className="p-4 relative">
         <div className="flex flex-col items-center mb-6">
           {collapsed ? (
-            // Favicon when collapsed
+            // Favicon when collapsed - using the new logo
             <img
-              src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
+              src="/lovable-uploads/9ab08585-112a-41c2-9706-a57751815ffb.png"
               alt="Logo"
               className="h-10 w-10"
             />
@@ -42,7 +41,6 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
               className="h-16 w-auto"
             />
           )}
-          {/* Removed "Revify" text */}
         </div>
         
         {/* Toggle collapse button */}

@@ -1,11 +1,11 @@
-
 @layer components {
   /* Button Styles */
   .btn {
     @apply inline-flex items-center justify-center font-medium rounded-md
            h-11 px-6 min-w-[136px] transition-all duration-150 ease-out
            bg-primary-700 text-white hover:bg-primary-600
-           focus:outline-none focus:ring-4 focus:ring-accentGreen-600/40;
+           focus:outline-none focus:ring-4 focus:ring-accentGreen-600/40
+           hover:text-white;
   }
   
   .btn:hover {
@@ -17,7 +17,7 @@
   }
   
   .btn-success {
-    @apply bg-accentGreen-600 hover:bg-accentGreen-600/90 text-white;
+    @apply bg-accentGreen-600 hover:bg-accentGreen-600/90 text-white hover:text-white;
   }
   
   .btn-icon {
