@@ -1,7 +1,11 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useCallback } from "react";
+
+interface DriveResponse {
+  data: any;
+  error: { message: string } | null;
+}
 
 export function useDriveIntegration() {
   const { toast } = useToast();
@@ -16,7 +20,7 @@ export function useDriveIntegration() {
     }
   }, [isInitialized]);
   
-  const invoke = async (action: string, payload: any = {}) => {
+  const invoke = async (action: string, payload: any = {}): Promise<DriveResponse> => {
     try {
       console.log(`Invoking Drive function ${action} with payload:`, payload);
       
@@ -28,7 +32,7 @@ export function useDriveIntegration() {
       while (attempts < maxAttempts) {
         try {
           // Create a promise that will be rejected after the timeout
-          const timeoutPromise = new Promise((_, reject) => {
+          const timeoutPromise = new Promise<never>((_, reject) => {
             setTimeout(() => reject(new Error('Request timeout')), 15000);
           });
           
@@ -41,9 +45,9 @@ export function useDriveIntegration() {
           });
           
           // Race the two promises
-          response = await Promise.race([requestPromise, timeoutPromise]);
+          response = await Promise.race([requestPromise, timeoutPromise]) as DriveResponse;
           
-          if (response.error) {
+          if (response && response.error) {
             console.error(`Error in ${action} response:`, response.error);
             throw new Error(response.error.message || `Error in ${action} operation`);
           }
@@ -55,7 +59,9 @@ export function useDriveIntegration() {
           console.error(`Attempt ${attempts} failed:`, error);
           
           // Check if it was a timeout error
-          if (error.message === 'Request timeout') {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          
+          if (errorMessage === 'Request timeout') {
             throw new Error(`Request timeout for ${action} operation. Please try again.`);
           }
           
@@ -70,11 +76,11 @@ export function useDriveIntegration() {
         }
       }
       
-      return response;
+      return response as DriveResponse;
     } catch (error) {
       console.error(`Error invoking Drive function ${action}:`, error);
       
-      const errorMessage = error.message || `Failed to execute ${action} operation. Please try again.`;
+      const errorMessage = error instanceof Error ? error.message : String(error);
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
@@ -106,7 +112,7 @@ export function useDriveIntegration() {
       console.log("Checking secret configuration status");
       
       // Create a promise that will be rejected after the timeout
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Request timeout')), 8000);
       });
       
@@ -119,24 +125,24 @@ export function useDriveIntegration() {
       });
       
       // Race the two promises
-      const response = await Promise.race([requestPromise, timeoutPromise]);
+      const response = await Promise.race([requestPromise, timeoutPromise]) as DriveResponse;
       
       console.log("Secret configuration check response:", response);
       
-      if (response.error) {
+      if (response && response.error) {
         throw new Error(response.error.message || "Error checking secret configuration");
       }
       
-      return response.data || { configured: false, message: "Unknown status" };
+      return response && response.data ? response.data : { configured: false, message: "Unknown status" };
     } catch (error) {
       console.error("Error checking secret configuration:", error);
       
-      const errorMessage = error.message || "Unable to verify the Drive service account configuration.";
+      const errorMessage = error instanceof Error ? error.message : String(error);
       const isProbablyNetworkError = errorMessage.includes('Failed to fetch') || 
                                     errorMessage.includes('Failed to send a request') ||
                                     errorMessage.includes('network') ||
                                     errorMessage.includes('Network') ||
-                                    error.message === 'Request timeout';
+                                    errorMessage === 'Request timeout';
       
       return { 
         configured: false, 
