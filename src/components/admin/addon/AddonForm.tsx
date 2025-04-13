@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const addonSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -84,8 +85,41 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
   const onSubmit = async (data: AddonFormValues) => {
     setIsSubmitting(true);
     try {
-      // In a real implementation, this would call an API endpoint
-      console.log("Addon data:", data);
+      // Convert price string to number
+      const numericPrice = parseFloat(data.price);
+      
+      // Prepare data for insertion/update
+      const addonData = {
+        name: data.name,
+        description: data.description,
+        price: numericPrice,
+        tags: data.tags,
+      };
+      
+      let result;
+      
+      if (isEditing && initialData) {
+        // Update existing addon
+        const { data: updatedData, error } = await supabase
+          .from('addons')
+          .update(addonData)
+          .eq('name', initialData.name)
+          .select();
+          
+        if (error) throw error;
+        result = updatedData;
+      } else {
+        // Insert new addon
+        const { data: insertedData, error } = await supabase
+          .from('addons')
+          .insert(addonData)
+          .select();
+          
+        if (error) throw error;
+        result = insertedData;
+      }
+      
+      console.log("Add-on saved:", result);
       
       toast({
         title: `Add-on ${isEditing ? "updated" : "created"} successfully`,
@@ -213,12 +247,15 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Saving..."
-              : isEditing
-              ? "Update Add-on"
-              : "Create Add-on"}
+          <Button type="submit" disabled={isSubmitting} className="bg-primary-700 text-white hover:bg-primary-600">
+            {isSubmitting ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save size={18} className="mr-1" />
+                {isEditing ? "Update Add-on" : "Save Add-on"}
+              </>
+            )}
           </Button>
         </div>
       </form>

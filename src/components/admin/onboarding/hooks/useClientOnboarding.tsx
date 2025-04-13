@@ -1,25 +1,34 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { ClientFormSchema, ClientFormValues } from "../formSchema";
-import { createClient } from "@/lib/client-management";
+import { clientFormSchema, ClientFormValues } from "../formSchema";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-export function useClientOnboarding() {
-  const navigate = useNavigate();
+export const useClientOnboarding = () => {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("client-info");
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [addons, setAddons] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Query subscriptions and addons from Supabase
+  const { data: subscriptions = [], isLoading: isLoadingSubscriptions } = useQuery({
+    queryKey: ["subscriptions"],
+    queryFn: getSubscriptionTiers
+  });
+
+  const { data: addons = [], isLoading: isLoadingAddons } = useQuery({
+    queryKey: ["addons"],
+    queryFn: getAddons
+  });
+
+  // Initialize form with default values
   const form = useForm<ClientFormValues>({
-    resolver: zodResolver(ClientFormSchema),
+    resolver: zodResolver(clientFormSchema),
     defaultValues: {
       email: "",
       companyName: "",
@@ -29,113 +38,127 @@ export function useClientOnboarding() {
     },
   });
 
-  const selectedAddons = form.watch("addons");
-
-  useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      try {
-        const [subscriptionsData, addonsData] = await Promise.all([
-          getSubscriptionTiers(),
-          getAddons()
-        ]);
-        
-        setSubscriptions(subscriptionsData);
-        setAddons(addonsData);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast({
-          title: "Failed to load data",
-          description: "Could not load subscription tiers and add-ons",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    loadData();
-  }, [toast]);
-
+  // Define tab navigation handlers
   const handleTabChange = (value: string) => {
-    form.trigger();
     setActiveTab(value);
   };
 
-  const nextTab = async () => {
-    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
-    const currentIndex = tabOrder.indexOf(activeTab);
-    
-    if (currentIndex < tabOrder.length - 1) {
-      // Validate the current tab's fields before proceeding
-      let shouldProceed = false;
-      
-      switch(activeTab) {
-        case "client-info":
-          shouldProceed = await form.trigger(["email", "companyName"]);
-          break;
-        case "subscription":
-          shouldProceed = await form.trigger("subscriptionTierId");
-          break;
-        case "addons":
-          shouldProceed = true; // Addons are optional
-          break;
-        case "team":
-          // Validate all team member emails
-          shouldProceed = await form.trigger("teamMembers");
-          break;
-        default:
-          shouldProceed = true;
-      }
-      
-      if (shouldProceed) {
-        setActiveTab(tabOrder[currentIndex + 1]);
-      }
+  const nextTab = () => {
+    switch (activeTab) {
+      case "client-info":
+        setActiveTab("subscription");
+        break;
+      case "subscription":
+        setActiveTab("addons");
+        break;
+      case "addons":
+        setActiveTab("team");
+        break;
+      case "team":
+        setActiveTab("confirm");
+        break;
+      default:
+        break;
     }
   };
 
   const prevTab = () => {
-    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
-    const currentIndex = tabOrder.indexOf(activeTab);
-    
-    if (currentIndex > 0) {
-      setActiveTab(tabOrder[currentIndex - 1]);
+    switch (activeTab) {
+      case "subscription":
+        setActiveTab("client-info");
+        break;
+      case "addons":
+        setActiveTab("subscription");
+        break;
+      case "team":
+        setActiveTab("addons");
+        break;
+      case "confirm":
+        setActiveTab("team");
+        break;
+      default:
+        break;
     }
   };
 
+  // Toggle addon selection
   const toggleAddon = (addonId: string) => {
-    const current = form.getValues("addons");
-    if (current.includes(addonId)) {
-      form.setValue(
-        "addons",
-        current.filter((id) => id !== addonId)
-      );
-    } else {
-      form.setValue("addons", [...current, addonId]);
-    }
+    setSelectedAddons((current) => {
+      if (current.includes(addonId)) {
+        return current.filter((id) => id !== addonId);
+      } else {
+        return [...current, addonId];
+      }
+    });
   };
 
+  // Submit form
   const onSubmit = async (data: ClientFormValues) => {
-    setIsSubmitting(true);
     try {
-      // Ensure we pass a proper ClientFormValues object with required fields
-      await createClient({
-        email: data.email,
-        companyName: data.companyName,
-        subscriptionTierId: data.subscriptionTierId,
-        addons: data.addons,
-        teamMembers: data.teamMembers.map(member => ({ email: member.email }))
-      });
+      setIsSubmitting(true);
+      console.log("Form data:", data);
+      console.log("Selected addons:", selectedAddons);
+
+      // Store client in database
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .insert({
+          email: data.email,
+          company_name: data.companyName || null,
+          subscription_id: data.subscriptionTierId,
+          status: 'pending'
+        })
+        .select();
+
+      if (clientError) throw clientError;
+      
+      const clientId = clientData[0].id;
+      
+      // Add selected addons
+      if (selectedAddons.length > 0) {
+        const addonInserts = selectedAddons.map(addonId => ({
+          client_id: clientId,
+          addon_id: addonId
+        }));
+        
+        const { error: addonsError } = await supabase
+          .from('client_addons')
+          .insert(addonInserts);
+          
+        if (addonsError) throw addonsError;
+      }
+      
+      // Add team members
+      if (data.teamMembers.length > 0) {
+        const memberInserts = data.teamMembers
+          .filter(member => member.email.trim() !== '')
+          .map(member => ({
+            client_id: clientId,
+            email: member.email,
+            invitation_status: 'pending'
+          }));
+          
+        if (memberInserts.length > 0) {
+          const { error: teamError } = await supabase
+            .from('team_members')
+            .insert(memberInserts);
+            
+          if (teamError) throw teamError;
+        }
+      }
       
       toast({
-        title: "Client onboarding initiated",
-        description: "Invitations have been sent to the client and team members.",
+        title: "Client onboarded successfully",
+        description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
       });
       
-      // Navigate back to admin dashboard
-      navigate("/admin/onboarding");
+      // Reset form
+      form.reset();
+      setSelectedAddons([]);
+      setActiveTab("client-info");
+      
     } catch (error) {
-      console.error("Error submitting client onboarding:", error);
+      console.error("Error onboarding client:", error);
       toast({
         title: "Error",
         description: "Failed to onboard client. Please try again.",
@@ -148,7 +171,7 @@ export function useClientOnboarding() {
 
   return {
     form,
-    isLoading,
+    isLoading: isLoadingSubscriptions || isLoadingAddons,
     isSubmitting,
     activeTab,
     subscriptions,
@@ -158,6 +181,6 @@ export function useClientOnboarding() {
     nextTab,
     prevTab,
     toggleAddon,
-    onSubmit
+    onSubmit,
   };
-}
+};

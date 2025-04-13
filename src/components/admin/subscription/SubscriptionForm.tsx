@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 const subscriptionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -73,8 +74,43 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
   const onSubmit = async (data: SubscriptionFormValues) => {
     setIsSubmitting(true);
     try {
-      // In a real implementation, this would call an API endpoint
-      console.log("Subscription data:", data);
+      // Convert price string to number
+      const numericPrice = parseFloat(data.price);
+      
+      // Prepare data for insertion/update
+      const subscriptionData = {
+        name: data.name,
+        description: data.description,
+        price: numericPrice,
+        // Features are stored as part of the subscription in a real implementation
+        // Here we're just logging them as they would typically be in a separate table
+        // or as a JSON field
+      };
+      
+      let result;
+      
+      if (isEditing && initialData) {
+        // Update existing subscription
+        const { data: updatedData, error } = await supabase
+          .from('subscriptions')
+          .update(subscriptionData)
+          .eq('name', initialData.name)
+          .select();
+          
+        if (error) throw error;
+        result = updatedData;
+      } else {
+        // Insert new subscription
+        const { data: insertedData, error } = await supabase
+          .from('subscriptions')
+          .insert(subscriptionData)
+          .select();
+          
+        if (error) throw error;
+        result = insertedData;
+      }
+      
+      console.log("Subscription saved:", result);
       
       toast({
         title: `Subscription ${isEditing ? "updated" : "created"} successfully`,
@@ -202,12 +238,15 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Saving..."
-              : isEditing
-              ? "Update Subscription"
-              : "Create Subscription"}
+          <Button type="submit" disabled={isSubmitting} className="bg-primary-700 text-white hover:bg-primary-600">
+            {isSubmitting ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save size={18} className="mr-1" />
+                {isEditing ? "Update Subscription" : "Save Subscription"}
+              </>
+            )}
           </Button>
         </div>
       </form>
