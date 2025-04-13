@@ -3,13 +3,18 @@ import { SidebarNavGroup } from "./types";
 
 export const userNavGroups: SidebarNavGroup[] = [
   {
-    title: "Onboarding",
+    title: "Main",
     items: [
       {
         title: "Dashboard",
-        icon: "Home",
+        icon: "LayoutDashboard",
         href: "/dashboard",
-      },
+      }
+    ],
+  },
+  {
+    title: "Onboarding",
+    items: [
       {
         title: "Onboarding",
         icon: "UserPlus",
@@ -18,27 +23,27 @@ export const userNavGroups: SidebarNavGroup[] = [
     ],
   },
   {
-    title: "Latest Insights",
+    title: "Analytics",
     items: [
       {
-        title: "Insights",
+        title: "Latest Insights",
         icon: "BarChart2",
         href: "/insights",
       },
       {
-        title: "Diagnostic Reviews",
-        icon: "FileSearch",
-        href: "/diagnostic-reviews",
+        title: "Top Opportunities",
+        icon: "Target",
+        href: "/opportunities",
       }
     ],
   },
   {
-    title: "Top Opportunities",
+    title: "Data Management",
     items: [
       {
-        title: "Opportunities",
-        icon: "Target",
-        href: "/opportunities",
+        title: "Data Uploads",
+        icon: "Upload",
+        href: "/data-uploads",
       },
       {
         title: "Knowledge Hub",
@@ -48,17 +53,7 @@ export const userNavGroups: SidebarNavGroup[] = [
     ],
   },
   {
-    title: "Data Uploads",
-    items: [
-      {
-        title: "Data Uploads",
-        icon: "Upload",
-        href: "/data-uploads",
-      }
-    ],
-  },
-  {
-    title: "Account",
+    title: "User",
     items: [
       {
         title: "Profile",
