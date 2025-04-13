@@ -1,6 +1,7 @@
 
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface SubmitActionsProps {
   isSubmitting: boolean;
@@ -10,23 +11,32 @@ interface SubmitActionsProps {
 export function SubmitActions({ isSubmitting, onPrev }: SubmitActionsProps) {
   return (
     <div className="flex justify-between">
-      <Button type="button" variant="outline" onClick={onPrev} disabled={isSubmitting}>
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={onPrev} 
+        disabled={isSubmitting}
+        className="gap-2 border-primary-700 text-primary-700"
+      >
+        <ChevronLeft size={18} />
         Previous: Team Members
       </Button>
+      
       <Button 
         type="submit" 
         disabled={isSubmitting} 
-        className="gap-2 bg-primary-700 text-white hover:bg-primary-600"
+        variant="success"
+        className="gap-2 font-medium"
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
             Submitting...
           </>
         ) : (
           <>
             <Save size={18} />
-            Submit & Send Invitations
+            Submit & Save
           </>
         )}
       </Button>

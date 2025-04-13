@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { clientFormSchema, ClientFormValues } from "../formSchema";
+import { ClientFormSchema, ClientFormValues } from "../formSchema";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ export const useClientOnboarding = () => {
 
   // Initialize form with default values
   const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
+    resolver: zodResolver(ClientFormSchema),
     defaultValues: {
       email: "",
       companyName: "",

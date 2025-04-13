@@ -11,18 +11,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "h-11 min-w-[136px] px-6 py-3 bg-primary-700 text-white hover:bg-primary-600 font-medium",
+        default: "h-11 min-w-[136px] px-6 py-3 bg-primary-700 text-white hover:bg-primary-600 font-medium shadow-sm",
         destructive:
-          "h-11 min-w-[136px] px-6 py-3 bg-error-600 text-white hover:bg-error-700 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 bg-error-600 text-white hover:bg-error-700 font-medium shadow-sm",
         outline:
-          "h-11 min-w-[136px] px-6 py-3 border border-neutral-200 bg-background text-primary-700 hover:bg-primary-50 hover:text-primary-700 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 border border-neutral-200 bg-background text-primary-700 hover:bg-primary-50 hover:text-primary-700 font-medium shadow-sm",
         secondary:
-          "h-11 min-w-[136px] px-6 py-3 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 font-medium",
+          "h-11 min-w-[136px] px-6 py-3 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 font-medium shadow-sm",
         ghost: "text-primary-700 hover:bg-primary-50 hover:text-primary-700 px-4 py-2",
         link: "text-primary-700 underline-offset-4 hover:underline px-4 py-2",
-        icon: "h-11 w-11 rounded-full p-0 bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-primary-700",
-        success: "h-11 min-w-[136px] px-6 py-3 bg-accentGreen-600 text-white hover:bg-accentGreen-600/90 font-medium",
-        warning: "h-11 min-w-[136px] px-6 py-3 bg-warning-600 text-white hover:bg-warning-700 font-medium",
+        icon: "h-11 w-11 rounded-full p-0 bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-primary-700 shadow-sm",
+        success: "h-11 min-w-[136px] px-6 py-3 bg-accentGreen-600 text-white hover:bg-accentGreen-600/90 font-medium shadow-sm",
+        warning: "h-11 min-w-[136px] px-6 py-3 bg-warning-600 text-white hover:bg-warning-700 font-medium shadow-sm",
+        save: "h-11 min-w-[110px] px-4 py-2 bg-accentGreen-600 text-white hover:bg-accentGreen-600/90 font-medium shadow-sm",
       },
       size: {
         default: "h-11 px-6 py-3",
