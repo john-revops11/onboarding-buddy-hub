@@ -1,7 +1,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { google } from 'npm:googleapis@118';
-import { createClient } from 'npm:@supabase/supabase-js@2.9.5';
+import { createClient } from 'npm:@supabase/supabase-js@2.38.4';
 
 console.log('Create Google Drive function starting...');
 
