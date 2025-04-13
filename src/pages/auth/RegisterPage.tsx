@@ -1,16 +1,22 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { register as registerUser } from "@/lib/auth";
+import { useAuth } from "@/contexts/auth-context";
 
 const registerFormSchema = z.object({
   name: z.string().min(2, {
@@ -22,54 +28,52 @@ const registerFormSchema = z.object({
   password: z.string().min(6, {
     message: "Password must be at least 6 characters.",
   }),
-  companyName: z.string().optional(),
 });
 
-interface RegisterCredentials {
-  email: string;
-  password: string;
-  name: string;
-  companyName?: string;
-}
+type FormValues = z.infer<typeof registerFormSchema>;
 
 const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterCredentials>({
+  const { register: registerUser, state } = useAuth();
+
+  // If already authenticated, redirect to the appropriate dashboard
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      // Redirect based on user role
+      const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
+      navigate(redirectPath, { replace: true });
+    }
+  }, [state.isAuthenticated, state.user, navigate]);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
   });
 
-  const handleRegister = async (data: RegisterCredentials) => {
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const { email, password, name } = data;
-    
-      const credentials: RegisterCredentials = {
-        email,
-        password,
-        name,
-        ...(data.companyName && { companyName: data.companyName })
-      };
-      
       await registerUser({
-        email: credentials.email,
-        password: credentials.password,
-        name: credentials.name,
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
+      
       toast({
         title: "Registration successful.",
-        description: "You will be redirected to the dashboard.",
+        description: "Your account has been created and is pending approval.",
       });
-      navigate("/dashboard");
-    } catch (error) {
+      navigate("/login");
+    } catch (error: any) {
       toast({
-        title: "Something went wrong.",
-        description: "There was an error registering your account. Please try again.",
+        title: "Registration failed.",
+        description: error.message || "There was an error registering your account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -78,67 +82,85 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="grid h-screen w-screen place-items-center">
-      <div className="container flex w-full max-w-[700px] flex-col items-center justify-center">
-        <div className="flex flex-col space-y-1 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Create an account
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your email below to create your account
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-r from-slate-100 to-slate-200">
+      <div className="mx-auto grid w-full max-w-md gap-6 px-8 md:px-0">
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-3xl font-bold">Create an account</h1>
+          <p className="text-sm text-slate-500">
+            Enter your details below to create your account
           </p>
         </div>
+
         <div className="grid gap-6">
-          <form className="grid gap-6" onSubmit={handleSubmit(handleRegister)}>
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                placeholder="John Doe"
-                type="text"
-                disabled={isLoading}
-                {...register("name")}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="John Doe"
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors?.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                placeholder="name@example.com"
-                type="email"
-                autoCapitalize="none"
-                autoComplete="email"
-                disabled={isLoading}
-                {...register("email")}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        autoComplete="email"
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors?.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                placeholder="Password"
-                type="password"
-                autoComplete="password"
-                disabled={isLoading}
-                {...register("password")}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Password"
+                        autoComplete="new-password"
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors?.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
-            <Button disabled={isLoading}>
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Create account
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create account"
+                )}
+              </Button>
+            </form>
+          </Form>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -149,23 +171,21 @@ const RegisterPage = () => {
               </span>
             </div>
           </div>
-          <Button variant="outline" disabled={isLoading}>
-            {isLoading ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
+          <div className="grid grid-cols-1 gap-2">
+            <Button variant="outline" type="button" disabled={isLoading}>
               <Icons.gitHub className="mr-2 h-4 w-4" />
-            )}
-            Github
-          </Button>
-        </div>
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-semibold text-primary underline underline-offset-2"
-          >
-            Sign in
-          </Link>
+              GitHub
+            </Button>
+          </div>
+          <div className="text-center text-sm">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Sign in
+            </Link>
+          </div>
         </div>
       </div>
     </div>
