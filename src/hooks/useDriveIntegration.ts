@@ -1,9 +1,24 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export function useDriveIntegration() {
-  const invoke = (action: string, payload: any = {}) =>
-    supabase.functions.invoke("drive-admin", { body: { action, payload } });
+  const { toast } = useToast();
+  
+  const invoke = async (action: string, payload: any = {}) => {
+    try {
+      const response = await supabase.functions.invoke("drive-admin", { body: { action, payload } });
+      return response;
+    } catch (error) {
+      console.error(`Error invoking Drive function ${action}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to execute ${action} operation. Please try again.`,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   return {
     ping: () => invoke("ping"),
