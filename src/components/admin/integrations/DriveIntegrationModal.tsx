@@ -9,6 +9,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Icons } from "@/components/icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ export function DriveIntegrationModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadKey, revoke } = useDriveIntegration();
   const { toast } = useToast();
@@ -53,12 +55,14 @@ export function DriveIntegrationModal({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
+    setUploadError(null);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       if (file.type === "application/json") {
         setSelectedFile(file);
       } else {
+        setUploadError("Invalid file type. Please upload a JSON file.");
         toast({
           title: "Invalid file type",
           description: "Please upload a JSON file.",
@@ -69,11 +73,13 @@ export function DriveIntegrationModal({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (file.type === "application/json") {
         setSelectedFile(file);
       } else {
+        setUploadError("Invalid file type. Please upload a JSON file.");
         toast({
           title: "Invalid file type",
           description: "Please upload a JSON file.",
@@ -88,6 +94,7 @@ export function DriveIntegrationModal({
       const parsed = JSON.parse(jsonContent);
       // Check if it's a service account key
       if (parsed.type !== "service_account") {
+        setUploadError("Invalid service account key. The JSON file must be a Google service account key with type 'service_account'.");
         toast({
           title: "Invalid service account key",
           description: "The JSON file must be a Google service account key with type 'service_account'.",
@@ -98,6 +105,7 @@ export function DriveIntegrationModal({
       
       // Check for required fields
       if (!parsed.client_email || !parsed.private_key) {
+        setUploadError("Invalid service account key. The service account key is missing required fields.");
         toast({
           title: "Invalid service account key",
           description: "The service account key is missing required fields.",
@@ -108,6 +116,7 @@ export function DriveIntegrationModal({
       
       return true;
     } catch (error) {
+      setUploadError(`Invalid JSON: ${error.message}`);
       toast({
         title: "Invalid JSON",
         description: "The file contains invalid JSON.",
@@ -121,6 +130,7 @@ export function DriveIntegrationModal({
     if (!selectedFile) return;
     
     setIsUploading(true);
+    setUploadError(null);
     
     try {
       const fileContent = await selectedFile.text();
@@ -141,6 +151,10 @@ export function DriveIntegrationModal({
       if (response.error) {
         throw new Error(response.error.message);
       }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || "Unknown error occurred");
+      }
       
       toast({
         title: "Integration successful",
@@ -152,9 +166,10 @@ export function DriveIntegrationModal({
       onOpenChange(false);
     } catch (error) {
       console.error("Upload error:", error);
+      setUploadError(`Upload failed: ${error.message}`);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading the service account key.",
+        description: `There was an error uploading the service account key: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -235,6 +250,12 @@ export function DriveIntegrationModal({
                 </div>
               )}
             </div>
+            
+            {uploadError && (
+              <div className="text-sm text-red-500 mt-2">
+                {uploadError}
+              </div>
+            )}
           </div>
           
           <DialogFooter className="flex justify-between items-center sm:justify-between">
@@ -248,7 +269,14 @@ export function DriveIntegrationModal({
               onClick={handleUpload}
               disabled={!selectedFile || isUploading}
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              {isUploading ? (
+                <>
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Upload"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
