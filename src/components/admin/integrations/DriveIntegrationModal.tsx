@@ -23,7 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react"; // Import AlertTriangle directly from lucide-react
+import { AlertTriangle, CheckCircle, Info } from "lucide-react"; 
 
 interface DriveIntegrationModalProps {
   open: boolean;
@@ -45,6 +45,7 @@ export function DriveIntegrationModal({
     configured: boolean; 
     message: string;
     serviceAccount?: string;
+    isNetworkError?: boolean;
   } | null>(null);
   const [isCheckingSecret, setIsCheckingSecret] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +68,8 @@ export function DriveIntegrationModal({
       console.error("Error checking secret configuration:", error);
       setSecretConfigStatus({
         configured: false,
-        message: `Error checking configuration: ${error.message}`
+        message: `Error checking configuration: ${error.message}`,
+        isNetworkError: error.message?.includes('Failed to fetch') || error.message?.includes('network')
       });
     } finally {
       setIsCheckingSecret(false);
@@ -187,6 +189,10 @@ export function DriveIntegrationModal({
       console.log("Upload response:", response);
       
       if (response.error) {
+        // Check if it's a network error
+        if (response.error.isNetworkError) {
+          throw new Error("Network error: Unable to connect to the server. Please check your internet connection and try again.");
+        }
         throw new Error(response.error.message || "Unknown error occurred");
       }
 
@@ -242,6 +248,10 @@ export function DriveIntegrationModal({
     }
   };
 
+  const handleRetryCheck = () => {
+    checkSecretConfig();
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -261,13 +271,32 @@ export function DriveIntegrationModal({
               </div>
             ) : secretConfigStatus?.configured ? (
               <Alert className="bg-green-50 border-green-200">
-                <Icons.check className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertTitle className="text-green-800">Service account key is already configured</AlertTitle>
                 <AlertDescription className="text-green-700">
                   The Google Drive integration is already set up with service account: 
                   <code className="ml-1 p-1 bg-green-100 text-xs rounded font-mono">
                     {secretConfigStatus.serviceAccount}
                   </code>
+                </AlertDescription>
+              </Alert>
+            ) : secretConfigStatus?.isNetworkError ? (
+              <Alert className="bg-orange-50 border-orange-200">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertTitle className="text-orange-800">Network Connection Issue</AlertTitle>
+                <AlertDescription className="space-y-2 text-orange-700">
+                  <p>
+                    Unable to connect to the Supabase Edge Function to verify the integration status.
+                    This is likely due to a network issue or because the Edge Function is not deployed.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleRetryCheck}
+                    className="mt-2"
+                  >
+                    Retry Check
+                  </Button>
                 </AlertDescription>
               </Alert>
             ) : (
@@ -321,6 +350,20 @@ export function DriveIntegrationModal({
                     {uploadError}
                   </div>
                 )}
+                
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-800">How to get a service account key</AlertTitle>
+                  <AlertDescription className="text-blue-700 text-xs">
+                    1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="underline">Google Cloud Console</a><br />
+                    2. Create or select a project<br />
+                    3. Go to "APIs & Services" &gt; "Credentials"<br />
+                    4. Click "Create credentials" &gt; "Service account"<br />
+                    5. Fill in the details and grant access (at least Drive API access)<br />
+                    6. Create a key (JSON type) for the service account<br />
+                    7. Upload the downloaded JSON file here
+                  </AlertDescription>
+                </Alert>
               </>
             )}
           </div>
@@ -332,7 +375,7 @@ export function DriveIntegrationModal({
             >
               Revoke Integration
             </Button>
-            {!secretConfigStatus?.configured && (
+            {!secretConfigStatus?.configured && !secretConfigStatus?.isNetworkError && (
               <Button
                 onClick={handleUpload}
                 disabled={!selectedFile || isUploading}
