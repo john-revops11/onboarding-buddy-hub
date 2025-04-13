@@ -36,13 +36,8 @@ function getServiceAccountCredentials() {
 // --- Helper function to generate a valid requestId based on company name ---
 function generateRequestId(companyName: string) {
   // Clean the company name - remove spaces, special chars and convert to lowercase
-  const cleanName = companyName.replace(/[^\w]/g, '').toLowerCase();
-  
-  // Add timestamp to ensure uniqueness even if the same company name is used multiple times
-  const timestamp = Date.now().toString();
-  
-  // Combine for a unique but traceable ID
-  return `drive-${cleanName}-${timestamp}`;
+  // This creates a simpler, more consistent ID that's still unique to the company
+  return `drive-${companyName.replace(/[^\w]/g, '').toLowerCase()}`;
 }
 
 // --- Helper function to log drive creation attempts to database ---
@@ -119,37 +114,67 @@ serve(async (req: Request) => {
     const authClient = await auth.getClient();
     const driveService = google.drive({ version: 'v3', auth: authClient });
 
-    // Generate request ID based on company name
+    // Generate consistent request ID based on company name
     const requestId = generateRequestId(companyName);
     console.log(`Generated requestId: ${requestId}`);
 
-    // Create Shared Drive - Using the correct API parameters
-    const driveResponse = await driveService.drives.create({
-      requestBody: {
-        name: companyName,
-      },
-      requestId: requestId, // Using company name-based ID instead of timestamp
-      fields: 'id,name',
-    });
+    try {
+      // Create Shared Drive with consistent naming
+      const driveResponse = await driveService.drives.create({
+        requestBody: {
+          name: companyName, // Use the company name directly as the drive name
+        },
+        requestId: requestId,
+        fields: 'id,name',
+      });
 
-    const sharedDriveId = driveResponse.data.id;
-    console.log(`Created Shared Drive: ${sharedDriveId}`);
-    
-    // Log successful creation
-    await logDriveCreationAttempt(userEmail, companyName, "success", sharedDriveId);
+      const sharedDriveId = driveResponse.data.id;
+      console.log(`Created Shared Drive: ${sharedDriveId}`);
+      
+      // Log successful creation
+      await logDriveCreationAttempt(userEmail, companyName, "success", sharedDriveId);
 
-    // Return successful response
-    return new Response(JSON.stringify({ 
-      success: true, 
-      driveId: sharedDriveId,
-      message: `Shared Drive created for ${companyName}` 
-    }), {
-      status: 200,
-      headers: { 
-        ...corsHeaders, 
-        'Content-Type': 'application/json' 
-      },
-    });
+      // Return successful response
+      return new Response(JSON.stringify({ 
+        success: true, 
+        driveId: sharedDriveId,
+        message: `Shared Drive created for ${companyName}` 
+      }), {
+        status: 200,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+      });
+    } catch (driveError) {
+      // Handle specific Google API errors
+      console.error('Google Drive API error:', driveError);
+      
+      let errorMessage = driveError.message || 'Unknown Google Drive API error';
+      
+      // Check for common errors
+      if (errorMessage.includes('already exists')) {
+        errorMessage = `A drive with the requestId '${requestId}' already exists. Please use a different company name.`;
+      } else if (errorMessage.includes('permission')) {
+        errorMessage = 'The service account lacks permission to create shared drives.';
+      } else if (errorMessage.includes('quota')) {
+        errorMessage = 'Drive creation quota exceeded. Please try again later.';
+      }
+      
+      // Log specific drive creation error
+      await logDriveCreationAttempt(userEmail, companyName, "failure", undefined, errorMessage);
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: errorMessage
+      }), {
+        status: 500,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+      });
+    }
 
   } catch (error) {
     console.error('Error in Google Drive creation:', error);
