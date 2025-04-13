@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,6 +28,7 @@ const GoogleDriveIntegration = () => {
   const [testEmail, setTestEmail] = useState('');
   const [testCompanyName, setTestCompanyName] = useState('');
   const [isCreatingDrive, setIsCreatingDrive] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     const fetchGoogleDriveLogs = async () => {
@@ -52,7 +54,15 @@ const GoogleDriveIntegration = () => {
     };
 
     fetchGoogleDriveLogs();
-  }, []);
+    
+    // Set up an interval to refresh the logs every 5 seconds
+    const intervalId = setInterval(() => {
+      setRefreshCounter(prev => prev + 1);
+    }, 5000);
+    
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [refreshCounter]);
 
   const createTestDrive = async () => {
     if (!testEmail || !testCompanyName) {
@@ -66,6 +76,12 @@ const GoogleDriveIntegration = () => {
 
     setIsCreatingDrive(true);
     try {
+      // Log what we're about to do
+      console.log("Invoking create-google-drive function with:", {
+        userEmail: testEmail,
+        companyName: testCompanyName
+      });
+      
       const { data, error } = await supabase.functions.invoke('create-google-drive', {
         body: {
           userEmail: testEmail,
@@ -73,27 +89,24 @@ const GoogleDriveIntegration = () => {
         }
       });
 
+      console.log("Function response:", data, error);
+      
       if (error) throw error;
 
-      if (data.success) {
+      if (data && data.success) {
         toast({
           title: "Success",
-          description: data.message,
+          description: data.message || "Google Drive created successfully",
           variant: "default"
         });
 
-        const { data: newLogs, error: logsError } = await supabase
-          .from('google_drive_logs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (!logsError) setLogs(newLogs || []);
-
+        // Refresh the logs immediately
+        setRefreshCounter(prev => prev + 1);
       } else {
-        throw new Error(data.error || 'Failed to create drive');
+        throw new Error(data?.error || 'Failed to create drive');
       }
     } catch (error) {
+      console.error("Error creating drive:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create Google Drive",
@@ -108,6 +121,7 @@ const GoogleDriveIntegration = () => {
     <Card>
       <CardHeader>
         <CardTitle>Google Drive Integration</CardTitle>
+        <CardDescription>Create and manage shared Google Drives for clients</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -152,7 +166,18 @@ const GoogleDriveIntegration = () => {
           </div>
         ) : (
           <div>
-            <h3 className="text-lg font-semibold mb-4">Recent Drive Creation Logs</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Recent Drive Creation Logs</h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setRefreshCounter(prev => prev + 1)}
+              >
+                <Loader2 className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
+            
             {logs.length === 0 ? (
               <p className="text-muted-foreground">No logs found</p>
             ) : (
