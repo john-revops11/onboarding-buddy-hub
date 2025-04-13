@@ -286,6 +286,7 @@ async function handleCheckPermission(payload) {
     }
     
     const json = JSON.parse(serviceAccountKey);
+    const GROUP_EMAIL = "ops-support@your-domain.com";
     
     // Initialize the Drive client
     const auth = new google.auth.JWT(
@@ -298,7 +299,7 @@ async function handleCheckPermission(payload) {
     
     const drive = google.drive({ version: "v3", auth });
     
-    // Check if the service account has permission
+    // Check if the service account and group have permission
     try {
       const response = await drive.permissions.list({
         fileId: driveId,
@@ -310,14 +311,21 @@ async function handleCheckPermission(payload) {
         permission => permission.emailAddress === json.client_email
       );
       
+      const groupPermission = permissions.find(
+        permission => permission.emailAddress === GROUP_EMAIL
+      );
+      
       return { 
         success: true, 
-        hasPermission: !!serviceAccountPermission,
-        role: serviceAccountPermission?.role || null,
-        serviceAccount: json.client_email
+        hasServiceAccountPermission: !!serviceAccountPermission,
+        serviceAccountRole: serviceAccountPermission?.role || null,
+        hasGroupPermission: !!groupPermission,
+        groupRole: groupPermission?.role || null,
+        serviceAccount: json.client_email,
+        groupEmail: GROUP_EMAIL
       };
     } catch (error) {
-      console.error('Error checking permission:', error);
+      console.error('Error checking permissions:', error);
       return { success: false, message: error.message };
     }
   } catch (error) {
@@ -339,6 +347,7 @@ async function handleFixPermission(payload) {
     }
     
     const json = JSON.parse(serviceAccountKey);
+    const GROUP_EMAIL = "ops-support@your-domain.com";
     
     // Initialize the Drive client
     const auth = new google.auth.JWT(
@@ -364,24 +373,45 @@ async function handleFixPermission(payload) {
         sendNotificationEmail: false
       });
       
-      return { 
-        success: true, 
-        message: 'Service account added as manager',
-        serviceAccount: json.client_email
-      };
+      console.log(`Added service account ${json.client_email} as manager to drive ${driveId}`);
     } catch (error) {
       // If permission already exists (409 error), we consider it a success
       if (error.response && error.response.status === 409) {
-        return { 
-          success: true, 
-          message: 'Service account already has permission',
-          serviceAccount: json.client_email
-        };
+        console.log(`Service account ${json.client_email} already has permission on drive ${driveId}`);
+      } else {
+        console.error('Error adding service account permission:', error);
       }
-      
-      console.error('Error adding permission:', error);
-      return { success: false, message: error.message };
     }
+    
+    // Add the group email as a manager
+    try {
+      await drive.permissions.create({
+        fileId: driveId,
+        requestBody: {
+          role: 'manager',
+          type: 'group',
+          emailAddress: GROUP_EMAIL
+        },
+        supportsAllDrives: true,
+        sendNotificationEmail: false
+      });
+      
+      console.log(`Added group ${GROUP_EMAIL} as manager to drive ${driveId}`);
+    } catch (error) {
+      // If permission already exists (409 error), we consider it a success
+      if (error.response && error.response.status === 409) {
+        console.log(`Group ${GROUP_EMAIL} already has permission on drive ${driveId}`);
+      } else {
+        console.error('Error adding group permission:', error);
+      }
+    }
+    
+    return { 
+      success: true, 
+      message: 'Permissions added',
+      serviceAccount: json.client_email,
+      groupEmail: GROUP_EMAIL
+    };
   } catch (error) {
     console.error('Error in fixPermission:', error);
     return { success: false, message: error.message };

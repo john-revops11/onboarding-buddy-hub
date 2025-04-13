@@ -2,6 +2,9 @@
 import { google } from 'googleapis';
 import { supabase } from "@/integrations/supabase/client";
 
+// Group email that should have manager access to all shared drives
+const GROUP_EMAIL = "ops-support@your-domain.com";
+
 export async function getDriveClient() {
   try {
     // Fetch the service account key from Supabase Edge Function
@@ -47,6 +50,10 @@ export async function getServiceAccountEmail() {
   }
 }
 
+export function getGroupEmail() {
+  return GROUP_EMAIL;
+}
+
 export async function addServiceAccountAsManager(driveId: string) {
   try {
     const { data, error } = await supabase.functions.invoke('drive-admin', {
@@ -60,6 +67,7 @@ export async function addServiceAccountAsManager(driveId: string) {
     return { 
       success: data.success, 
       email: data.serviceAccount,
+      groupEmail: data.groupEmail,
       alreadyExists: data.message === 'Service account already has permission'
     };
   } catch (error) {
@@ -79,8 +87,11 @@ export async function checkServiceAccountPermission(driveId: string) {
     }
     
     return { 
-      hasPermission: data.hasPermission,
-      role: data.role
+      hasPermission: data.hasServiceAccountPermission,
+      role: data.serviceAccountRole,
+      hasGroupPermission: data.hasGroupPermission,
+      groupRole: data.groupRole,
+      groupEmail: data.groupEmail
     };
   } catch (error) {
     console.error('Error checking service account permission:', error);

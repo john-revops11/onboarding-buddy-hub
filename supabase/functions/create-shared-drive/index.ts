@@ -2,11 +2,15 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { google } from "https://esm.sh/googleapis@132";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { v4 as uuid } from "https://esm.sh/uuid@9";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Group email that should have manager access to all shared drives
+const GROUP_EMAIL = "ops-support@your-domain.com";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -113,6 +117,29 @@ serve(async (req) => {
           }
         }
         
+        // Add group email as manager to the drive
+        try {
+          await drive.permissions.create({
+            fileId: data.id,
+            requestBody: {
+              role: 'manager',
+              type: 'group',
+              emailAddress: GROUP_EMAIL
+            },
+            supportsAllDrives: true,
+            sendNotificationEmail: false
+          });
+          
+          console.log(`Added group ${GROUP_EMAIL} as manager to drive ${data.id}`);
+        } catch (groupPermissionError) {
+          // Ignore 409 errors (permission already exists)
+          if (groupPermissionError.response && groupPermissionError.response.status === 409) {
+            console.log(`Group ${GROUP_EMAIL} already has permission on drive ${data.id}`);
+          } else {
+            console.error(`Error adding group as manager to drive ${data.id}:`, groupPermissionError);
+          }
+        }
+        
         // Update the client record with drive info
         const { error: updateError } = await supabase
           .from("clients")
@@ -135,7 +162,8 @@ serve(async (req) => {
             success: true,
             driveId: data.id,
             driveName,
-            serviceAccount: sa.client_email
+            serviceAccount: sa.client_email,
+            groupEmail: GROUP_EMAIL
           });
         }
       } catch (err) {
