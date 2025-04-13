@@ -1,69 +1,68 @@
 
 import { google } from 'googleapis';
+import { supabase } from "@/integrations/supabase/client";
 
 export async function getDriveClient() {
-  const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
-  if (!serviceAccountKey) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY is not configured');
-  }
+  try {
+    // Fetch the service account key from Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('drive-admin', {
+      body: { action: 'getSecret' }
+    });
+    
+    if (error || !data?.key) {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY is not configured');
+    }
 
-  const json = JSON.parse(serviceAccountKey);
-  const auth = new google.auth.JWT(
-    json.client_email,
-    undefined,
-    json.private_key,
-    ['https://www.googleapis.com/auth/drive'],
-    'admin@your-domain.com'  // Workspace admin to impersonate (has "Create shared drives" + "Content manager")
-  );
-  
-  return google.drive({ version: 'v3', auth });
+    const json = data.key;
+    const auth = new google.auth.JWT(
+      json.client_email,
+      undefined,
+      json.private_key,
+      ['https://www.googleapis.com/auth/drive'],
+      'admin@your-domain.com'  // Workspace admin to impersonate (has "Create shared drives" + "Content manager")
+    );
+    
+    return google.drive({ version: 'v3', auth });
+  } catch (error) {
+    console.error('Error initializing Drive client:', error);
+    throw error;
+  }
 }
 
-export function getServiceAccountEmail() {
-  const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
-  if (!serviceAccountKey) {
-    return null;
-  }
-  
+export async function getServiceAccountEmail() {
   try {
-    const json = JSON.parse(serviceAccountKey);
-    return json.client_email;
+    // Fetch the service account key from Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('drive-admin', {
+      body: { action: 'ping' }
+    });
+    
+    if (error || !data?.success) {
+      return null;
+    }
+    
+    return data.serviceAccount || null;
   } catch (error) {
-    console.error('Error parsing service account key:', error);
+    console.error('Error getting service account email:', error);
     return null;
   }
 }
 
 export async function addServiceAccountAsManager(driveId: string) {
   try {
-    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
-    if (!serviceAccountKey) {
-      throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY is not configured');
-    }
-    
-    const json = JSON.parse(serviceAccountKey);
-    const drive = await getDriveClient();
-    
-    await drive.permissions.create({
-      fileId: driveId,
-      requestBody: {
-        role: 'manager',        // full edit rights
-        type: 'user',
-        emailAddress: json.client_email   // the service-account address
-      },
-      supportsAllDrives: true,
-      sendNotificationEmail: false
+    const { data, error } = await supabase.functions.invoke('drive-admin', {
+      body: { action: 'fixPermission', payload: { driveId } }
     });
     
-    return { success: true, email: json.client_email };
-  } catch (error) {
-    // Ignore 409 errors (permission already exists)
-    if (error.response && error.response.status === 409) {
-      const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
-      const json = JSON.parse(serviceAccountKey!);
-      return { success: true, email: json.client_email, alreadyExists: true };
+    if (error) {
+      throw error;
     }
     
+    return { 
+      success: data.success, 
+      email: data.serviceAccount,
+      alreadyExists: data.message === 'Service account already has permission'
+    };
+  } catch (error) {
     console.error('Error adding service account as manager:', error);
     return { success: false, error: error.message };
   }
@@ -71,26 +70,17 @@ export async function addServiceAccountAsManager(driveId: string) {
 
 export async function checkServiceAccountPermission(driveId: string) {
   try {
-    const serviceAccountEmail = getServiceAccountEmail();
-    if (!serviceAccountEmail) {
-      return { hasPermission: false };
-    }
-    
-    const drive = await getDriveClient();
-    
-    const response = await drive.permissions.list({
-      fileId: driveId,
-      supportsAllDrives: true
+    const { data, error } = await supabase.functions.invoke('drive-admin', {
+      body: { action: 'checkServiceAccountPermission', payload: { driveId } }
     });
     
-    const permissions = response.data.permissions || [];
-    const serviceAccountPermission = permissions.find(
-      permission => permission.emailAddress === serviceAccountEmail
-    );
+    if (error) {
+      throw error;
+    }
     
     return { 
-      hasPermission: !!serviceAccountPermission,
-      role: serviceAccountPermission?.role || null
+      hasPermission: data.hasPermission,
+      role: data.role
     };
   } catch (error) {
     console.error('Error checking service account permission:', error);

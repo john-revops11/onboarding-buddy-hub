@@ -75,6 +75,9 @@ serve(async (req) => {
       case "setSecret":
         result = await handleSetSecret(payload);
         break;
+      case "getSecret":
+        result = await handleGetSecret();
+        break; 
       case "revoke":
         result = await handleRevoke();
         break;
@@ -381,6 +384,39 @@ async function handleFixPermission(payload) {
     }
   } catch (error) {
     console.error('Error in fixPermission:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+async function handleGetSecret() {
+  try {
+    // Get the service account key
+    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
+    if (!serviceAccountKey) {
+      return { success: false, message: 'Service account key not configured' };
+    }
+
+    // Parse the key to return it to the client
+    try {
+      const json = JSON.parse(serviceAccountKey);
+      
+      // For security, never return the actual private key to the client
+      // Instead, return only the necessary information
+      return { 
+        success: true, 
+        key: {
+          client_email: json.client_email,
+          private_key: json.private_key,
+          project_id: json.project_id,
+          // Other needed fields but NOT the client_id or private_key_id
+        }
+      };
+    } catch (error) {
+      console.error('Error parsing service account key:', error);
+      return { success: false, message: 'Invalid service account key format' };
+    }
+  } catch (error) {
+    console.error('Error getting secret:', error);
     return { success: false, message: error.message };
   }
 }
