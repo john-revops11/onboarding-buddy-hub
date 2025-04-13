@@ -149,6 +149,7 @@ export type Database = {
           drive_id: string | null
           drive_name: string | null
           email: string
+          google_drive_id: string | null
           id: string
           onboarding_completed: boolean | null
           status: string
@@ -161,6 +162,7 @@ export type Database = {
           drive_id?: string | null
           drive_name?: string | null
           email: string
+          google_drive_id?: string | null
           id?: string
           onboarding_completed?: boolean | null
           status?: string
@@ -173,6 +175,7 @@ export type Database = {
           drive_id?: string | null
           drive_name?: string | null
           email?: string
+          google_drive_id?: string | null
           id?: string
           onboarding_completed?: boolean | null
           status?: string
@@ -231,6 +234,36 @@ export type Database = {
           created_at?: string
           id?: string
           total_quota?: number
+        }
+        Relationships: []
+      }
+      google_drive_logs: {
+        Row: {
+          company_name: string
+          created_at: string
+          drive_id: string | null
+          error_message: string | null
+          id: string
+          status: string
+          user_email: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          drive_id?: string | null
+          error_message?: string | null
+          id?: string
+          status: string
+          user_email: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          drive_id?: string | null
+          error_message?: string | null
+          id?: string
+          status?: string
+          user_email?: string
         }
         Relationships: []
       }

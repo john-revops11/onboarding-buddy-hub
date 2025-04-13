@@ -1,23 +1,108 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { BarChart } from "@/components/ui/charts/BarChart";
-import { LineChart } from "@/components/ui/charts/LineChart";
-import { 
-  UserPlus, 
-  CheckCircle, 
-  FileUp, 
-  Users,
-  ArrowUpRight
-} from "lucide-react";
-import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+
+interface GoogleDriveLog {
+  id: string;
+  user_email: string;
+  company_name: string;
+  status: string;
+  drive_id?: string;
+  error_message?: string;
+  created_at: string;
+}
+
+const GoogleDriveIntegration = () => {
+  const [logs, setLogs] = useState<GoogleDriveLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGoogleDriveLogs = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('google_drive_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        setLogs(data || []);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch Google Drive logs",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGoogleDriveLogs();
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Google Drive Integration</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center items-center">
+            <Loader2 className="animate-spin" />
+          </div>
+        ) : (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Recent Drive Creation Logs</h3>
+            {logs.length === 0 ? (
+              <p className="text-muted-foreground">No logs found</p>
+            ) : (
+              <div className="space-y-2">
+                {logs.map((log) => (
+                  <div 
+                    key={log.id} 
+                    className={`
+                      p-3 rounded 
+                      ${log.status === 'success' ? 'bg-green-50' : 'bg-red-50'}
+                    `}
+                  >
+                    <div>
+                      <strong>Email:</strong> {log.user_email}
+                    </div>
+                    <div>
+                      <strong>Company:</strong> {log.company_name}
+                    </div>
+                    <div>
+                      <strong>Status:</strong> {log.status}
+                    </div>
+                    {log.drive_id && (
+                      <div>
+                        <strong>Drive ID:</strong> {log.drive_id}
+                      </div>
+                    )}
+                    {log.error_message && (
+                      <div className="text-red-600">
+                        <strong>Error:</strong> {log.error_message}
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(log.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const AdminDashboard = () => {
   // Mock data for the charts
@@ -181,6 +266,8 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        <GoogleDriveIntegration />
       </div>
     </DashboardLayout>
   );
