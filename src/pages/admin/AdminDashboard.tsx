@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight } from "lucide-react";
+import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
+import { BarChart } from "@/components/ui/charts/BarChart";
+import { LineChart } from "@/components/ui/charts/LineChart";
 
 interface GoogleDriveLog {
   id: string;

@@ -76,7 +76,6 @@ export const BarChart = ({
             dataKey={category}
             fill={chartColors[i % chartColors.length]}
             radius={[4, 4, 0, 0]}
-            barSize={40}
           />
         ))}
       </RechartsBarChart>
