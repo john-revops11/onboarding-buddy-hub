@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { google } from "https://esm.sh/googleapis@132";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -10,7 +9,7 @@ const corsHeaders = {
 };
 
 // Group email that should have manager access to all shared drives
-const GROUP_EMAIL = "ops-support@your-domain.com";
+const GROUP_EMAIL = "opssupport@revologyanalytics.com";
 
 serve(async (req) => {
   // Handle CORS preflight requests

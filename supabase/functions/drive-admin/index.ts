@@ -87,6 +87,9 @@ serve(async (req) => {
       case "fixPermission":
         result = await handleFixPermission(payload);
         break;
+      case "backfillPermissions":
+        result = await handleBackfillPermissions(supabaseClient);
+        break;
       default:
         return new Response(
           JSON.stringify({ error: 'Unknown action' }),
@@ -286,7 +289,7 @@ async function handleCheckPermission(payload) {
     }
     
     const json = JSON.parse(serviceAccountKey);
-    const GROUP_EMAIL = "ops-support@your-domain.com";
+    const GROUP_EMAIL = "opssupport@revologyanalytics.com";
     
     // Initialize the Drive client
     const auth = new google.auth.JWT(
@@ -347,7 +350,7 @@ async function handleFixPermission(payload) {
     }
     
     const json = JSON.parse(serviceAccountKey);
-    const GROUP_EMAIL = "ops-support@your-domain.com";
+    const GROUP_EMAIL = "opssupport@revologyanalytics.com";
     
     // Initialize the Drive client
     const auth = new google.auth.JWT(
@@ -447,6 +450,152 @@ async function handleGetSecret() {
     }
   } catch (error) {
     console.error('Error getting secret:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+// Define the GROUP_EMAIL constant
+const GROUP_EMAIL = "opssupport@revologyanalytics.com";
+
+async function handleBackfillPermissions(supabaseClient) {
+  try {
+    // Get the service account key
+    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
+    if (!serviceAccountKey) {
+      return { success: false, message: 'Service account key not configured' };
+    }
+    
+    const json = JSON.parse(serviceAccountKey);
+    
+    // Initialize the Drive client
+    const auth = new google.auth.JWT(
+      json.client_email,
+      undefined,
+      json.private_key,
+      ["https://www.googleapis.com/auth/drive"],
+      "admin@your-domain.com"
+    );
+    
+    const drive = google.drive({ version: "v3", auth });
+    
+    // Fetch all clients with drive IDs
+    const { data: clients, error } = await supabaseClient
+      .from('clients')
+      .select('id, drive_id')
+      .not('drive_id', 'is', null);
+    
+    if (error) {
+      console.error('Error fetching clients:', error);
+      return { success: false, message: error.message };
+    }
+    
+    const results = [];
+    let successCount = 0;
+    let errorCount = 0;
+    
+    // Process each client's drive
+    for (const client of clients) {
+      if (!client.drive_id) continue;
+      
+      try {
+        // Add the service account as manager
+        try {
+          await drive.permissions.create({
+            fileId: client.drive_id,
+            requestBody: {
+              role: 'manager',
+              type: 'user',
+              emailAddress: json.client_email
+            },
+            supportsAllDrives: true,
+            sendNotificationEmail: false
+          });
+          
+          console.log(`Added service account ${json.client_email} as manager to drive ${client.drive_id}`);
+        } catch (error) {
+          // If permission already exists (409 error), we consider it a success
+          if (error.response && error.response.status === 409) {
+            console.log(`Service account ${json.client_email} already has permission on drive ${client.drive_id}`);
+          } else {
+            console.error(`Error adding service account permission to drive ${client.drive_id}:`, error);
+            errorCount++;
+            results.push({
+              clientId: client.id,
+              driveId: client.drive_id,
+              success: false,
+              error: error.message,
+              type: 'service-account'
+            });
+            continue;
+          }
+        }
+        
+        // Add the group email as manager
+        try {
+          await drive.permissions.create({
+            fileId: client.drive_id,
+            requestBody: {
+              role: 'manager',
+              type: 'group',
+              emailAddress: GROUP_EMAIL
+            },
+            supportsAllDrives: true,
+            sendNotificationEmail: false
+          });
+          
+          console.log(`Added group ${GROUP_EMAIL} as manager to drive ${client.drive_id}`);
+          successCount++;
+          results.push({
+            clientId: client.id,
+            driveId: client.drive_id,
+            success: true,
+            type: 'group'
+          });
+        } catch (error) {
+          // If permission already exists (409 error), we consider it a success
+          if (error.response && error.response.status === 409) {
+            console.log(`Group ${GROUP_EMAIL} already has permission on drive ${client.drive_id}`);
+            successCount++;
+            results.push({
+              clientId: client.id,
+              driveId: client.drive_id,
+              success: true,
+              type: 'group',
+              message: 'Permission already exists'
+            });
+          } else {
+            console.error(`Error adding group permission to drive ${client.drive_id}:`, error);
+            errorCount++;
+            results.push({
+              clientId: client.id,
+              driveId: client.drive_id,
+              success: false,
+              error: error.message,
+              type: 'group'
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing drive ${client.drive_id}:`, error);
+        errorCount++;
+        results.push({
+          clientId: client.id,
+          driveId: client.drive_id,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+    
+    return { 
+      success: true, 
+      message: `Processed ${clients.length} drives. Success: ${successCount}, Errors: ${errorCount}`,
+      results,
+      serviceAccount: json.client_email,
+      groupEmail: GROUP_EMAIL
+    };
+  } catch (error) {
+    console.error('Error in backfillPermissions:', error);
     return { success: false, message: error.message };
   }
 }

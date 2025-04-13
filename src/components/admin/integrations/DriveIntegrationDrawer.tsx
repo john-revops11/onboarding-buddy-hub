@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Sheet, 
@@ -34,12 +33,13 @@ export function DriveIntegrationDrawer({
   onOpenChange, 
   isActive 
 }: DriveIntegrationDrawerProps) {
-  const { ping, usage, audit, checkServiceAccountPermission, fixPermission } = useDriveIntegration();
+  const { ping, usage, audit, checkServiceAccountPermission, fixPermission, backfillPermissions } = useDriveIntegration();
   const { toast } = useToast();
   const [driveUsage, setDriveUsage] = useState<{ bytesUsed: number; totalQuota: number } | null>(null);
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; user: string; timestamp: string; details: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [serviceAccountEmail, setServiceAccountEmail] = useState<string | null>(null);
+  const [isBackfilling, setIsBackfilling] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<{
     hasPermission: boolean;
     role: string | null;
@@ -153,6 +153,33 @@ export function DriveIntegrationDrawer({
       });
     } finally {
       setPermissionStatus(prev => ({ ...prev, isFixing: false }));
+    }
+  };
+
+  const handleBackfillPermissions = async () => {
+    setIsBackfilling(true);
+    
+    try {
+      const response = await backfillPermissions();
+      
+      if (response.data && response.data.success) {
+        toast({
+          title: "Permissions updated",
+          description: response.data.message,
+          variant: "success",
+        });
+      } else {
+        throw new Error(response.data?.message || "Failed to backfill permissions");
+      }
+    } catch (error) {
+      console.error("Error backfilling permissions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to backfill permissions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBackfilling(false);
     }
   };
 
@@ -283,6 +310,21 @@ export function DriveIntegrationDrawer({
                 className="w-full"
               >
                 Test Connection
+              </Button>
+              <Button 
+                onClick={handleBackfillPermissions}
+                variant="outline" 
+                disabled={!isActive || isLoading || isBackfilling} 
+                className="w-full"
+              >
+                {isBackfilling ? (
+                  <>
+                    <Icons.spinner className="h-4 w-4 animate-spin mr-2" />
+                    Updating permissions...
+                  </>
+                ) : (
+                  "Backfill Group Permissions"
+                )}
               </Button>
               <Button 
                 variant="outline" 

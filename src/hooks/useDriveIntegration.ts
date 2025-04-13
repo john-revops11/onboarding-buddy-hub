@@ -45,6 +45,7 @@ export function useDriveIntegration() {
       invoke("checkServiceAccountPermission", { driveId }),
     fixPermission: (driveId: string) => 
       invoke("fixPermission", { driveId }),
+    backfillPermissions: () => invoke("backfillPermissions"),
     triggerSharedDriveCreation
   };
 }

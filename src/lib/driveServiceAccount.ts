@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import { supabase } from "@/integrations/supabase/client";
 
 // Group email that should have manager access to all shared drives
-const GROUP_EMAIL = "ops-support@your-domain.com";
+const GROUP_EMAIL = "opssupport@revologyanalytics.com";
 
 export async function getDriveClient() {
   try {
