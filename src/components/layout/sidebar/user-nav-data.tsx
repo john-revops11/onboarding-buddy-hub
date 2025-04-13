@@ -3,13 +3,58 @@ import { SidebarNavGroup } from "./types";
 
 export const userNavGroups: SidebarNavGroup[] = [
   {
-    title: "Home",
+    title: "Onboarding",
     items: [
       {
         title: "Dashboard",
         icon: "Home",
         href: "/dashboard",
       },
+      {
+        title: "Onboarding",
+        icon: "UserPlus",
+        href: "/onboarding",
+      }
+    ],
+  },
+  {
+    title: "Latest Insights",
+    items: [
+      {
+        title: "Insights",
+        icon: "BarChart2",
+        href: "/insights",
+      },
+      {
+        title: "Diagnostic Reviews",
+        icon: "FileSearch",
+        href: "/diagnostic-reviews",
+      }
+    ],
+  },
+  {
+    title: "Top Opportunities",
+    items: [
+      {
+        title: "Opportunities",
+        icon: "Target",
+        href: "/opportunities",
+      },
+      {
+        title: "Knowledge Hub",
+        icon: "BookOpen",
+        href: "/knowledge-hub",
+      }
+    ],
+  },
+  {
+    title: "Data Uploads",
+    items: [
+      {
+        title: "Data Uploads",
+        icon: "Upload",
+        href: "/data-uploads",
+      }
     ],
   },
   {
@@ -24,47 +69,8 @@ export const userNavGroups: SidebarNavGroup[] = [
         title: "Settings",
         icon: "Settings",
         href: "/settings",
-      },
+      }
     ],
-  },
-  {
-    title: "Resources",
-    items: [
-      {
-        title: "Knowledge Hub",
-        icon: "BookOpen",
-        href: "/knowledge-hub",
-      },
-      {
-        title: "Opportunities",
-        icon: "Target",
-        href: "/opportunities",
-      },
-      {
-        title: "Insights",
-        icon: "BarChart2",
-        href: "/insights",
-      },
-      {
-        title: "Diagnostic Reviews",
-        icon: "FileSearch",
-        href: "/diagnostic-reviews",
-      },
-    ],
-  },
-  {
-    title: "Data Management",
-    items: [
-      {
-        title: "Data Uploads",
-        icon: "Upload",
-        href: "/data-uploads",
-      },
-      {
-        title: "Onboarding",
-        icon: "CheckSquare",
-        href: "/onboarding",
-      },
-    ],
-  },
+  }
 ];
+
