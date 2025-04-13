@@ -18,9 +18,10 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
       if (error) throw error;
       
       // The onAuthStateChange handler will update the user state
+      return data;
       
     } catch (error: any) {
-      console.error("Login error:", error.message);
+      console.error("Login error:", error);
       
       dispatch({
         type: "LOGIN_FAILURE",

@@ -53,7 +53,10 @@ const LoginPage = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    if (isLoading) return; // Prevent multiple submissions
+    
     setIsLoading(true);
+    
     try {
       await login({
         email: data.email,
@@ -64,9 +67,13 @@ const LoginPage = () => {
       
     } catch (error: any) {
       console.error("Login error:", error);
+      
+      // Show more specific error messages based on error type
+      const errorMessage = error.message || "Invalid email or password. Please try again.";
+      
       toast({
         title: "Login Failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
