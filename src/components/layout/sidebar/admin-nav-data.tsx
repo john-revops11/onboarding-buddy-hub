@@ -66,11 +66,6 @@ export const adminNavGroups: SidebarNavGroup[] = [
     title: "Platform",
     items: [
       {
-        title: "API Keys",
-        icon: "Key",
-        href: "/admin/api-keys",
-      },
-      {
         title: "Add-ons",
         icon: "Package",
         href: "/admin/addons",
