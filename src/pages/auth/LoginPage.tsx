@@ -145,30 +145,11 @@ const LoginPage = () => {
               Forgot your password?
             </Link>
           </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            <Button variant="outline" type="button" disabled={isLoading}>
-              <Icons.gitHub className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-          </div>
           <div className="text-center text-sm">
-            Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Sign up
-            </Link>
+            <p className="text-slate-500">
+              Don't have an account? Please contact your administrator
+              to receive an invitation.
+            </p>
           </div>
         </div>
       </div>
