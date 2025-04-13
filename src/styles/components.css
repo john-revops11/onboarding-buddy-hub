@@ -1,3 +1,4 @@
+
 @layer components {
   /* Button Styles */
   .btn {
@@ -138,5 +139,63 @@
   
   .auth-btn-outline {
     @apply border-green-base text-green-base hover:bg-green-base hover:text-white;
+  }
+
+  /* Notification styles */
+  .notification-item {
+    @apply relative p-4 border-b last:border-0 transition-colors duration-150;
+  }
+  
+  .notification-item:hover {
+    @apply bg-neutral-100 dark:bg-neutral-800;
+  }
+  
+  .notification-item.unread {
+    @apply bg-primary-50 dark:bg-primary-900/20;
+  }
+  
+  .notification-item.unread:hover {
+    @apply bg-primary-100 dark:bg-primary-900/30;
+  }
+  
+  .notification-icon {
+    @apply flex-shrink-0 transition-transform duration-200;
+  }
+  
+  .notification-item:hover .notification-icon {
+    @apply scale-110;
+  }
+  
+  .notification-title {
+    @apply font-medium text-sm mb-1 text-neutral-900 dark:text-neutral-100;
+  }
+  
+  .notification-message {
+    @apply text-sm text-neutral-700 dark:text-neutral-300;
+  }
+  
+  .notification-timestamp {
+    @apply text-xs text-neutral-500 dark:text-neutral-400 mt-1;
+  }
+  
+  /* Toast styles */
+  .toast-custom {
+    @apply border border-neutral-200 dark:border-neutral-700 shadow-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white;
+  }
+  
+  .toast-title {
+    @apply text-base font-semibold text-neutral-900 dark:text-white;
+  }
+  
+  .toast-description {
+    @apply text-sm text-neutral-700 dark:text-neutral-300;
+  }
+  
+  .toast-action {
+    @apply bg-primary-700 text-white hover:bg-primary-600 hover:text-white;
+  }
+  
+  .toast-close {
+    @apply text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors;
   }
 }

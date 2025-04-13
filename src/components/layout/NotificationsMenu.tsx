@@ -75,13 +75,13 @@ export function NotificationsMenu() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="notification-icon h-5 w-5 text-green-500" />;
       case "info":
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Info className="notification-icon h-5 w-5 text-blue-500" />;
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="notification-icon h-5 w-5 text-yellow-500" />;
       default:
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Info className="notification-icon h-5 w-5 text-blue-500" />;
     }
   };
 
@@ -110,7 +110,7 @@ export function NotificationsMenu() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hover:bg-primary-100">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge 
@@ -122,23 +122,23 @@ export function NotificationsMenu() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 shadow-lg border-2" align="end">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Notifications</CardTitle>
+            <CardTitle className="text-lg font-bold">Notifications</CardTitle>
             {notifications.length > 0 && (
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleClearAll}
-                className="h-8 px-2 text-xs"
+                className="h-8 px-2 text-xs hover:bg-neutral-100 text-neutral-700 hover:text-neutral-900"
               >
                 Clear All
               </Button>
             )}
           </div>
           {unreadCount > 0 && (
-            <CardDescription>{unreadCount} unread notifications</CardDescription>
+            <CardDescription className="text-primary-700 font-medium">{unreadCount} unread notifications</CardDescription>
           )}
         </CardHeader>
         <Separator />
@@ -155,22 +155,20 @@ export function NotificationsMenu() {
               {notifications.map((notification: any) => (
                 <div 
                   key={notification.id} 
-                  className={`relative p-4 border-b last:border-0 ${
-                    !notification.read ? "bg-muted/30" : ""
-                  }`}
+                  className={`notification-item ${!notification.read ? "unread" : ""}`}
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 mt-0.5">
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-sm mb-1">
+                      <p className="notification-title">
                         {notification.title}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="notification-message">
                         {notification.message}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="notification-timestamp">
                         {formatNotificationTime(notification.timestamp)}
                       </p>
                     </div>
@@ -181,7 +179,7 @@ export function NotificationsMenu() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleMarkAsRead(notification.id)}
-                      className="absolute top-1 right-1 h-6 w-6"
+                      className="absolute top-1 right-1 h-6 w-6 hover:bg-neutral-200 opacity-70 hover:opacity-100"
                     >
                       <X className="h-4 w-4" />
                     </Button>
