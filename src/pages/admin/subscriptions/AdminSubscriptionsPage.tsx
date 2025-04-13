@@ -25,59 +25,64 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-// Mock data - this would come from an API in a real implementation
-const MOCK_SUBSCRIPTIONS = [
-  {
-    id: "1",
-    name: "Basic",
-    description: "Essential features for small businesses",
-    price: "99.99",
-    features: ["Basic reporting", "3 team members", "1 project"],
-  },
-  {
-    id: "2",
-    name: "Professional",
-    description: "Advanced features for growing businesses",
-    price: "199.99",
-    features: [
-      "Advanced reporting",
-      "10 team members",
-      "5 projects",
-      "API access",
-    ],
-  },
-  {
-    id: "3",
-    name: "Enterprise",
-    description: "Complete solution for large organizations",
-    price: "399.99",
-    features: [
-      "Custom reporting",
-      "Unlimited team members",
-      "Unlimited projects",
-      "API access",
-      "Dedicated support",
-    ],
-  },
-];
+import { getSubscriptionTiers } from "@/lib/subscription-management";
+import { SubscriptionTier } from "@/lib/types/client-types";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminSubscriptionsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [subscriptions, setSubscriptions] = useState(MOCK_SUBSCRIPTIONS);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionTier[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
 
-  const handleDeleteSubscription = (id: string) => {
-    // In a real implementation, this would call an API endpoint
-    setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
-    
-    toast({
-      title: "Subscription deleted",
-      description: "The subscription has been removed successfully.",
-    });
-    
-    setSubscriptionToDelete(null);
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
+
+  const fetchSubscriptions = async () => {
+    setIsLoading(true);
+    try {
+      const subscriptionData = await getSubscriptionTiers();
+      setSubscriptions(subscriptionData);
+    } catch (error) {
+      console.error("Error fetching subscriptions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscription plans. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSubscription = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Update the local state
+      setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
+      
+      toast({
+        title: "Subscription deleted",
+        description: "The subscription has been removed successfully.",
+      });
+      
+      setSubscriptionToDelete(null);
+    } catch (error) {
+      console.error("Error deleting subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -98,73 +103,75 @@ const AdminSubscriptionsPage = () => {
             <CardTitle>Available Subscription Plans</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Features</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subscriptions.map((subscription) => (
-                  <TableRow key={subscription.id}>
-                    <TableCell className="font-medium">{subscription.name}</TableCell>
-                    <TableCell>{subscription.description}</TableCell>
-                    <TableCell>${subscription.price}/mo</TableCell>
-                    <TableCell>
-                      <div className="max-w-[300px] truncate">
-                        {subscription.features.join(", ")}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => navigate(`/admin/subscriptions/edit/${subscription.id}`)}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        
-                        <AlertDialog open={subscriptionToDelete === subscription.id} onOpenChange={(isOpen) => {
-                          if (!isOpen) setSubscriptionToDelete(null);
-                        }}>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => setSubscriptionToDelete(subscription.id)}
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Subscription Plan</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete the "{subscription.name}" plan? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive text-destructive-foreground"
-                                onClick={() => handleDeleteSubscription(subscription.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
+            {isLoading ? (
+              <div className="text-center py-4">Loading subscription plans...</div>
+            ) : subscriptions.length === 0 ? (
+              <div className="text-center py-4">
+                No subscription plans found. Add your first subscription plan!
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map((subscription) => (
+                    <TableRow key={subscription.id}>
+                      <TableCell className="font-medium">{subscription.name}</TableCell>
+                      <TableCell>{subscription.description}</TableCell>
+                      <TableCell>${subscription.price}/mo</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => navigate(`/admin/subscriptions/edit/${subscription.id}`)}
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          
+                          <AlertDialog open={subscriptionToDelete === subscription.id} onOpenChange={(isOpen) => {
+                            if (!isOpen) setSubscriptionToDelete(null);
+                          }}>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setSubscriptionToDelete(subscription.id)}
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Subscription Plan</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the "{subscription.name}" plan? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground"
+                                  onClick={() => handleDeleteSubscription(subscription.id)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,65 +1,60 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { SubscriptionForm } from "@/components/admin/subscription/SubscriptionForm";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-// Mock data - this would come from an API in a real implementation
-const MOCK_SUBSCRIPTIONS = [
-  {
-    id: "1",
-    name: "Basic",
-    description: "Essential features for small businesses",
-    price: "99.99",
-    features: ["Basic reporting", "3 team members", "1 project"],
-  },
-  {
-    id: "2",
-    name: "Professional",
-    description: "Advanced features for growing businesses",
-    price: "199.99",
-    features: [
-      "Advanced reporting",
-      "10 team members",
-      "5 projects",
-      "API access",
-    ],
-  },
-  {
-    id: "3",
-    name: "Enterprise",
-    description: "Complete solution for large organizations",
-    price: "399.99",
-    features: [
-      "Custom reporting",
-      "Unlimited team members",
-      "Unlimited projects",
-      "API access",
-      "Dedicated support",
-    ],
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const EditSubscriptionPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real implementation, this would be an API call
-    const fetchSubscription = () => {
-      const found = MOCK_SUBSCRIPTIONS.find((sub) => sub.id === id);
-      
-      if (found) {
-        setSubscription(found);
+    const fetchSubscription = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
       }
       
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('id, name, description, price')
+          .eq('id', id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Format data for the form
+          const formattedData = {
+            ...data,
+            price: data.price.toString(),
+            features: [] // Features will be implemented in a future update
+          };
+          
+          setSubscription(formattedData);
+        }
+      } catch (error) {
+        console.error("Error fetching subscription:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load subscription details. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchSubscription();
-  }, [id]);
+  }, [id, toast]);
 
   if (loading) {
     return (
@@ -75,7 +70,11 @@ const EditSubscriptionPage = () => {
     return (
       <DashboardLayout>
         <div className="space-y-6">
-          <p>Subscription not found.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Subscription Not Found</h1>
+          <p>The subscription plan you are looking for does not exist.</p>
+          <Button onClick={() => navigate("/admin/subscriptions")}>
+            Return to Subscriptions
+          </Button>
         </div>
       </DashboardLayout>
     );
