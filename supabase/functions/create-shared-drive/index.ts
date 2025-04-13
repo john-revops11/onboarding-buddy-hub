@@ -90,6 +90,29 @@ serve(async (req) => {
         
         console.log(`Drive created with ID: ${data.id}`);
         
+        // Add service account as manager to the drive
+        try {
+          await drive.permissions.create({
+            fileId: data.id,
+            requestBody: {
+              role: 'manager',
+              type: 'user',
+              emailAddress: sa.client_email
+            },
+            supportsAllDrives: true,
+            sendNotificationEmail: false
+          });
+          
+          console.log(`Added service account ${sa.client_email} as manager to drive ${data.id}`);
+        } catch (permissionError) {
+          // Ignore 409 errors (permission already exists)
+          if (permissionError.response && permissionError.response.status === 409) {
+            console.log(`Service account ${sa.client_email} already has permission on drive ${data.id}`);
+          } else {
+            console.error(`Error adding service account as manager to drive ${data.id}:`, permissionError);
+          }
+        }
+        
         // Update the client record with drive info
         const { error: updateError } = await supabase
           .from("clients")
@@ -111,7 +134,8 @@ serve(async (req) => {
             clientId: client.id,
             success: true,
             driveId: data.id,
-            driveName
+            driveName,
+            serviceAccount: sa.client_email
           });
         }
       } catch (err) {

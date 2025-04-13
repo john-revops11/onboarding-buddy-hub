@@ -37,10 +37,14 @@ export function useDriveIntegration() {
 
   return {
     ping: () => invoke("ping"),
-    usage: () => invoke("usage"),           // returns bytes_used
+    usage: () => invoke("usage"),
     audit: () => invoke("audit", { limit: 20 }),
     uploadKey: (b64: string) => invoke("setSecret", { secret: b64 }),
     revoke: () => invoke("revoke"),
+    checkServiceAccountPermission: (driveId: string) => 
+      invoke("checkServiceAccountPermission", { driveId }),
+    fixPermission: (driveId: string) => 
+      invoke("fixPermission", { driveId }),
     triggerSharedDriveCreation
   };
 }

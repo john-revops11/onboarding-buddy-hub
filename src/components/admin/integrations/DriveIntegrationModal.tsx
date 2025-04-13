@@ -96,14 +96,11 @@ export function DriveIntegrationModal({
         return false;
       }
       
-      // Check if it has Drive API scope permissions
-      // This is a basic check - in a real app, you might need to verify more thoroughly
-      const scopes = parsed.scopes || [];
-      if (!scopes.some((scope: string) => scope.includes("drive"))) {
-        // For simplicity, we're just checking if any scope mentions "drive"
+      // Check for required fields
+      if (!parsed.client_email || !parsed.private_key) {
         toast({
-          title: "Missing Drive scope",
-          description: "The service account key must have Google Drive API scope permissions.",
+          title: "Invalid service account key",
+          description: "The service account key is missing required fields.",
           variant: "destructive",
         });
         return false;
@@ -147,7 +144,7 @@ export function DriveIntegrationModal({
       
       toast({
         title: "Integration successful",
-        description: "Google Drive integration has been set up successfully.",
+        description: "Google Drive service account has been set up successfully.",
         variant: "success",
       });
       

@@ -21,6 +21,7 @@ import {
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
 import { useToast } from "@/hooks/use-toast";
 import { formatRelativeTime } from "@/lib/utils";
+import { Icons } from "@/components/icons";
 
 interface DriveIntegrationDrawerProps {
   open: boolean;
@@ -33,11 +34,24 @@ export function DriveIntegrationDrawer({
   onOpenChange, 
   isActive 
 }: DriveIntegrationDrawerProps) {
-  const { ping, usage, audit } = useDriveIntegration();
+  const { ping, usage, audit, checkServiceAccountPermission, fixPermission } = useDriveIntegration();
   const { toast } = useToast();
   const [driveUsage, setDriveUsage] = useState<{ bytesUsed: number; totalQuota: number } | null>(null);
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; user: string; timestamp: string; details: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [serviceAccountEmail, setServiceAccountEmail] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<{
+    hasPermission: boolean;
+    role: string | null;
+    driveId?: string;
+    isChecking: boolean;
+    isFixing: boolean;
+  }>({
+    hasPermission: false,
+    role: null,
+    isChecking: false,
+    isFixing: false
+  });
 
   useEffect(() => {
     if (open && isActive) {
@@ -48,6 +62,12 @@ export function DriveIntegrationDrawer({
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      // Fetch ping data to get service account info
+      const pingResponse = await ping();
+      if (pingResponse.data && pingResponse.data.success) {
+        setServiceAccountEmail(pingResponse.data.serviceAccount);
+      }
+
       // Fetch usage data
       const usageData = await usage();
       if (usageData.data) {
@@ -59,10 +79,80 @@ export function DriveIntegrationDrawer({
       if (auditData.data) {
         setAuditLogs(auditData.data);
       }
+
+      // Check the first audit log for a drive ID
+      if (auditData.data && auditData.data.length > 0) {
+        // This is a simplification - in a real app, you'd get the actual drive ID
+        const driveId = auditData.data[0].details?.match(/driveId: ([a-zA-Z0-9]+)/)?.[1];
+        
+        if (driveId) {
+          checkServiceAccountPermissions(driveId);
+        }
+      }
     } catch (error) {
       console.error("Error fetching Google Drive data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkServiceAccountPermissions = async (driveId: string) => {
+    if (!serviceAccountEmail) return;
+    
+    setPermissionStatus(prev => ({ ...prev, isChecking: true }));
+    
+    try {
+      const response = await checkServiceAccountPermission(driveId);
+      
+      if (response.data && response.data.success) {
+        setPermissionStatus({
+          hasPermission: response.data.hasPermission,
+          role: response.data.role,
+          driveId,
+          isChecking: false,
+          isFixing: false
+        });
+      }
+    } catch (error) {
+      console.error("Error checking service account permissions:", error);
+    } finally {
+      setPermissionStatus(prev => ({ ...prev, isChecking: false }));
+    }
+  };
+
+  const handleFixPermission = async () => {
+    if (!permissionStatus.driveId) return;
+    
+    setPermissionStatus(prev => ({ ...prev, isFixing: true }));
+    
+    try {
+      const response = await fixPermission(permissionStatus.driveId);
+      
+      if (response.data && response.data.success) {
+        setPermissionStatus(prev => ({
+          ...prev,
+          hasPermission: true,
+          role: 'manager',
+          isFixing: false
+        }));
+        
+        toast({
+          title: "Permission fixed",
+          description: "Service account now has manager access to the drive.",
+          variant: "success",
+        });
+      } else {
+        throw new Error(response.data?.message || "Failed to fix permission");
+      }
+    } catch (error) {
+      console.error("Error fixing service account permission:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add service account as manager. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPermissionStatus(prev => ({ ...prev, isFixing: false }));
     }
   };
 
@@ -130,6 +220,40 @@ export function DriveIntegrationDrawer({
                   </Badge>
                 )}
               </div>
+
+              {serviceAccountEmail && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Service Account</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-mono text-xs">{serviceAccountEmail}</span>
+                    {permissionStatus.isChecking ? (
+                      <Icons.spinner className="h-4 w-4 animate-spin" />
+                    ) : permissionStatus.hasPermission ? (
+                      <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
+                        ✓ {permissionStatus.role || 'Manager'}
+                      </Badge>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="bg-gray-100 text-gray-700 hover:bg-gray-100">
+                          Missing
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-6 px-2 text-xs"
+                          disabled={!permissionStatus.driveId || permissionStatus.isFixing}
+                          onClick={handleFixPermission}
+                        >
+                          {permissionStatus.isFixing ? (
+                            <Icons.spinner className="h-3 w-3 animate-spin mr-1" />
+                          ) : null}
+                          Fix
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {isActive && driveUsage && (
                 <div className="space-y-2">

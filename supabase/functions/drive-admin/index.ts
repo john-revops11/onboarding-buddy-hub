@@ -1,6 +1,6 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { google } from "https://esm.sh/googleapis@132";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,6 +78,12 @@ serve(async (req) => {
       case "revoke":
         result = await handleRevoke();
         break;
+      case "checkServiceAccountPermission":
+        result = await handleCheckPermission(payload);
+        break;
+      case "fixPermission":
+        result = await handleFixPermission(payload);
+        break;
       default:
         return new Response(
           JSON.stringify({ error: 'Unknown action' }),
@@ -106,10 +112,36 @@ async function handlePing() {
       return { success: false, message: 'Service account key not configured' };
     }
 
-    // For simplicity, we're just checking if the key exists
-    // In a real implementation, you would actually test the connection to Google Drive
-    
-    return { success: true, message: 'Successfully connected to Google Drive' };
+    // Parse the key to validate it
+    try {
+      const json = JSON.parse(serviceAccountKey);
+      if (!json.client_email || !json.private_key) {
+        return { success: false, message: 'Invalid service account key format' };
+      }
+      
+      // Initialize the Drive client to test the connection
+      const auth = new google.auth.JWT(
+        json.client_email,
+        undefined,
+        json.private_key,
+        ["https://www.googleapis.com/auth/drive"],
+        "admin@your-domain.com" // Replace with actual workspace admin email
+      );
+      
+      const drive = google.drive({ version: "v3", auth });
+      
+      // Attempt a simple API call to verify the credentials work
+      await drive.about.get({ fields: 'user' });
+      
+      return { 
+        success: true, 
+        message: 'Successfully connected to Google Drive',
+        serviceAccount: json.client_email
+      };
+    } catch (error) {
+      console.error('Error validating service account key:', error);
+      return { success: false, message: 'Invalid service account key' };
+    }
   } catch (error) {
     console.error('Error in ping:', error);
     return { success: false, message: error.message };
@@ -194,13 +226,32 @@ async function handleSetSecret(payload) {
       return { success: false, message: 'No secret provided' };
     }
 
-    // In a real implementation, you would validate the secret format here
-    
-    // Set the service account key as a Supabase secret
-    // This is a mock since we can't actually set secrets in Deno
-    console.log('Setting GOOGLE_SERVICE_ACCOUNT_KEY secret');
-    
-    return { success: true, message: 'Service account key updated successfully' };
+    // Validate the secret format
+    try {
+      const decodedSecret = atob(secret);
+      const json = JSON.parse(decodedSecret);
+      
+      // Check required fields for a Google service account
+      if (!json.client_email || !json.private_key) {
+        return { success: false, message: 'Invalid service account key format' };
+      }
+      
+      // Mask the private key for logging
+      const maskedJson = { ...json, private_key: '****' };
+      console.log('Valid service account format:', JSON.stringify(maskedJson));
+      
+      // Set environment variable (this is a mock since we can't actually set env vars)
+      console.log('Setting GOOGLE_SERVICE_ACCOUNT_KEY secret');
+      
+      return { 
+        success: true, 
+        message: 'Service account key updated successfully',
+        serviceAccount: json.client_email
+      };
+    } catch (error) {
+      console.error('Error validating service account key:', error);
+      return { success: false, message: 'Invalid service account key format' };
+    }
   } catch (error) {
     console.error('Error setting secret:', error);
     return { success: false, message: error.message };
@@ -215,6 +266,121 @@ async function handleRevoke() {
     return { success: true, message: 'Service account key revoked successfully' };
   } catch (error) {
     console.error('Error revoking secret:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+async function handleCheckPermission(payload) {
+  try {
+    const { driveId } = payload;
+    if (!driveId) {
+      return { success: false, message: 'No drive ID provided' };
+    }
+    
+    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
+    if (!serviceAccountKey) {
+      return { success: false, message: 'Service account key not configured' };
+    }
+    
+    const json = JSON.parse(serviceAccountKey);
+    
+    // Initialize the Drive client
+    const auth = new google.auth.JWT(
+      json.client_email,
+      undefined,
+      json.private_key,
+      ["https://www.googleapis.com/auth/drive"],
+      "admin@your-domain.com"
+    );
+    
+    const drive = google.drive({ version: "v3", auth });
+    
+    // Check if the service account has permission
+    try {
+      const response = await drive.permissions.list({
+        fileId: driveId,
+        supportsAllDrives: true
+      });
+      
+      const permissions = response.data.permissions || [];
+      const serviceAccountPermission = permissions.find(
+        permission => permission.emailAddress === json.client_email
+      );
+      
+      return { 
+        success: true, 
+        hasPermission: !!serviceAccountPermission,
+        role: serviceAccountPermission?.role || null,
+        serviceAccount: json.client_email
+      };
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      return { success: false, message: error.message };
+    }
+  } catch (error) {
+    console.error('Error in checkPermission:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+async function handleFixPermission(payload) {
+  try {
+    const { driveId } = payload;
+    if (!driveId) {
+      return { success: false, message: 'No drive ID provided' };
+    }
+    
+    const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
+    if (!serviceAccountKey) {
+      return { success: false, message: 'Service account key not configured' };
+    }
+    
+    const json = JSON.parse(serviceAccountKey);
+    
+    // Initialize the Drive client
+    const auth = new google.auth.JWT(
+      json.client_email,
+      undefined,
+      json.private_key,
+      ["https://www.googleapis.com/auth/drive"],
+      "admin@your-domain.com"
+    );
+    
+    const drive = google.drive({ version: "v3", auth });
+    
+    // Add the service account as a manager
+    try {
+      await drive.permissions.create({
+        fileId: driveId,
+        requestBody: {
+          role: 'manager',
+          type: 'user',
+          emailAddress: json.client_email
+        },
+        supportsAllDrives: true,
+        sendNotificationEmail: false
+      });
+      
+      return { 
+        success: true, 
+        message: 'Service account added as manager',
+        serviceAccount: json.client_email
+      };
+    } catch (error) {
+      // If permission already exists (409 error), we consider it a success
+      if (error.response && error.response.status === 409) {
+        return { 
+          success: true, 
+          message: 'Service account already has permission',
+          serviceAccount: json.client_email
+        };
+      }
+      
+      console.error('Error adding permission:', error);
+      return { success: false, message: error.message };
+    }
+  } catch (error) {
+    console.error('Error in fixPermission:', error);
     return { success: false, message: error.message };
   }
 }
