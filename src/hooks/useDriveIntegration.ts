@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -118,26 +119,24 @@ export function useDriveIntegration() {
     }
   };
 
-  const triggerSharedDriveCreation = async () => {
+  const triggerSharedDriveCreation = async (clientId?: string) => {
     try {
-      console.log("Triggering shared drive creation");
-      const response = await supabase.functions.invoke("create-shared-drive", {
-        headers: {
-          'Cache-Control': 'no-cache',
-        }
-      });
+      console.log("Triggering shared drive creation", clientId ? `for client ${clientId}` : "for all clients");
       
-      console.log("Shared drive creation response:", response);
+      const payload = clientId ? { clientId } : undefined;
+      const response = await invoke("createSharedDrive", payload);
       
-      if (response.error) {
-        throw new Error(response.error.message || "Error creating shared drive");
+      if (!response || response.error) {
+        throw new Error(response?.error?.message || "Failed to create shared drive");
       }
+      
+      const successMsg = response.data?.message || 
+                         (response.data?.driveId ? `Created shared drive successfully.` : 
+                         "Shared drive creation process completed.");
       
       toast({
         title: "Success",
-        description: response.data?.results && response.data.results.length > 0
-          ? `Created ${response.data.results.filter(r => r.success).length} shared drives successfully.`
-          : "Shared drive creation process completed.",
+        description: successMsg,
         variant: "success",
       });
       
@@ -146,7 +145,7 @@ export function useDriveIntegration() {
       console.error("Error triggering shared drive creation:", error);
       toast({
         title: "Error",
-        description: "Failed to create shared drives. Please try again.",
+        description: "Failed to create shared drive. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -165,6 +164,7 @@ export function useDriveIntegration() {
       invoke("fixPermission", { driveId }),
     backfillPermissions: () => invoke("backfillPermissions"),
     triggerSharedDriveCreation,
+    createSharedDriveForClient: (clientId: string) => triggerSharedDriveCreation(clientId),
     checkSecretConfiguration
   };
 }
