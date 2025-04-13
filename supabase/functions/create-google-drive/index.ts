@@ -25,6 +25,18 @@ function getServiceAccountCredentials() {
   }
 }
 
+// --- Helper function to generate a valid requestId based on company name ---
+function generateRequestId(companyName: string) {
+  // Clean the company name - remove spaces, special chars and convert to lowercase
+  const cleanName = companyName.replace(/[^\w]/g, '').toLowerCase();
+  
+  // Add timestamp to ensure uniqueness even if the same company name is used multiple times
+  const timestamp = Date.now().toString();
+  
+  // Combine for a unique but traceable ID
+  return `drive-${cleanName}-${timestamp}`;
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -63,13 +75,16 @@ serve(async (req: Request) => {
     const authClient = await auth.getClient();
     const driveService = google.drive({ version: 'v3', auth: authClient });
 
+    // Generate request ID based on company name
+    const requestId = generateRequestId(companyName);
+    console.log(`Generated requestId: ${requestId}`);
+
     // Create Shared Drive - Using the correct API parameters
     const driveResponse = await driveService.drives.create({
       requestBody: {
         name: companyName,
       },
-      // Fix for "Missing required parameters: requestId"
-      requestId: `create-drive-${Date.now()}`, // Add a unique request ID
+      requestId: requestId, // Using company name-based ID instead of timestamp
       fields: 'id,name',
     });
 
