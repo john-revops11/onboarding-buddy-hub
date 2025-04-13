@@ -58,12 +58,13 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      await login({
+      const result = await login({
         email: data.email,
         password: data.password,
       });
       
       // The redirect will happen in the useEffect hook when state.isAuthenticated becomes true
+      console.log("Login successful", result);
       
     } catch (error: any) {
       console.error("Login error:", error);

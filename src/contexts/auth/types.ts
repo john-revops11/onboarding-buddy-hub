@@ -1,6 +1,7 @@
 
 // Types for the authentication context
 import { User } from "@/types/auth";
+import { Session, User as SupabaseUser, WeakPassword } from "@supabase/supabase-js";
 
 export interface AuthState {
   user: User | null;
@@ -23,7 +24,11 @@ export type AuthAction =
 
 export interface AuthContextType {
   state: AuthState;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<{
+    user: SupabaseUser | null;
+    session: Session | null;
+    weakPassword?: WeakPassword | null;
+  }>;
   register: (credentials: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
   clearError: () => void;
