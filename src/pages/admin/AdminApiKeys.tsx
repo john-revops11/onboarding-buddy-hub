@@ -77,7 +77,7 @@ const AdminApiKeys = () => {
       // First try to check configuration which is more reliable
       const configStatus = await checkSecretConfiguration();
       
-      if (configStatus.isNetworkError) {
+      if (configStatus.isNetworkError === true) {
         setIsDriveInError(true);
         setIsDriveActive(false);
         setConnectionError("Network error connecting to Edge Function. Please check your connection and try again.");
@@ -97,7 +97,7 @@ const AdminApiKeys = () => {
       const response = await ping();
       
       if (response.error) {
-        if (response.error.isNetworkError) {
+        if (response.error.isNetworkError === true) {
           setIsDriveInError(true);
           setIsDriveActive(false);
           setConnectionError("Network error connecting to Edge Function. Please check your connection and try again.");
@@ -113,7 +113,7 @@ const AdminApiKeys = () => {
       console.error("Error checking Drive status:", error);
       setIsDriveActive(false);
       setIsDriveInError(true);
-      setConnectionError(error.message || "Unknown error occurred");
+      setConnectionError(error instanceof Error ? error.message : String(error));
     } finally {
       setIsCheckingDrive(false);
     }

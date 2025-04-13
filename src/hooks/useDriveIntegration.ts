@@ -1,10 +1,14 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useCallback } from "react";
 
 interface DriveResponse {
   data: any;
-  error: { message: string } | null;
+  error: { 
+    message: string;
+    isNetworkError?: boolean;
+  } | null;
 }
 
 export function useDriveIntegration() {
