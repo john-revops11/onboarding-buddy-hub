@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { google } from "https://esm.sh/googleapis@126.0.1";
@@ -13,7 +14,7 @@ import { v4 as uuid } from "https://esm.sh/uuid@9";
  *      • ping / usage / audit / secrets CRUD
  *      • permission checks & fixes
  *      • back‑fill permissions across all client drives
- *      • NEW → createSharedDrive  (Pattern #2: one drive per client + ops‑group ACL)
+ *      • createSharedDrive  (Pattern #2: one drive per client + ops‑group ACL)
  *
  *  All mutating actions write to drive_audit for traceability.
  *  The service‑account JSON is stored in the Supabase Secret
@@ -28,7 +29,9 @@ import { v4 as uuid } from "https://esm.sh/uuid@9";
 // CORS for browser calls
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400"
 };
 
 // Google Group that must manage every Shared Drive
@@ -70,7 +73,9 @@ async function initializeDriveClient() {
 
 serve(async (req) => {
   // CORS pre‑flight
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
 
   try {
     /* 1️⃣  Auth ‑ ensure caller is an admin */
@@ -106,7 +111,7 @@ serve(async (req) => {
       case "fixPermission":            result = await handleFixPermission(payload, supabase); break;
       case "backfillPermissions":      result = await handleBackfillPermissions(supabase); break;
       case "checkSecretConfiguration": result = await handleCheckSecretConfiguration(supabase); break;
-      case "createSharedDrive":        result = await handleCreateSharedDrive(payload, supabase); break; // NEW
+      case "createSharedDrive":        result = await handleCreateSharedDrive(payload, supabase); break;
       default: return jsonRes({ error: "Unknown action", action }, 400);
     }
 
@@ -188,7 +193,7 @@ async function handleSetSecret(payload: { secret: string }, supabase: ReturnType
     return { success: false, message: "Invalid secret" };
   }
 
-  // Deno.env.set("GOOGLE_SERVICE_ACCOUNT_KEY", secret);  // doesn’t persist
+  // Deno.env.set("GOOGLE_SERVICE_ACCOUNT_KEY", secret);  // doesn't persist
   return { success: true, message: "Secret set" };
 }
 
@@ -205,7 +210,7 @@ async function handleGetSecret(supabase: ReturnType<typeof supabaseFromReq>) {
 }
 
 async function handleRevoke(supabase: ReturnType<typeof supabaseFromReq>) {
-  // Deno.env.set("GOOGLE_SERVICE_ACCOUNT_KEY", "");  // doesn’t persist
+  // Deno.env.set("GOOGLE_SERVICE_ACCOUNT_KEY", "");  // doesn't persist
   await supabase.from("drive_audit").insert({
     id: `secret-revoke-${uuid()}`,
     action: "SECRET_REVOKE",
@@ -411,7 +416,7 @@ async function handleCheckSecretConfiguration(supabase: ReturnType<typeof supaba
 }
 
 /* ------------------------------------------------------------------
-   NEW  ➜  handleCreateSharedDrive
+   handleCreateSharedDrive
 -------------------------------------------------------------------*/
 async function handleCreateSharedDrive(payload: { clientId?: string }, supabase: ReturnType<typeof supabaseFromReq>) {
   try {
