@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -38,7 +37,7 @@ serve(async (req) => {
 
     if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: userError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -52,13 +51,25 @@ serve(async (req) => {
 
     if (profileError || !profile || profile.role !== 'admin') {
       return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
+        JSON.stringify({ error: 'Admin access required', details: profileError?.message }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Parse the request body
-    const { action, payload } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      console.error("Failed to parse request body:", error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body', details: error.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, payload } = body;
+    console.log(`Received action: ${action}`);
 
     // Execute the requested action
     let result;
@@ -92,7 +103,7 @@ serve(async (req) => {
         break;
       default:
         return new Response(
-          JSON.stringify({ error: 'Unknown action' }),
+          JSON.stringify({ error: 'Unknown action', action }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
@@ -104,7 +115,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing request:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, stack: error.stack }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -133,7 +144,7 @@ async function handlePing() {
       };
     } catch (error) {
       console.error('Error validating service account key:', error);
-      return { success: false, message: 'Invalid service account key' };
+      return { success: false, message: 'Invalid service account key', details: error.message };
     }
   } catch (error) {
     console.error('Error in ping:', error);
@@ -214,43 +225,67 @@ async function handleAudit(supabaseClient, payload) {
 
 async function handleSetSecret(payload) {
   try {
+    console.log("Handling setSecret request");
     const { secret } = payload;
     if (!secret) {
+      console.error("No secret provided");
       return { success: false, message: 'No secret provided' };
     }
 
     // Validate the secret format
     try {
-      const decodedSecret = atob(secret);
-      const json = JSON.parse(decodedSecret);
+      let decodedSecret;
+      try {
+        decodedSecret = atob(secret);
+      } catch (error) {
+        console.error("Error decoding base64 secret:", error);
+        return { success: false, message: 'Invalid base64 format: ' + error.message };
+      }
+      
+      let json;
+      try {
+        json = JSON.parse(decodedSecret);
+      } catch (error) {
+        console.error("Error parsing JSON from decoded secret:", error);
+        return { success: false, message: 'Invalid JSON format: ' + error.message };
+      }
       
       // Check required fields for a Google service account
       if (!json.client_email || !json.private_key) {
-        return { success: false, message: 'Invalid service account key format' };
+        console.error("Missing required fields in service account key");
+        return { success: false, message: 'Invalid service account key: missing required fields' };
+      }
+      
+      if (json.type !== "service_account") {
+        console.error("Not a service account key");
+        return { success: false, message: 'Invalid key type: must be a service account' };
       }
       
       // Mask the private key for logging
       const maskedJson = { ...json, private_key: '****' };
       console.log('Valid service account format:', JSON.stringify(maskedJson));
       
-      // Set environment variable - we're just simulating since we can't actually modify env vars in Deno Deploy
-      console.log('Simulating setting GOOGLE_SERVICE_ACCOUNT_KEY secret');
-      
-      // In a real implementation, you would store the secret in Supabase
-      await Deno.env.set('GOOGLE_SERVICE_ACCOUNT_KEY', decodedSecret);
-      
-      return { 
-        success: true, 
-        message: 'Service account key updated successfully',
-        serviceAccount: json.client_email
-      };
+      try {
+        // Store in Deno environment variables
+        await Deno.env.set('GOOGLE_SERVICE_ACCOUNT_KEY', decodedSecret);
+        console.log("Successfully set GOOGLE_SERVICE_ACCOUNT_KEY env variable");
+        
+        return { 
+          success: true, 
+          message: 'Service account key updated successfully',
+          serviceAccount: json.client_email
+        };
+      } catch (error) {
+        console.error("Error setting env variable:", error);
+        return { success: false, message: 'Error setting environment variable: ' + error.message };
+      }
     } catch (error) {
-      console.error('Error validating service account key:', error);
-      return { success: false, message: 'Invalid service account key format: ' + error.message };
+      console.error('Error in service account validation:', error);
+      return { success: false, message: 'Service account validation error: ' + error.message };
     }
   } catch (error) {
-    console.error('Error setting secret:', error);
-    return { success: false, message: error.message };
+    console.error('Error in handleSetSecret:', error);
+    return { success: false, message: 'Unexpected error: ' + error.message };
   }
 }
 

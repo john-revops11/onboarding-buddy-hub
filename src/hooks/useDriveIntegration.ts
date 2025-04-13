@@ -7,6 +7,8 @@ export function useDriveIntegration() {
   
   const invoke = async (action: string, payload: any = {}) => {
     try {
+      console.log(`Invoking Drive function ${action} with payload:`, payload);
+      
       const response = await supabase.functions.invoke("drive-admin", { 
         body: { action, payload },
         // Add a timeout for requests
@@ -14,6 +16,13 @@ export function useDriveIntegration() {
           'Cache-Control': 'no-cache',
         }
       });
+      
+      console.log(`Response from ${action}:`, response);
+      
+      if (response.error) {
+        console.error(`Error in ${action} response:`, response.error);
+        throw new Error(response.error.message || `Error in ${action} operation`);
+      }
       
       return response;
     } catch (error) {
@@ -29,11 +38,19 @@ export function useDriveIntegration() {
 
   const triggerSharedDriveCreation = async () => {
     try {
+      console.log("Triggering shared drive creation");
       const response = await supabase.functions.invoke("create-shared-drive", {
         headers: {
           'Cache-Control': 'no-cache',
         }
       });
+      
+      console.log("Shared drive creation response:", response);
+      
+      if (response.error) {
+        throw new Error(response.error.message || "Error creating shared drive");
+      }
+      
       return response;
     } catch (error) {
       console.error("Error triggering shared drive creation:", error);

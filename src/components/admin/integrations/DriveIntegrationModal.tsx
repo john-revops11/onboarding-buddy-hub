@@ -116,6 +116,7 @@ export function DriveIntegrationModal({
       
       return true;
     } catch (error) {
+      console.error("JSON parsing error:", error);
       setUploadError(`Invalid JSON: ${error.message}`);
       toast({
         title: "Invalid JSON",
@@ -133,8 +134,10 @@ export function DriveIntegrationModal({
     setUploadError(null);
     
     try {
+      console.log("Reading file content...");
       const fileContent = await selectedFile.text();
       
+      console.log("Validating service account JSON...");
       // Validate the JSON file
       const isValid = await validateServiceAccountJson(fileContent);
       if (!isValid) {
@@ -142,14 +145,18 @@ export function DriveIntegrationModal({
         return;
       }
       
+      console.log("Converting to base64...");
       // Convert to base64
       const b64Content = btoa(fileContent);
       
+      console.log("Uploading to Supabase...");
       // Upload to Supabase
       const response = await uploadKey(b64Content);
       
+      console.log("Upload response:", response);
+      
       if (response.error) {
-        throw new Error(response.error.message);
+        throw new Error(response.error.message || "Unknown error occurred");
       }
 
       if (!response.data?.success) {
