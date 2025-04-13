@@ -1,108 +1,45 @@
 
-import React, { createContext, useContext, useReducer, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext } from "react";
 import { AuthContextType, AuthState } from "./auth/types";
-import { authReducer, initialState } from "./auth/auth-reducer";
-import { useAuthService } from "./auth/auth-hooks";
+
+// Create a mock authenticated state with admin role
+const mockAuthState: AuthState = {
+  user: {
+    id: "temp-user-id",
+    email: "admin@example.com",
+    name: "Temporary Admin",
+    role: "admin",
+    avatar: null,
+    status: "approved",
+    createdAt: new Date().toISOString(),
+  },
+  token: "mock-token",
+  isAuthenticated: true,
+  isLoading: false,
+  error: null,
+};
 
 // Create the Auth Context
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Auth Provider component
+// Mock auth services
+const mockAuthServices = {
+  login: async () => {},
+  register: async () => {},
+  logout: () => {},
+  clearError: () => {},
+  approveUser: async () => {},
+  rejectUser: async () => {},
+  getAllUsers: async () => { return [] },
+};
+
+// Auth Provider component - temporarily mocked
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
-  
-  // Initialize auth services
-  const {
-    login,
-    register,
-    logout,
-    clearError,
-    approveUser,
-    rejectUser,
-    getAllUsers
-  } = useAuthService(dispatch);
-
-  // Subscribe to auth changes
-  useEffect(() => {
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          // Get user data from session
-          const userData = {
-            id: session.user.id,
-            email: session.user.email || "",
-            name: session.user.user_metadata.name || "",
-            role: session.user.user_metadata.role || "user",
-            avatar: session.user.user_metadata.avatar_url || null,
-            status: "approved" as "approved" | "pending" | "rejected",  // Explicitly cast to the correct union type
-            createdAt: session.user.created_at,
-          };
-
-          // Update state with authenticated user
-          dispatch({
-            type: "LOGIN_SUCCESS",
-            payload: {
-              user: userData,
-              token: session.access_token,
-            },
-          });
-        } else if (event === "SIGNED_OUT") {
-          // Clear authentication state
-          dispatch({ type: "LOGOUT" });
-        }
-      }
-    );
-
-    // Check for existing session on mount
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const userData = {
-          id: session.user.id,
-          email: session.user.email || "",
-          name: session.user.user_metadata.name || "",
-          role: session.user.user_metadata.role || "user",
-          avatar: session.user.user_metadata.avatar_url || null,
-          status: "approved" as "approved" | "pending" | "rejected",  // Explicitly cast to the correct union type
-          createdAt: session.user.created_at,
-        };
-
-        dispatch({
-          type: "LOGIN_SUCCESS",
-          payload: {
-            user: userData,
-            token: session.access_token,
-          },
-        });
-      } else {
-        // Update loading state even if no session exists
-        dispatch({ type: "LOGOUT" });
-      }
-    };
-
-    checkSession();
-
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Provide auth context
   return (
     <AuthContext.Provider
       value={{
-        state,
-        login,
-        register,
-        logout,
-        clearError,
-        approveUser,
-        rejectUser,
-        getAllUsers
+        state: mockAuthState,
+        ...mockAuthServices
       }}
     >
       {children}
