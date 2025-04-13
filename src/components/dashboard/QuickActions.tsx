@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, MoveRight } from "lucide-react";
+import { MoveRight } from "lucide-react";
 
 export const QuickActions = () => {
   const navigate = useNavigate();
@@ -19,9 +18,7 @@ export const QuickActions = () => {
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" /> Knowledge Hub
-          </CardTitle>
+          <CardTitle>Knowledge Hub</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground">
