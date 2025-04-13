@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,50 +76,6 @@ export function useDriveIntegration() {
   const checkSecretConfiguration = async () => {
     try {
       console.log("Checking secret configuration status");
-      
-      // In development/demo environments, provide mock data for testing
-      if (window.location.hostname.includes('localhost') || 
-          window.location.hostname.includes('lovableproject.com')) {
-        
-        try {
-          const response = await supabase.functions.invoke("drive-admin", {
-            body: { action: 'checkSecretConfiguration' },
-            headers: {
-              'Cache-Control': 'no-cache',
-            }
-          });
-          
-          console.log("Secret configuration check response:", response);
-          
-          if (response.error) {
-            console.warn("Using mock data due to edge function error:", response.error);
-            return { 
-              configured: true, 
-              message: "Mock configuration for development",
-              serviceAccount: "mock-service-account@example.com",
-              isDevelopment: true
-            };
-          }
-          
-          // Add isDevelopment flag to actual response as well
-          return { 
-            ...response.data, 
-            isDevelopment: true 
-          } || { 
-            configured: false, 
-            message: "Unknown status", 
-            isDevelopment: true 
-          };
-        } catch (error) {
-          console.warn("Using mock data due to edge function error:", error);
-          return { 
-            configured: true, 
-            message: "Mock configuration for development",
-            serviceAccount: "mock-service-account@example.com",
-            isDevelopment: true
-          };
-        }
-      }
       
       const response = await supabase.functions.invoke("drive-admin", {
         body: { action: 'checkSecretConfiguration' },
