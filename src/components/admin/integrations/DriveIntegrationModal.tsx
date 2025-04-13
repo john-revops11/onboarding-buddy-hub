@@ -13,7 +13,7 @@ import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
 
-// Import new component files
+// Import components
 import { ConfigurationStatus } from "./drive/ConfigurationStatus";
 import { FileDropZone } from "./drive/FileDropZone";
 import { ServiceAccountInstructions } from "./drive/ServiceAccountInstructions";
@@ -135,10 +135,6 @@ export function DriveIntegrationModal({
       console.log("Upload response:", response);
       
       if (response.error) {
-        // Check if it's a network error
-        if (response.error.isNetworkError) {
-          throw new Error("Network error: Unable to connect to the server. Please check your internet connection and try again.");
-        }
         throw new Error(response.error.message || "Unknown error occurred");
       }
 
@@ -199,9 +195,9 @@ export function DriveIntegrationModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Google Drive Integration</DialogTitle>
+            <DialogTitle>Google Drive Integration</DialogTitle>
             <DialogDescription>
-              Upload your Google Service Account JSON credentials or revoke the existing integration.
+              Upload your Google Service Account JSON credentials to connect your Google Drive.
             </DialogDescription>
           </DialogHeader>
           
@@ -227,16 +223,19 @@ export function DriveIntegrationModal({
           </div>
           
           <DialogFooter className="flex justify-between items-center sm:justify-between">
-            <Button
-              variant="destructive"
-              onClick={() => setShowRevokeConfirm(true)}
-            >
-              Revoke Integration
-            </Button>
+            {secretConfigStatus?.configured && (
+              <Button
+                variant="destructive"
+                onClick={() => setShowRevokeConfirm(true)}
+              >
+                Revoke Integration
+              </Button>
+            )}
             {!secretConfigStatus?.configured && !secretConfigStatus?.isNetworkError && (
               <Button
                 onClick={handleUpload}
                 disabled={!selectedFile || isUploading}
+                className="ml-auto"
               >
                 {isUploading ? (
                   <>

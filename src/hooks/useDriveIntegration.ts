@@ -1,9 +1,20 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useCallback } from "react";
 
 export function useDriveIntegration() {
   const { toast } = useToast();
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Initialize by checking connectivity on hook mount
+  useEffect(() => {
+    if (!isInitialized) {
+      checkSecretConfiguration()
+        .then(() => setIsInitialized(true))
+        .catch(() => setIsInitialized(true)); // Even on error, mark as initialized
+    }
+  }, [isInitialized]);
   
   const invoke = async (action: string, payload: any = {}) => {
     try {
@@ -74,7 +85,7 @@ export function useDriveIntegration() {
     }
   };
 
-  const checkSecretConfiguration = async () => {
+  const checkSecretConfiguration = useCallback(async () => {
     try {
       console.log("Checking secret configuration status");
       
@@ -101,14 +112,6 @@ export function useDriveIntegration() {
                                     errorMessage.includes('network') ||
                                     errorMessage.includes('Network');
       
-      toast({
-        title: "Configuration Check Failed",
-        description: isProbablyNetworkError 
-          ? "Network error: Unable to verify the Google Drive service account configuration. Please check your connection."
-          : "Unable to verify the Drive service account configuration.",
-        variant: "destructive",
-      });
-      
       return { 
         configured: false, 
         message: isProbablyNetworkError 
@@ -117,7 +120,7 @@ export function useDriveIntegration() {
         isNetworkError: isProbablyNetworkError
       };
     }
-  };
+  }, []);
 
   const triggerSharedDriveCreation = async (clientId?: string) => {
     try {

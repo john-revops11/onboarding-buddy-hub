@@ -9,23 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DriveIntegrationDrawer } from "@/components/admin/integrations/DriveIntegrationDrawer";
 import { DriveIntegrationModal } from "@/components/admin/integrations/DriveIntegrationModal";
 import { useDriveIntegration } from "@/hooks/useDriveIntegration";
@@ -36,13 +19,12 @@ import { Icons } from "@/components/icons";
 const AdminApiKeys = () => {
   const [driveDrawerOpen, setDriveDrawerOpen] = useState(false);
   const [driveModalOpen, setDriveModalOpen] = useState(false);
-  const [newApiKeyOpen, setNewApiKeyOpen] = useState(false);
   const [isDriveActive, setIsDriveActive] = useState(false);
   const [isDriveInError, setIsDriveInError] = useState(false);
   const [isCheckingDrive, setIsCheckingDrive] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isCreatingDrives, setIsCreatingDrives] = useState(false);
-  const { ping, triggerSharedDriveCreation } = useDriveIntegration();
+  const { ping, triggerSharedDriveCreation, checkSecretConfiguration } = useDriveIntegration();
 
   // API integrations data
   const [integrations, setIntegrations] = useState([
@@ -92,6 +74,26 @@ const AdminApiKeys = () => {
     setIsCheckingDrive(true);
     setConnectionError(null);
     try {
+      // First try to check configuration which is more reliable
+      const configStatus = await checkSecretConfiguration();
+      
+      if (configStatus.isNetworkError) {
+        setIsDriveInError(true);
+        setIsDriveActive(false);
+        setConnectionError("Network error connecting to Edge Function. Please check your connection and try again.");
+        setIsCheckingDrive(false);
+        return;
+      }
+      
+      // If config is properly set up, the drive is active
+      if (configStatus.configured) {
+        setIsDriveActive(true);
+        setIsDriveInError(false);
+        setIsCheckingDrive(false);
+        return;
+      }
+      
+      // Fallback to ping which is less reliable but still useful
       const response = await ping();
       
       if (response.error) {
@@ -138,11 +140,6 @@ const AdminApiKeys = () => {
     }
   };
 
-  const handleDeleteIntegration = (id: string) => {
-    // This would handle deletion logic
-    console.log(`Delete integration with id: ${id}`);
-  };
-
   const handleCreateSharedDrives = async () => {
     setIsCreatingDrives(true);
     try {
@@ -158,7 +155,7 @@ const AdminApiKeys = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">API Keys Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">API Integrations</h1>
           
           {isDriveActive && (
             <Button 
@@ -178,7 +175,7 @@ const AdminApiKeys = () => {
         </div>
         
         <p className="text-muted-foreground">
-          Manage API keys for various integrations.
+          Manage integrations with external services and APIs.
         </p>
 
         {isDriveInError && connectionError && (
@@ -188,58 +185,11 @@ const AdminApiKeys = () => {
           />
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold">Integration Keys</h2>
-          </div>
-          <Dialog open={newApiKeyOpen} onOpenChange={setNewApiKeyOpen}>
-            <DialogTrigger asChild>
-              <Button>Add New API Key</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New API Key</DialogTitle>
-                <DialogDescription>
-                  Enter the details for the new API key integration.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="service">Service</Label>
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Coming soon" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="google-drive">Google Drive</SelectItem>
-                      <SelectItem value="openai">OpenAI</SelectItem>
-                      <SelectItem value="gemini">Gemini</SelectItem>
-                      <SelectItem value="pinecone">Pinecone</SelectItem>
-                      <SelectItem value="notion">Notion</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Key Name</Label>
-                  <Input id="name" placeholder="e.g. Production Google Drive" disabled />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="key">API Key</Label>
-                  <Input id="key" type="password" disabled />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled>Coming Soon</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
         <Card>
           <CardHeader>
-            <CardTitle>API Keys</CardTitle>
+            <CardTitle>Available Integrations</CardTitle>
             <CardDescription>
-              Secure keys for third-party service integrations.
+              Connect to external services to extend your application's functionality.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -247,7 +197,7 @@ const AdminApiKeys = () => {
               integrations={integrations}
               onEdit={handleEditIntegration}
               onView={handleViewIntegration}
-              onDelete={handleDeleteIntegration}
+              onDelete={() => {}}
             />
           </CardContent>
         </Card>
