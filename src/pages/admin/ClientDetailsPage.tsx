@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardSidebar';
@@ -5,51 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-}
-
-interface ClientDetails {
-  id: string;
-  email: string;
-  company_name: string;
-  onboarding_completed: boolean;
-  status: string;
-  created_at: string;
-  subscription: string;
-  addons: string[];
-  joinDate: string;
-}
-
-// Define proper types for Supabase query results
-interface AddonData {
-  name: string;
-}
-
-interface SupabaseAddonResult {
-  addon_id: string;
-  addon: AddonData | null;
-}
-
-interface UserData {
-  name: string | null;
-  email: string | null;
-  role: string | null;
-}
-
-interface SupabaseTeamMemberResult {
-  id: string;
-  email: string;
-  invitation_status: string;
-  user: UserData | null;
-}
+import { getClientDetails, ClientDetails, TeamMember } from '@/lib/client-management/client-details';
 
 const ClientDetailsPage = () => {
   const { clientId } = useParams();
@@ -62,91 +20,29 @@ const ClientDetailsPage = () => {
     const fetchClientDetails = async () => {
       setIsLoading(true);
       
-      try {
-        // Fetch client data
-        const { data: clientData, error: clientError } = await supabase
-          .from('clients')
-          .select(`
-            id, 
-            email, 
-            company_name, 
-            onboarding_completed, 
-            status, 
-            created_at,
-            subscription:subscription_id(name)
-          `)
-          .eq('id', clientId)
-          .single();
-        
-        if (clientError) throw clientError;
-        
-        if (!clientData) {
-          toast.error("Client not found");
-          navigate('/admin/clients');
-          return;
-        }
-        
-        // Fetch client add-ons
-        const { data: addonData, error: addonError } = await supabase
-          .from('client_addons')
-          .select(`
-            addon_id,
-            addon:addon_id(name)
-          `)
-          .eq('client_id', clientId);
-        
-        if (addonError) throw addonError;
-        
-        // Fetch team members
-        const { data: teamData, error: teamError } = await supabase
-          .from('team_members')
-          .select(`
-            id,
-            email,
-            invitation_status,
-            user:user_id(name, email, role)
-          `)
-          .eq('client_id', clientId);
-        
-        if (teamError) throw teamError;
-        
-        // Format the client data
-        const formattedClient: ClientDetails = {
-          ...clientData,
-          subscription: clientData.subscription?.name || 'No Subscription',
-          addons: Array.isArray(addonData) 
-            ? addonData.map((item: SupabaseAddonResult) => {
-                return item.addon?.name || 'Unknown Addon';
-              }) 
-            : [],
-          joinDate: clientData.created_at ? new Date(clientData.created_at).toISOString().split('T')[0] : 'Unknown'
-        };
-        
-        // Format team members data
-        const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map((member: SupabaseTeamMemberResult) => ({
-              id: member.id,
-              name: member.user?.name || 'Pending User',
-              email: member.email,
-              role: member.user?.role || 'Pending',
-              status: member.invitation_status
-            })) 
-          : [];
-        
-        setClient(formattedClient);
-        setTeamMembers(formattedTeamMembers);
-        
-      } catch (error) {
-        console.error("Error fetching client details:", error);
-        toast.error("Failed to load client details");
-      } finally {
-        setIsLoading(false);
+      if (!clientId) {
+        toast.error("No client ID provided");
+        navigate('/admin/clients');
+        return;
       }
+      
+      const result = await getClientDetails(clientId);
+      
+      if (result.error) {
+        toast.error(result.error);
+        if (result.error === "Client not found") {
+          navigate('/admin/clients');
+        }
+        setIsLoading(false);
+        return;
+      }
+      
+      setClient(result.client);
+      setTeamMembers(result.teamMembers);
+      setIsLoading(false);
     };
     
-    if (clientId) {
-      fetchClientDetails();
-    }
+    fetchClientDetails();
   }, [clientId, navigate]);
 
   return (
