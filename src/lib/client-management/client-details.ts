@@ -96,9 +96,9 @@ export async function getClientDetails(clientId: string): Promise<{
     const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
       ? teamData.map((member) => ({
           id: member.id,
-          name: member.user?.name || 'Pending User',
+          name: member.user ? member.user.name : 'Pending User',
           email: member.email,
-          role: member.user?.role || 'Pending',
+          role: member.user ? member.user.role : 'Pending',
           status: member.invitation_status
         })) 
       : [];
