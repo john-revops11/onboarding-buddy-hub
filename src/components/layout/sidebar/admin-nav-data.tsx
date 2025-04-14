@@ -63,7 +63,7 @@ export const adminNavGroups: SidebarNavGroup[] = [
     ],
   },
   {
-    title: "Platform",
+    title: "Platform Management",
     items: [
       {
         title: "Add-ons",
@@ -74,6 +74,11 @@ export const adminNavGroups: SidebarNavGroup[] = [
         title: "Subscriptions",
         icon: "CreditCard",
         href: "/admin/subscriptions",
+      },
+      {
+        title: "Settings",
+        icon: "Settings",
+        href: "/admin/settings",
       },
     ],
   },

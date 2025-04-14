@@ -5,13 +5,15 @@ import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { AddonForm } from "@/components/admin/addon/AddonForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { getAddons } from "@/lib/addon-management";
 import { Addon } from "@/lib/types/client-types";
+import { useToast } from "@/hooks/use-toast";
 
 const EditAddonPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [addon, setAddon] = useState<Addon | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +36,18 @@ const EditAddonPage = () => {
       } catch (err: any) {
         console.error("Error fetching addon:", err);
         setError(err.message || "Failed to load addon");
+        toast({
+          title: "Error",
+          description: err.message || "Failed to load addon",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchAddon();
-  }, [id]);
+  }, [id, toast]);
 
   if (loading) {
     return (
@@ -59,7 +66,10 @@ const EditAddonPage = () => {
           </div>
           <Card>
             <CardContent className="p-8 flex justify-center">
-              <p>Loading add-on details...</p>
+              <div className="flex items-center space-x-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p>Loading add-on details...</p>
+              </div>
             </CardContent>
           </Card>
         </div>
