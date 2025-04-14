@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,8 +30,8 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 20% 65.1%;
 
-    /* Accent - Mapped to green color */
-    --accent: #67af44;
+    /* Accent - Mapped to accentGreen-600 */
+    --accent: #2EBD85;
     --accent-foreground: 210 40% 98%;
 
     /* Destructive - Mapped to error-600 */
@@ -46,8 +47,8 @@
     --radius: 0.375rem;
 
     /* Heading color */
-    --heading-color: 90 43% 47%; /* HSL conversion of #67af44 */
-    --heading-hover-color: 90 45% 38%; /* Slightly darker hover color */
+    --heading-color: 100 40% 25%; /* HSL conversion of #5d852f */
+    --heading-hover-color: 100 50% 20%; /* Slightly darker hover color */
   }
 
   .dark {

@@ -1,16 +1,17 @@
 
+// Types for the authentication context
 import { User } from "@/types/auth";
 import { Session, User as SupabaseUser, WeakPassword } from "@supabase/supabase-js";
 
 export interface AuthState {
-  isAuthenticated: boolean;
   user: User | null;
-  error: string | null;
+  token: string | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
-  token?: string | null; // Made token optional to match both implementations
+  error: string | null;
 }
 
-// Action types for the reducer
+// Action types
 export type AuthAction =
   | { type: "LOGIN_REQUEST" }
   | { type: "LOGIN_SUCCESS"; payload: { user: User; token: string } }
@@ -23,10 +24,15 @@ export type AuthAction =
 
 export interface AuthContextType {
   state: AuthState;
-  login: (credentials: { email: string; password: string }) => Promise<any>; // Using 'any' to accommodate both return types
+  login: (credentials: { email: string; password: string }) => Promise<{
+    user: SupabaseUser | null;
+    session: Session | null;
+    weakPassword?: WeakPassword | null;
+  }>;
+  register: (credentials: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
-  getAllUsers: () => Promise<any[]>;
+  clearError: () => void;
   approveUser: (userId: string) => Promise<void>;
   rejectUser: (userId: string) => Promise<void>;
-  clearError: () => void;
+  getAllUsers: () => Promise<User[]>;
 }

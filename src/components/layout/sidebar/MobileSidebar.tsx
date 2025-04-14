@@ -20,7 +20,7 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
 
   const handleNavClick = (path: string) => {
     navigate(path);
-    onNavItemClick(); // Close mobile sidebar after navigation
+    onNavItemClick();
   };
 
   return (
@@ -37,7 +37,7 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
         
         <SearchBar />
         
-        <div className="mt-4 overflow-y-auto">
+        <div className="mb-6 overflow-y-auto">
           {navGroups.map((group, index) => (
             <SidebarNavGroup
               key={index}

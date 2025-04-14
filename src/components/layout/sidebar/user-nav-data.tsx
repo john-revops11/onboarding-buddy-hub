@@ -7,7 +7,7 @@ export const userNavGroups: SidebarNavGroup[] = [
     items: [
       {
         title: "Dashboard",
-        icon: "Home",
+        icon: "LayoutDashboard",
         href: "/dashboard",
       }
     ],

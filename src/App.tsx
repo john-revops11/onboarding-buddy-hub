@@ -1,223 +1,119 @@
 
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useNavigate,
-  useLocation,
-  Navigate,
-} from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { siteConfig } from "@/config/site";
-import Index from "./pages/index"; // Using lowercase import
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/auth-context";
+import { AuthGuard } from "@/components/auth/auth-guard";
+
+// Pages (import statements kept as is)
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
-import VerifyPage from "./pages/auth/VerifyPage";
 import ClientRegistrationPage from "./pages/auth/ClientRegistrationPage";
+import VerifyPage from "./pages/auth/VerifyPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import OnboardingPage from "./pages/dashboard/OnboardingPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
 import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
-import SettingsPage from "./pages/dashboard/SettingsPage";
-import InsightsPage from "./pages/dashboard/InsightsPage";
 import OpportunitiesPage from "./pages/dashboard/OpportunitiesPage";
 import DataUploadsPage from "./pages/dashboard/DataUploadsPage";
-import ProfilePage from "./pages/dashboard/ProfilePage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminClients from "./pages/admin/AdminClients";
-import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
-import AdminFilesPage from "./pages/admin/AdminFiles";
-import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
-import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
-import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
-import AdminOpportunitiesPage from "./pages/admin/AdminOpportunities";
 import AdminChecklists from "./pages/admin/AdminChecklists";
-import AdminAddonsPage from "./pages/admin/addons/AdminAddonsPage";
+import AdminFiles from "./pages/admin/AdminFiles";
+import AdminOpportunities from "./pages/admin/AdminOpportunities"; 
+import ChecklistEditor from "./pages/admin/ChecklistEditor";
+import AssignChecklist from "./pages/admin/AssignChecklist";
+import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
+import OnboardingPage from "./pages/dashboard/OnboardingPage";
+
+// New Pages for Revify Portal requirements
+import InsightsPage from "./pages/dashboard/InsightsPage";
+
+// Subscription and Onboarding Pages
 import AdminSubscriptionsPage from "./pages/admin/subscriptions/AdminSubscriptionsPage";
 import CreateSubscriptionPage from "./pages/admin/subscriptions/CreateSubscriptionPage";
 import EditSubscriptionPage from "./pages/admin/subscriptions/EditSubscriptionPage";
-import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
-import { AuthProvider, useAuth } from "./contexts/auth-context";
-import type { User } from "./types/auth";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DashboardLayout } from "./components/layout/DashboardSidebar";
-import { AuthGuard } from "./components/auth/auth-guard";
+import AdminAddonsPage from "./pages/admin/addons/AdminAddonsPage";
+import CreateAddonPage from "./pages/admin/addons/CreateAddonPage";
+import EditAddonPage from "./pages/admin/addons/EditAddonPage";
+import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 
-// Create a client
+// Create the QueryClient outside of the component
 const queryClient = new QueryClient();
 
-function App() {
+const App = () => {
   return (
+    // Ensure all providers are properly nested
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </Router>
+      <AuthProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/client-registration" element={<ClientRegistrationPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify" element={<VerifyPage />} />
+
+              {/* User Routes */}
+              <Route element={<AuthGuard requiredRole="user" />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
+                <Route path="/opportunities" element={<OpportunitiesPage />} />
+                <Route path="/data-uploads" element={<DataUploadsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                
+                {/* New User Routes */}
+                <Route path="/insights" element={<InsightsPage />} />
+              </Route>
+
+              {/* Admin Routes */}
+              <Route element={<AuthGuard requiredRole="admin" />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/checklists" element={<AdminChecklists />} />
+                <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
+                <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
+                <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
+                <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
+                <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
+                <Route path="/admin/files" element={<AdminFiles />} />
+                <Route path="/admin/opportunities" element={<AdminOpportunities />} />
+                <Route path="/admin/settings" element={<SettingsPage />} />
+                <Route path="/admin/clients/:id" element={<AdminDashboard />} />
+                
+                {/* Subscription and Onboarding Routes */}
+                <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+                <Route path="/admin/subscriptions/create" element={<CreateSubscriptionPage />} />
+                <Route path="/admin/subscriptions/edit/:id" element={<EditSubscriptionPage />} />
+                <Route path="/admin/addons" element={<AdminAddonsPage />} />
+                <Route path="/admin/addons/create" element={<CreateAddonPage />} />
+                <Route path="/admin/addons/edit/:id" element={<EditAddonPage />} />
+                <Route path="/admin/onboarding" element={<AdminOnboardingPage />} />
+              </Route>
+
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
-}
-
-function AppContent() {
-  const { state } = useAuth();
-  const location = useLocation();
-  console.log("Current route:", location.pathname);
-  console.log("User authenticated:", state.isAuthenticated);
-  console.log("User role:", state.user?.role);
-
-  const ProtectedRoute = ({
-    children,
-    requiredRole,
-  }: {
-    children: React.ReactNode;
-    requiredRole?: string;
-  }) => {
-    if (!state.isAuthenticated) {
-      console.log("User not authenticated, redirecting to login");
-      return <Navigate to="/login" state={{ from: location }} replace />;
-    }
-
-    if (requiredRole && state.user?.role !== requiredRole) {
-      console.log(`User does not have required role: ${requiredRole}, has: ${state.user?.role}`);
-      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
-    }
-
-    return <>{children}</>;
-  };
-
-  return (
-    <>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/auth/register" element={<RegisterInvitedUser />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/verify" element={<VerifyPage />} />
-        <Route path="/auth/register-client" element={<ClientRegistrationPage />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        
-        {/* User dashboard routes - Protected and wrapped with DashboardLayout */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/onboarding" element={
-          <ProtectedRoute>
-            <OnboardingPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/knowledge-hub" element={
-          <ProtectedRoute>
-            <KnowledgeHubPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <SettingsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/insights" element={
-          <ProtectedRoute>
-            <InsightsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/opportunities" element={
-          <ProtectedRoute>
-            <OpportunitiesPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/data-uploads" element={
-          <ProtectedRoute>
-            <DataUploadsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        } />
-        
-        {/* Admin routes - Protected with admin role and wrapped with DashboardLayout */}
-        <Route path="/admin" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/users" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminUsers />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/clients" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminClients />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/clients/:clientId" element={
-          <ProtectedRoute requiredRole="admin">
-            <ClientDetailsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/onboarding" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminOnboardingPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/opportunities" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminOpportunitiesPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/files" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminFilesPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/checklists" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminChecklists />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/subscriptions" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminSubscriptionsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/subscriptions/create" element={
-          <ProtectedRoute requiredRole="admin">
-            <CreateSubscriptionPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/subscriptions/edit/:id" element={
-          <ProtectedRoute requiredRole="admin">
-            <EditSubscriptionPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/addons" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminAddonsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/settings" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminSettingsPage />
-          </ProtectedRoute>
-        } />
-        
-        {/* Catch all route for 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-    </>
-  );
-}
+};
 
 export default App;

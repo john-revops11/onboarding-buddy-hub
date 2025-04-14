@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { X, Menu } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
 import { TopBar } from "./TopBar";
 import { DesktopSidebar } from "./sidebar/DesktopSidebar";
 import { MobileSidebar } from "./sidebar/MobileSidebar";
@@ -19,14 +18,11 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-screen w-full overflow-hidden">
       {/* Desktop Sidebar - Only visible on lg breakpoint */}
       {!isMobile && <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
       
-      <main className={cn(
-        "flex-1 flex flex-col overflow-hidden",
-        collapsed && !isMobile ? "w-[calc(100%-90px)]" : isMobile ? "w-full" : "w-[calc(100%-280px)]"
-      )}>
+      <main className="flex-1 overflow-auto">
         <TopBar 
           showMobileMenu={isMobile} 
           onMobileMenuClick={() => setDrawerOpen(true)} 
@@ -35,10 +31,10 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
         {/* Mobile Drawer - Only visible on sm and md breakpoints */}
         {isMobile && (
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-            <DrawerContent className="fixed inset-y-0 left-0 z-50 h-full max-w-[85vw] w-[320px] rounded-r-lg rounded-l-none">
+            <DrawerContent className="fixed inset-y-0 left-0 z-50 h-full max-w-[80vw] w-[280px] rounded-r-lg rounded-l-none">
               <button 
                 onClick={() => setDrawerOpen(false)}
-                className="absolute right-4 top-4 text-muted-foreground p-1 rounded-full hover:bg-muted/30"
+                className="absolute right-4 top-4 text-muted-foreground"
                 aria-label="Close menu"
               >
                 <X size={20} />
@@ -50,21 +46,22 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
           </Drawer>
         )}
         
-        <div className="flex-1 overflow-auto">
-          <motion.div 
-            className="p-4 md:p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.25 }}
-          >
-            {children}
-          </motion.div>
-        </div>
+        <motion.div 
+          className="p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.25 }}
+        >
+          {children}
+        </motion.div>
       </main>
     </div>
   );
 }
 
-// Export the components
-export { DesktopSidebar, MobileSidebar };
+// Export the icon component mapping for reuse
+export {
+  DesktopSidebar,
+  MobileSidebar,
+};

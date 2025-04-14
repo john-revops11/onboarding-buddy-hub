@@ -1,55 +1,67 @@
-
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileSearch, BarChart2, Loader2 } from "lucide-react";
-import { FileUploader } from "@/components/dashboard/FileUploader";
-import { motion } from "framer-motion";
-import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
-import { uploadFileToClientFolder } from "@/utils/googleDriveUtils";
-import { toast } from "sonner";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: string;
-  modifiedTime: string;
-  webViewLink: string;
-}
+import {
+  FileUp,
+  Calendar,
+  Check,
+  UploadCloud,
+  File,
+  X,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { getClientFiles, getLatestFile, uploadFileToClientFolder } from "@/utils/googleDriveUtils";
+import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { FileUploader } from "@/components/dashboard/FileUploader";
+import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
+import { UploadSchedule } from "@/components/dashboard/UploadSchedule";
+import { motion } from "framer-motion";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const DataUploadsPage = () => {
+  const { state } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [recentUploads, setRecentUploads] = useState<UploadedFile[]>([]);
-  const [isLoadingUploads, setIsLoadingUploads] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [uploadHistory, setUploadHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [healthCheckReport, setHealthCheckReport] = useState<any>(null);
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
   useEffect(() => {
-    const fetchRecentUploads = async () => {
-      setIsLoadingUploads(true);
+    const fetchUploadHistory = async () => {
       try {
-        // In a real implementation, this would use the authenticated user's client ID
-        const clientId = "current-client";
-        const response = await fetch(`/api/drive/${clientId}/folders/data/recent`);
+        setLoading(true);
+        const filesData = await getClientFiles("client123", "data");
+        setUploadHistory(filesData);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch recent uploads');
-        }
-        
-        const data = await response.json();
-        setRecentUploads(data.files || []);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching recent uploads:", err);
-        setError("Could not load recent uploads. Please try again later.");
+        const latestReport = await getLatestFile("client123", "resources");
+        setHealthCheckReport(latestReport);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to fetch upload history");
       } finally {
-        setIsLoadingUploads(false);
+        setLoading(false);
       }
     };
 
-    fetchRecentUploads();
+    fetchUploadHistory();
   }, []);
 
   const handleUpload = async (files: File[]) => {
@@ -59,64 +71,108 @@ const DataUploadsPage = () => {
     setUploadProgress(0);
     
     try {
-      const clientId = "current-client"; // In a real app, get from auth context
-      const folderType = "data";
-      
-      // Progress simulation
       const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          const newProgress = prev + 5;
-          return newProgress > 95 ? 95 : newProgress;
+        setUploadProgress((prevProgress) => {
+          const newProgress = prevProgress + 10;
+          if (newProgress >= 90) {
+            clearInterval(interval);
+            return 90;
+          }
+          return newProgress;
         });
-      }, 200);
+      }, 300);
       
-      // Process each file
-      const uploadPromises = files.map(async (file) => {
-        return await uploadFileToClientFolder(clientId, folderType, file);
-      });
+      const file = files[0];
       
-      const results = await Promise.all(uploadPromises);
-      clearInterval(interval);
+      const uploadedFile = await uploadFileToClientFolder("client123", "data", file);
+      
       setUploadProgress(100);
+      clearInterval(interval);
       
-      // Get valid results
-      const validUploads = results.filter(Boolean) as UploadedFile[];
+      setUploadHistory(prev => [
+        {
+          id: uploadedFile.id,
+          name: file.name,
+          size: formatFileSize(file.size),
+          modifiedTime: new Date().toISOString(),
+          status: "processed"
+        },
+        ...prev
+      ]);
       
-      if (validUploads.length > 0) {
-        setRecentUploads((prev) => [...validUploads, ...prev]);
-        toast.success(`${validUploads.length} file(s) uploaded successfully`);
-      }
-      
-      // Handle any failed uploads
-      if (validUploads.length < files.length) {
-        toast.error(`${files.length - validUploads.length} file(s) failed to upload`);
-      }
-      
-      // Reset upload state after a short delay to show 100%
+      toast.success("File uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload file");
+    } finally {
       setTimeout(() => {
         setUploading(false);
         setUploadProgress(0);
       }, 500);
-      
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Upload failed. Please try again.");
-      setUploading(false);
-      setUploadProgress(0);
     }
   };
 
-  // Format file size
-  const formatFileSize = (bytes: number | string): string => {
-    if (typeof bytes === 'string') {
-      return bytes; // Already formatted
-    }
-    
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    if (bytes === 0) return '0 Byte';
-    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)).toString());
-    return Math.round((bytes / Math.pow(1024, i))) + ' ' + sizes[i];
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + " B";
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    else return (bytes / 1048576).toFixed(1) + " MB";
   };
+
+  const today = new Date();
+  const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+  const nextUploadDate = `${nextMonth.toLocaleString('default', { month: 'long' })} 5, ${nextMonth.getFullYear()}`;
+
+  const renderMobileFileCard = (file: any) => (
+    <Card key={file.id} className="mb-4">
+      <CardHeader className="pb-3">
+        <div className="flex items-center">
+          <File size={16} className="mr-2 text-muted-foreground" />
+          <CardTitle className="text-base">{file.name}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3 space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Size</span>
+          <span className="text-sm font-medium">{file.size}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Uploaded</span>
+          <span className="text-sm font-medium">{new Date(file.modifiedTime).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <span>
+            {file.status === "processed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <Check size={12} className="mr-1" />
+                Processed
+              </span>
+            ) : file.status === "processing" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="animate-pulse mr-1">⋯</span>
+                Processing
+              </span>
+            ) : file.status === "failed" ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <X size={12} className="mr-1" />
+                Failed
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <UploadCloud size={12} className="mr-1" />
+                Uploaded
+              </span>
+            )}
+          </span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="ghost" size="sm" className="w-full">
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 
   return (
     <DashboardLayout>
@@ -129,7 +185,7 @@ const DataUploadsPage = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Data Uploads</h1>
           <p className="text-muted-foreground mt-2">
-            Upload and manage your data files
+            Manage your data submissions, schedule, and review data health.
           </p>
         </div>
         
@@ -137,9 +193,12 @@ const DataUploadsPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center text-lg md:text-xl">
-                <Upload className="mr-2" size={20} />
+                <UploadCloud className="mr-2" size={20} />
                 Upload New Data Files
               </CardTitle>
+              <CardDescription>
+                Upload your latest data files for analysis
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FileUploader 
@@ -153,74 +212,95 @@ const DataUploadsPage = () => {
                 Accepted formats: CSV, TXT, Excel (.xlsx)
               </p>
             </CardContent>
+            <CardFooter className="flex justify-between border-t bg-muted/50 py-3">
+              <div className="flex items-center text-sm">
+                <Calendar size={14} className="mr-1" />
+                <span>Next upload due: <strong>{nextUploadDate}</strong></span>
+              </div>
+            </CardFooter>
           </Card>
           
-          {/* Data Health Check Card */}
-          <DataHealthCheck 
-            report={null}
-          />
+          <DataHealthCheck report={healthCheckReport} />
           
-          {/* Recent Uploads Card */}
+          <UploadSchedule />
+          
           <Card className="col-span-1 md:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center text-lg md:text-xl">
-                <FileSearch className="mr-2" size={20} />
-                Recent Uploads
-              </CardTitle>
+              <CardTitle className="text-lg md:text-xl">Recent Upload History</CardTitle>
+              <CardDescription>
+                Your recent data submissions
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingUploads ? (
-                <div className="py-8 flex justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-              ) : error ? (
-                <div className="py-8 text-center">
-                  <p className="text-muted-foreground mb-2">{error}</p>
-                  <Button 
-                    variant="outline"
-                    onClick={() => window.location.reload()}
-                  >
-                    Retry
-                  </Button>
+              ) : uploadHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No upload history found
                 </div>
-              ) : recentUploads.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Your recent uploads will appear here
-                </p>
+              ) : isMobile ? (
+                <div>
+                  {uploadHistory.map(renderMobileFileCard)}
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>File Name</TableHead>
-                        <TableHead>Upload Date</TableHead>
+                        <TableHead className="w-[300px]">File Name</TableHead>
                         <TableHead>Size</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Uploaded</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {recentUploads.map((file) => (
+                      {uploadHistory.map((file) => (
                         <TableRow key={file.id}>
-                          <TableCell className="font-medium">{file.name}</TableCell>
-                          <TableCell>{new Date(file.modifiedTime).toLocaleString()}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <File size={16} className="mr-2 text-muted-foreground" />
+                              <span>{file.name}</span>
+                            </div>
+                          </TableCell>
                           <TableCell>{file.size}</TableCell>
                           <TableCell>
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => window.open(file.webViewLink, '_blank')}
-                              >
-                                View
+                            {new Date(file.modifiedTime).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {file.status === "processed" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <Check size={12} className="mr-1" />
+                                Processed
+                              </span>
+                            ) : file.status === "processing" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span className="animate-pulse mr-1">⋯</span>
+                                Processing
+                              </span>
+                            ) : file.status === "failed" ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <X size={12} className="mr-1" />
+                                Failed
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <UploadCloud size={12} className="mr-1" />
+                                Uploaded
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <motion.div
+                              whileHover={{ y: -2, scale: 1.02 }}
+                              whileTap={{ y: 0, scale: 0.98 }}
+                            >
+                              <Button variant="ghost" size="sm" className="focus:ring-4 focus:ring-accentGreen-600/40">
+                                View Details
                               </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => window.open(file.webViewLink + '&export=download', '_blank')}
-                              >
-                                Download
-                              </Button>
-                            </div>
+                            </motion.div>
                           </TableCell>
                         </TableRow>
                       ))}

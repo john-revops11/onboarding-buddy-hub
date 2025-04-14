@@ -16,18 +16,16 @@ import {
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 
 const DashboardPage = () => {
   const { state } = useAuth();
   const navigate = useNavigate();
   const user = state.user;
-  const [completedItems, setCompletedItems] = useState(0);
-  const [totalItems, setTotalItems] = useState(0);
+  const [completedItems, setCompletedItems] = useState(2);
+  const [totalItems, setTotalItems] = useState(6);
   const [clientStatus, setClientStatus] = useState(getClientStatus());
-  const [isLoading, setIsLoading] = useState(true);
   
   // Check if we should redirect to onboarding
   useEffect(() => {
@@ -58,67 +56,28 @@ const DashboardPage = () => {
         message: "Your onboarding process has been started. Complete all steps to get started.",
         type: "info"
       });
+      
+      // Add additional demo notifications
+      setTimeout(() => {
+        addNotification({
+          title: "New Team Member Invited",
+          message: "You've successfully invited a team member to join your workspace.",
+          type: "success"
+        });
+      }, 15000);
+      
+      setTimeout(() => {
+        addNotification({
+          title: "Onboarding Step Completed",
+          message: "You've completed the Account Setup step. 5 more steps to go!",
+          type: "success"
+        });
+      }, 30000);
     }
   }, []);
   
-  // Fetch real checklist data
-  useEffect(() => {
-    const fetchChecklistData = async () => {
-      setIsLoading(true);
-      try {
-        if (!user?.id) return;
-        
-        // Get client ID for the current user
-        const { data: clientData, error: clientError } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('email', user.email)
-          .single();
-        
-        if (clientError) throw clientError;
-        
-        if (!clientData?.id) {
-          setTotalItems(0);
-          setCompletedItems(0);
-          return;
-        }
-        
-        // Get checklist items for the client
-        const { data: checklistData, error: checklistError } = await supabase
-          .from('client_checklists')
-          .select(`
-            checklist_id,
-            completed,
-            checklist:checklists(
-              id,
-              title
-            )
-          `)
-          .eq('client_id', clientData.id);
-        
-        if (checklistError) throw checklistError;
-        
-        if (checklistData && checklistData.length > 0) {
-          setTotalItems(checklistData.length);
-          setCompletedItems(checklistData.filter(item => item.completed).length);
-        } else {
-          setTotalItems(0);
-          setCompletedItems(0);
-        }
-      } catch (error) {
-        console.error("Error fetching checklist data:", error);
-        setTotalItems(0);
-        setCompletedItems(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchChecklistData();
-  }, [user]);
-  
   // Calculate progress percentage
-  const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+  const progress = Math.round((completedItems / totalItems) * 100);
 
   return (
     <DashboardLayout>
@@ -140,21 +99,11 @@ const DashboardPage = () => {
               <Badge variant="success" className="ml-2">Active</Badge>
             </CardHeader>
             <CardContent className="pt-2">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : totalItems > 0 ? (
-                <ProgressOverview 
-                  progress={progress} 
-                  completedItems={completedItems} 
-                  totalItems={totalItems} 
-                />
-              ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  <p>No progress items available</p>
-                </div>
-              )}
+              <ProgressOverview 
+                progress={progress} 
+                completedItems={completedItems} 
+                totalItems={totalItems} 
+              />
               <div className="mt-4 flex justify-end">
                 <motion.div
                   whileHover={{ y: -2, scale: 1.02 }}

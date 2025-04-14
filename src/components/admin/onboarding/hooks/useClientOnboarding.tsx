@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,15 +8,12 @@ import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/client-management";
-import { sendClientInvitation } from "@/lib/client-management/client-invitations";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useClientOnboarding = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("client-info");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sendingInvites, setSendingInvites] = useState(false);
 
   // Query subscriptions and addons from Supabase
   const { data: subscriptions = [], isLoading: isLoadingSubscriptions } = useQuery({
@@ -121,42 +119,6 @@ export const useClientOnboarding = () => {
           description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
         });
         
-        // Send invitation emails to team members
-        setSendingInvites(true);
-        
-        try {
-          // Query the newly created team members
-          const { data: teamMembers, error } = await supabase
-            .from("team_members")
-            .select("id, email")
-            .eq("client_id", clientId);
-            
-          if (error) throw error;
-          
-          // Send invitations to each team member
-          for (const member of teamMembers) {
-            await sendClientInvitation(
-              member.id, 
-              member.email, 
-              data.companyName
-            );
-          }
-          
-          toast({
-            title: "Invitations sent",
-            description: "Email invitations have been sent to all team members.",
-          });
-        } catch (inviteError: any) {
-          console.error("Error sending invitations:", inviteError);
-          toast({
-            title: "Warning",
-            description: "Client created but there was an issue sending invitations.",
-            variant: "destructive",
-          });
-        } finally {
-          setSendingInvites(false);
-        }
-        
         // Reset form
         form.reset();
         setSelectedAddons([]);
@@ -177,7 +139,7 @@ export const useClientOnboarding = () => {
   return {
     form,
     isLoading: isLoadingSubscriptions || isLoadingAddons,
-    isSubmitting: isSubmitting || sendingInvites,
+    isSubmitting,
     activeTab,
     subscriptions,
     addons,

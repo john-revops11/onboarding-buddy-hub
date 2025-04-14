@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
   CardContent,
@@ -18,62 +19,29 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Search, FileDown, Trash2, CheckCircle, XCircle, Clock } from "lucide-react";
-import { FileUpload } from "@/lib/types/client-types";
-import { uploadClientFile, getClientFiles, updateFileStatus } from "@/lib/client-management";
-import { toast } from "sonner";
+import { getUploadedFiles, deleteFile, updateFileStatus } from "@/utils/fileUtils";
+import { UploadedFile } from "@/types/onboarding";
+import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 
 const AdminFiles = () => {
-  const [files, setFiles] = useState<FileUpload[]>([]);
-  const [filteredFiles, setFilteredFiles] = useState<FileUpload[]>([]);
+  const { toast } = useToast();
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<UploadedFile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
   // Load all files on component mount
   useEffect(() => {
-    const loadFiles = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch files from Supabase directly to get all clients' files
-        const { data, error } = await supabase
-          .from('files')
-          .select('*')
-          .order('uploaded_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        const formattedFiles = data.map(file => ({
-          id: file.id,
-          clientId: file.client_id,
-          fileName: file.filename,
-          filePath: file.file_path,
-          fileSize: file.file_size,
-          fileType: file.file_type,
-          category: file.category || 'general',
-          status: file.status,
-          uploadedBy: file.uploaded_by,
-          uploadedAt: file.uploaded_at,
-          verifiedAt: file.verified_at,
-          metadata: file.metadata || {}
-        }));
-        
-        setFiles(formattedFiles);
-        setFilteredFiles(formattedFiles);
-      } catch (error) {
-        console.error("Error loading files:", error);
-        toast.error("Failed to load files. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
+    const loadFiles = () => {
+      const allFiles = getUploadedFiles();
+      setFiles(allFiles);
+      setFilteredFiles(allFiles);
     };
     
     loadFiles();
     
-    // Refresh data every 30 seconds
-    const interval = setInterval(loadFiles, 30000);
+    // Refresh data every 5 seconds (for demo purposes)
+    const interval = setInterval(loadFiles, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -82,62 +50,66 @@ const AdminFiles = () => {
     if (searchTerm.trim() === "") {
       setFilteredFiles(files);
     } else {
-      const searchTermLower = searchTerm.toLowerCase();
       const filtered = files.filter((file) => 
-        file.fileName.toLowerCase().includes(searchTermLower) || 
-        file.clientId.toLowerCase().includes(searchTermLower) ||
-        (file.category && file.category.toLowerCase().includes(searchTermLower))
+        file.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        file.userId.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredFiles(filtered);
     }
   }, [searchTerm, files]);
 
-  const handleDeleteFile = async (fileId: string) => {
-    try {
-      // Get file details
-      const fileToDelete = files.find(f => f.id === fileId);
-      if (!fileToDelete) {
-        toast.error("File not found");
-        return;
-      }
-      
-      // Delete from storage
-      const { error: storageError } = await supabase
-        .storage
-        .from('client-files')
-        .remove([fileToDelete.filePath]);
-      
-      if (storageError) throw storageError;
-      
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('files')
-        .delete()
-        .eq('id', fileId);
-      
-      if (dbError) throw dbError;
-      
-      // Update state
-      setFiles(prev => prev.filter(file => file.id !== fileId));
-      toast.success("File deleted successfully");
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      toast.error("Failed to delete file. Please try again.");
+  const handleDeleteFile = (fileId: string) => {
+    const success = deleteFile(fileId);
+    if (success) {
+      setFiles((prev) => prev.filter((file) => file.id !== fileId));
+      toast({
+        title: "File deleted",
+        description: "The file has been deleted successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete the file.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleUpdateFileStatus = async (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
-    try {
-      const updatedFile = await updateFileStatus(fileId, status);
-      
-      setFiles(prev => prev.map(file => 
-        file.id === fileId ? updatedFile : file
+  const handleVerifyFile = (fileId: string) => {
+    const success = updateFileStatus(fileId, "verified");
+    if (success) {
+      setFiles((prev) => prev.map((file) => 
+        file.id === fileId ? { ...file, status: 'verified', verifiedAt: new Date().toISOString() } : file
       ));
-      
-      toast.success(`File marked as ${status}`);
-    } catch (error) {
-      console.error(`Error updating file status to ${status}:`, error);
-      toast.error(`Failed to update file status. Please try again.`);
+      toast({
+        title: "File verified",
+        description: "The file has been verified successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to verify the file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectFile = (fileId: string) => {
+    const success = updateFileStatus(fileId, "rejected");
+    if (success) {
+      setFiles((prev) => prev.map((file) => 
+        file.id === fileId ? { ...file, status: 'rejected', verifiedAt: new Date().toISOString() } : file
+      ));
+      toast({
+        title: "File rejected",
+        description: "The file has been rejected.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to reject the file.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -145,7 +117,6 @@ const AdminFiles = () => {
     if (type.startsWith("image/")) return "bg-green-100 text-green-800";
     if (type.includes("pdf")) return "bg-red-100 text-red-800";
     if (type.includes("word") || type.includes("doc")) return "bg-blue-100 text-blue-800";
-    if (type.includes("excel") || type.includes("spreadsheet")) return "bg-emerald-100 text-emerald-800";
     return "bg-gray-100 text-gray-800";
   };
 
@@ -155,7 +126,7 @@ const AdminFiles = () => {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: UploadedFile['status']) => {
     switch (status) {
       case 'verified':
         return <Badge className="bg-[#68b046]">Verified</Badge>;
@@ -166,30 +137,18 @@ const AdminFiles = () => {
     }
   };
 
-  const getFileUrl = (filePath: string) => {
-    const { data } = supabase.storage.from('client-files').getPublicUrl(filePath);
-    return data.publicUrl;
-  };
-
   return (
     <DashboardLayout>
-      <motion.div 
-        className="space-y-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">File Management</h1>
-          <p className="text-muted-foreground mt-2">
-            View and manage all uploaded files from users.
-          </p>
-        </div>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">File Management</h1>
+        <p className="text-muted-foreground">
+          View and manage all uploaded files from users.
+        </p>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 w-full max-w-sm">
             <Input 
-              placeholder="Search files or clients..." 
+              placeholder="Search files or users..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -203,7 +162,7 @@ const AdminFiles = () => {
           <CardHeader>
             <CardTitle>Uploaded Files</CardTitle>
             <CardDescription>
-              {files.length} files uploaded by clients
+              {files.length} files uploaded by {new Set(files.map(f => f.userId)).size} users
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -213,33 +172,24 @@ const AdminFiles = () => {
                   <TableHead>File Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Size</TableHead>
-                  <TableHead>Client ID</TableHead>
+                  <TableHead>User ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Upload Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6">
-                      <div className="flex justify-center">
-                        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">Loading files...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredFiles.length > 0 ? (
+                {filteredFiles.length > 0 ? (
                   filteredFiles.map((file) => (
                     <TableRow key={file.id}>
-                      <TableCell className="font-medium">{file.fileName}</TableCell>
+                      <TableCell className="font-medium">{file.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={getFileTypeColor(file.fileType)}>
-                          {file.fileType.split('/').pop()?.toUpperCase()}
+                        <Badge variant="outline" className={getFileTypeColor(file.type)}>
+                          {file.type.split('/').pop()?.toUpperCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatFileSize(file.fileSize)}</TableCell>
-                      <TableCell>{file.clientId.slice(0, 8)}...</TableCell>
+                      <TableCell>{formatFileSize(file.size)}</TableCell>
+                      <TableCell>{file.userId}</TableCell>
                       <TableCell>{getStatusBadge(file.status)}</TableCell>
                       <TableCell>
                         {new Date(file.uploadedAt).toLocaleString()}
@@ -251,7 +201,7 @@ const AdminFiles = () => {
                             size="icon"
                             asChild
                           >
-                            <a href={getFileUrl(file.filePath)} target="_blank" rel="noopener noreferrer">
+                            <a href={file.url} target="_blank" rel="noopener noreferrer">
                               <FileDown className="h-4 w-4" />
                             </a>
                           </Button>
@@ -262,7 +212,7 @@ const AdminFiles = () => {
                                 variant="outline" 
                                 size="icon"
                                 className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={() => handleUpdateFileStatus(file.id, 'verified')}
+                                onClick={() => handleVerifyFile(file.id)}
                                 title="Verify File"
                               >
                                 <CheckCircle className="h-4 w-4" />
@@ -271,7 +221,7 @@ const AdminFiles = () => {
                                 variant="outline" 
                                 size="icon"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleUpdateFileStatus(file.id, 'rejected')}
+                                onClick={() => handleRejectFile(file.id)}
                                 title="Reject File"
                               >
                                 <XCircle className="h-4 w-4" />
@@ -279,12 +229,24 @@ const AdminFiles = () => {
                             </>
                           )}
 
-                          {(file.status === 'verified' || file.status === 'rejected') && (
+                          {file.status === 'verified' && (
                             <Button 
                               variant="outline" 
                               size="icon"
                               className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                              onClick={() => handleUpdateFileStatus(file.id, 'pending')}
+                              onClick={() => updateFileStatus(file.id, 'pending')}
+                              title="Mark as Pending"
+                            >
+                              <Clock className="h-4 w-4" />
+                            </Button>
+                          )}
+
+                          {file.status === 'rejected' && (
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                              onClick={() => updateFileStatus(file.id, 'pending')}
                               title="Mark as Pending"
                             >
                               <Clock className="h-4 w-4" />
@@ -307,9 +269,7 @@ const AdminFiles = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-6">
-                      {searchTerm ? 
-                        "No files found matching your search." : 
-                        "No files have been uploaded yet."}
+                      No files found matching your search.
                     </TableCell>
                   </TableRow>
                 )}
@@ -317,7 +277,7 @@ const AdminFiles = () => {
             </Table>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </DashboardLayout>
   );
 };

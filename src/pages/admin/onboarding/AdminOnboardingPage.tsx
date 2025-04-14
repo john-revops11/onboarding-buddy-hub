@@ -106,9 +106,9 @@ const AdminOnboardingPage = () => {
           <TabsContent value="templates" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Templates</CardTitle>
+                <CardTitle>Onboarding Templates</CardTitle>
                 <CardDescription>
-                  Manage your client onboarding templates to customize the journey.
+                  Manage your onboarding templates to customize the client onboarding journey.
                 </CardDescription>
               </CardHeader>
               <CardContent>

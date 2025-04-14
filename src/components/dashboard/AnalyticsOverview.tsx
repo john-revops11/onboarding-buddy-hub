@@ -14,7 +14,7 @@ export function AnalyticsOverview() {
         <CardContent className="pt-2">
           <div className="text-center py-4">
             <p className="text-muted-foreground">
-              Analytics data will be displayed here once available.
+              Analytics data will appear here once available.
             </p>
           </div>
         </CardContent>

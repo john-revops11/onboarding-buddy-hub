@@ -10,13 +10,6 @@ export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
   const { state } = useAuth();
   const location = useLocation();
   
-  // If still loading, show a loading spinner
-  if (state.isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accentGreen-600"></div>
-    </div>;
-  }
-  
   // Check if the user is authenticated
   if (!state.isAuthenticated) {
     // Redirect to login page if not authenticated
