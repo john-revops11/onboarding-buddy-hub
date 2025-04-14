@@ -13,17 +13,22 @@ export const adminNavGroups: SidebarNavGroup[] = [
     ],
   },
   {
-    title: "Operations",
+    title: "Client Management",
     items: [
       {
-        title: "Users",
+        title: "Clients",
         icon: "Users",
-        href: "/admin/users",
+        href: "/admin/clients",
       },
       {
-        title: "Checklists",
-        icon: "ClipboardCheck",
-        href: "/admin/checklists",
+        title: "Onboarding",
+        icon: "UserPlus",
+        href: "/admin/onboarding",
+      },
+      {
+        title: "Opportunities",
+        icon: "Target",
+        href: "/admin/opportunities",
       },
       {
         title: "Files",
@@ -33,17 +38,37 @@ export const adminNavGroups: SidebarNavGroup[] = [
     ],
   },
   {
-    title: "Client Journey",
+    title: "System Settings",
     items: [
       {
-        title: "Onboard Client",
-        icon: "UserPlus",
-        href: "/admin/onboarding",
+        title: "Subscription Tiers",
+        icon: "CreditCard",
+        href: "/admin/subscriptions",
       },
       {
-        title: "Opportunities",
-        icon: "Target",
-        href: "/admin/opportunities",
+        title: "Add-ons",
+        icon: "Package",
+        href: "/admin/addons",
+      },
+      {
+        title: "Onboarding Templates",
+        icon: "ClipboardCheck",
+        href: "/admin/checklists",
+      },
+    ],
+  },
+  {
+    title: "Administration",
+    items: [
+      {
+        title: "Admin Users",
+        icon: "Shield",
+        href: "/admin/users",
+      },
+      {
+        title: "Settings",
+        icon: "Settings",
+        href: "/admin/settings",
       },
     ],
   },
@@ -59,26 +84,6 @@ export const adminNavGroups: SidebarNavGroup[] = [
         title: "Diagnostic Reviews",
         icon: "FileSearch",
         href: "/admin/diagnostic-reviews",
-      },
-    ],
-  },
-  {
-    title: "Platform Management",
-    items: [
-      {
-        title: "Add-ons",
-        icon: "Package",
-        href: "/admin/addons",
-      },
-      {
-        title: "Subscriptions",
-        icon: "CreditCard",
-        href: "/admin/subscriptions",
-      },
-      {
-        title: "Settings",
-        icon: "Settings",
-        href: "/admin/settings",
       },
     ],
   },

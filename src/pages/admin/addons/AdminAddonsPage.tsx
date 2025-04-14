@@ -24,7 +24,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getAddons, deleteAddon } from "@/lib/addon-management";
 import { Addon } from "@/lib/types/client-types";
@@ -154,15 +153,13 @@ const AdminAddonsPage = () => {
                           <AlertDialog open={addonToDelete === addon.id} onOpenChange={(isOpen) => {
                             if (!isOpen) setAddonToDelete(null);
                           }}>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setAddonToDelete(addon.id)}
-                              >
-                                <Trash2 size={16} />
-                              </Button>
-                            </AlertDialogTrigger>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setAddonToDelete(addon.id)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Add-on</AlertDialogTitle>
