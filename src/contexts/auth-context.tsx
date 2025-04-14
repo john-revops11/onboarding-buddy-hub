@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { authReducer, initialState } from "./auth/auth-reducer";
@@ -136,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Create context value object
+  // Create context value object that matches AuthContextType
   const contextValue: AuthContextType = {
     state,
     ...authService

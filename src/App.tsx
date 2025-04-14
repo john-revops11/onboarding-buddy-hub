@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
-import Index from "./pages";
+import Index from "./pages/Index"; // Corrected casing to match the actual file
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
