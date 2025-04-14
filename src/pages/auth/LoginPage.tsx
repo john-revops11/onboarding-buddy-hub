@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,32 +5,31 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { Shield, Check } from "lucide-react";
 import { AuthBackground } from "@/components/auth/AuthBackground";
-
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email({
+    message: "Please enter a valid email address."
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters."
+  })
 });
-
 type FormValues = z.infer<typeof formSchema>;
-
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { login, state } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    login,
+    state
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Get the intended destination from location state or default to dashboard
@@ -41,59 +39,48 @@ const LoginPage = () => {
   useEffect(() => {
     if (state.isAuthenticated) {
       const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
-      navigate(redirectPath, { replace: true });
+      navigate(redirectPath, {
+        replace: true
+      });
     }
   }, [state.isAuthenticated, state.user, navigate]);
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      password: "",
-    },
+      password: ""
+    }
   });
-
   const onSubmit = async (data: FormValues) => {
     if (isLoading) return; // Prevent multiple submissions
-    
+
     setIsLoading(true);
-    
     try {
       await login({
         email: data.email,
-        password: data.password,
+        password: data.password
       });
-      
+
       // Auth state changes will trigger the useEffect for redirect
-      
     } catch (error: any) {
       console.error("Login error:", error);
-      
+
       // Show more specific error messages based on error type
       const errorMessage = error.message || "Invalid email or password. Please try again.";
-      
       toast({
         title: "Login Failed",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="flex min-h-screen w-full">
+  return <div className="flex min-h-screen w-full">
       {/* Left side - Login form */}
       <div className="relative flex w-full md:w-1/2 flex-col items-center justify-center bg-white px-8 md:px-16 py-12">
         <div className="absolute top-10 left-10">
-          <div className="w-12 h-12 rounded-full bg-[#8ab454]/90">
-            <img 
-              src="/public/lovable-uploads/112cb5c5-b290-4f65-9db1-daa1d1242758.png" 
-              alt="Revify Logo" 
-              className="w-14 h-14 scale-90"
-            />
-          </div>
+          
         </div>
         
         <AuthBackground className="opacity-10" />
@@ -106,67 +93,34 @@ const LoginPage = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
+              <FormField control={form.control} name="email" render={({
+              field
+            }) => <FormItem>
                     <FormLabel className="text-neutral-700">Email address</FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="name@example.com"
-                        autoComplete="email"
-                        className="h-12 rounded-md border-neutral-200 bg-white"
-                        disabled={isLoading}
-                        {...field}
-                      />
+                      <Input type="email" placeholder="name@example.com" autoComplete="email" className="h-12 rounded-md border-neutral-200 bg-white" disabled={isLoading} {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
+                  </FormItem>} />
+              <FormField control={form.control} name="password" render={({
+              field
+            }) => <FormItem>
                     <div className="flex justify-between items-center">
                       <FormLabel className="text-neutral-700">Password</FormLabel>
-                      <Link
-                        to="/forgot-password"
-                        className="text-sm font-medium text-[#8ab454] hover:text-[#75a33d]"
-                      >
+                      <Link to="/forgot-password" className="text-sm font-medium text-[#8ab454] hover:text-[#75a33d]">
                         Forgot password?
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        autoComplete="current-password"
-                        className="h-12 rounded-md border-neutral-200 bg-white"
-                        disabled={isLoading}
-                        {...field}
-                      />
+                      <Input type="password" placeholder="••••••••" autoComplete="current-password" className="h-12 rounded-md border-neutral-200 bg-white" disabled={isLoading} {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button 
-                type="submit" 
-                className="w-full h-14 bg-[#8ab454] hover:bg-[#75a33d] text-white font-medium rounded-md" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
+                  </FormItem>} />
+              <Button type="submit" className="w-full h-14 bg-[#8ab454] hover:bg-[#75a33d] text-white font-medium rounded-md" disabled={isLoading}>
+                {isLoading ? <>
                     <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...
-                  </>
-                ) : (
-                  "Login"
-                )}
+                  </> : "Login"}
               </Button>
             </form>
           </Form>
@@ -239,8 +193,6 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default LoginPage;
