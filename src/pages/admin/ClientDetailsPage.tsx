@@ -29,6 +29,24 @@ interface ClientDetails {
   joinDate: string;
 }
 
+// Define types for Supabase query results
+interface SupabaseAddonResult {
+  addon?: {
+    name?: string;
+  }
+}
+
+interface SupabaseTeamMemberResult {
+  id: string;
+  email: string;
+  invitation_status: string;
+  user?: {
+    name?: string;
+    email?: string;
+    role?: string;
+  }
+}
+
 const ClientDetailsPage = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
@@ -91,12 +109,12 @@ const ClientDetailsPage = () => {
         const formattedClient: ClientDetails = {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
-          addons: addonData?.map(addon => addon.addon?.name) || [],
+          addons: addonData?.map((item: SupabaseAddonResult) => item.addon?.name || 'Unknown Addon') || [],
           joinDate: clientData.created_at ? new Date(clientData.created_at).toISOString().split('T')[0] : 'Unknown'
         };
         
         // Format team members data
-        const formattedTeamMembers: TeamMember[] = teamData?.map(member => ({
+        const formattedTeamMembers: TeamMember[] = teamData?.map((member: SupabaseTeamMemberResult) => ({
           id: member.id,
           name: member.user?.name || 'Pending User',
           email: member.email,
