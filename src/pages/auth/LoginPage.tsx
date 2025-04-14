@@ -39,11 +39,17 @@ const LoginPage = () => {
   const { login, state } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const from = location.state?.from?.pathname || "/dashboard";
 
   useEffect(() => {
+    // Clear any previous errors on component mount
+    setLoginError(null);
+    
     if (state.isAuthenticated) {
+      console.log("User is authenticated, redirecting to dashboard");
+      console.log("User role:", state.user?.role);
       const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
       navigate(redirectPath, { replace: true });
     }
@@ -62,19 +68,33 @@ const LoginPage = () => {
     if (isLoading) return;
 
     setIsLoading(true);
+    setLoginError(null);
 
     try {
+      console.log("Attempting login with email:", data.email);
+      
       await login({
         email: data.email,
         password: data.password,
       });
 
+      console.log("Login API call completed");
       // Auth state changes will trigger the useEffect for redirect
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Login error details:", error);
 
-      const errorMessage = error.message || "Invalid email or password. Please try again.";
-
+      let errorMessage = "Failed to login. Please try again.";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      if (error?.code === "invalid_credentials") {
+        errorMessage = "The email or password you entered is incorrect. Please try again.";
+      }
+      
+      setLoginError(errorMessage);
+      
       toast({
         title: "Login Failed",
         description: errorMessage,
@@ -107,6 +127,12 @@ const LoginPage = () => {
               Enter your credentials to access your account
             </p>
           </motion.div>
+
+          {loginError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+              {loginError}
+            </div>
+          )}
 
           <Form {...form}>
             <motion.form 
