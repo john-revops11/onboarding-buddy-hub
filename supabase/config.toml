@@ -19,3 +19,4 @@ api_url = "http://localhost"
 [functions]
 [functions.create-google-drive]
 verify_jwt = false
+

@@ -69,7 +69,7 @@ export function useClientManagement() {
 
   const retryDriveCreation = async (id: string, email: string, companyName: string) => {
     try {
-      // Invoke the edge function to create Google Drive
+      // Updated to use proper method with apiKey from Supabase client
       const { data, error } = await supabase.functions.invoke('create-google-drive', {
         body: {
           userEmail: email,

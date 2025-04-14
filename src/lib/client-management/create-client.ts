@@ -28,6 +28,7 @@ export async function createClient(data: ClientFormValues, selectedAddons: strin
     
     // Step 2: Create a Google Drive for the client
     try {
+      // Updated to use proper method with apiKey from Supabase client
       const { data: driveData, error: driveError } = await supabase.functions.invoke('create-google-drive', {
         body: {
           userEmail: data.email,

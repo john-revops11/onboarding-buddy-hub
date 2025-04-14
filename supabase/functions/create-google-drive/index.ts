@@ -94,6 +94,26 @@ serve(async (req: Request) => {
   let companyName = "unknown";
   
   try {
+    // Extract API key from the request header
+    const apiKey = req.headers.get('apikey') || req.headers.get('Authorization')?.split(' ')[1];
+    
+    // Verify either apiKey or supabase auth is present
+    if (!apiKey && !req.headers.get('Authorization')) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing API key or authorization token' 
+        }),
+        {
+          status: 401,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
+    }
+    
     // Parse incoming request data
     const requestData = await req.json();
     userEmail = requestData.userEmail || "unknown";
