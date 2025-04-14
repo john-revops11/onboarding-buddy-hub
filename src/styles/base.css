@@ -5,4 +5,13 @@
     --primary-900: 215 28% 17%; /* Match the dark mode foreground color */
     --primary-900-rgb: 215, 28%, 17%; /* Add RGB version for rgba support */
   }
+  
+  /* Define brand colors */
+  :root {
+    --green-base: 92 170 68;
+    --green-light: 122 201 10;
+    --green-dark: 75 132 48;
+    --darkblue-base: 10 28 52;
+    --error-red: 234 56 76;
+  }
 }
