@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,26 +8,7 @@ import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
 import { BarChart } from "@/components/ui/charts/BarChart";
 import { LineChart } from "@/components/ui/charts/LineChart";
 
-// Removing the GoogleDriveIntegration component entirely
-
 const AdminDashboard = () => {
-  const userActivityData = [
-    { name: "Mon", value: 12 },
-    { name: "Tue", value: 18 },
-    { name: "Wed", value: 15 },
-    { name: "Thu", value: 22 },
-    { name: "Fri", value: 30 },
-    { name: "Sat", value: 10 },
-    { name: "Sun", value: 5 },
-  ];
-
-  const onboardingData = [
-    { name: "Week 1", completed: 12, new: 21 },
-    { name: "Week 2", completed: 18, new: 15 },
-    { name: "Week 3", completed: 24, new: 19 },
-    { name: "Week 4", completed: 32, new: 22 },
-  ];
-
   const tierBenefits = [
     "Priority access to support",
     "Custom reporting dashboards",
@@ -38,7 +19,6 @@ const AdminDashboard = () => {
 
   const handleTierChange = (newTier: string) => {
     console.log(`Tier changed to: ${newTier}`);
-    // In a real app, you would call an API to update the tier
   };
 
   return (
@@ -67,11 +47,11 @@ const AdminDashboard = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">246</div>
+                <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <span className="text-green-500 flex items-center">
                     <ArrowUpRight className="h-3 w-3" />
-                    12%
+                    0%
                   </span>
                   from last month
                 </p>
@@ -86,11 +66,11 @@ const AdminDashboard = () => {
                 <UserPlus className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">34</div>
+                <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <span className="text-green-500 flex items-center">
                     <ArrowUpRight className="h-3 w-3" />
-                    8%
+                    0%
                   </span>
                   from last week
                 </p>
@@ -105,11 +85,11 @@ const AdminDashboard = () => {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">128</div>
+                <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <span className="text-green-500 flex items-center">
                     <ArrowUpRight className="h-3 w-3" />
-                    24%
+                    0%
                   </span>
                   completion rate
                 </p>
@@ -126,7 +106,7 @@ const AdminDashboard = () => {
             <FileUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">862</div>
+            <div className="text-2xl font-bold">-</div>
             <p className="text-xs text-muted-foreground">
               Total uploads this month
             </p>
@@ -138,15 +118,13 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle>User Activity</CardTitle>
               <CardDescription>
-                Daily active users over the past week
+                Daily active users
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <BarChart
-                data={userActivityData}
-                categories={["value"]}
-                index="name"
-              />
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                No data available
+              </div>
             </CardContent>
           </Card>
 
@@ -154,15 +132,13 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle>Onboarding Progress</CardTitle>
               <CardDescription>
-                New and completed onboardings by week
+                New and completed onboardings
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <LineChart
-                data={onboardingData}
-                categories={["completed", "new"]}
-                index="name"
-              />
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                No data available
+              </div>
             </CardContent>
           </Card>
         </div>
