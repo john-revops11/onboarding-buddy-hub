@@ -4,6 +4,7 @@ export { createClient } from './create-client';
 export { getClients } from './client-query';
 export { sendClientInvitation } from './client-invitations';
 export { completeClientOnboarding } from './client-status';
+export { addClient, addRevologyAnalyticsClient } from './add-client';
 
 // Export file management functions
 export {

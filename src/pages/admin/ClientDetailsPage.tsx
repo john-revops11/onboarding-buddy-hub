@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardSidebar';
@@ -115,7 +116,7 @@ const ClientDetailsPage = () => {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
-            ? addonData.map((item: any) => {
+            ? addonData.map((item: SupabaseAddonResult) => {
                 // Check if addon exists and has a name property
                 if (item.addon && typeof item.addon === 'object') {
                   return item.addon.name || 'Unknown Addon';
@@ -128,7 +129,7 @@ const ClientDetailsPage = () => {
         
         // Format team members data
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map((member: any) => ({
+          ? teamData.map((member: SupabaseTeamMemberResult) => ({
               id: member.id,
               name: member.user && typeof member.user === 'object' 
                 ? (member.user.name || 'Pending User') 
