@@ -509,6 +509,76 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_addon: {
+        Args: {
+          name_param: string
+          description_param: string
+          price_param: number
+          tags_param: string[]
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          tags: string[] | null
+        }
+      }
+      admin_create_subscription: {
+        Args: {
+          name_param: string
+          description_param: string
+          price_param: number
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+        }
+      }
+      admin_delete_addon: {
+        Args: { id_param: string }
+        Returns: boolean
+      }
+      admin_delete_subscription: {
+        Args: { id_param: string }
+        Returns: boolean
+      }
+      admin_update_addon: {
+        Args: {
+          id_param: string
+          name_param: string
+          description_param: string
+          price_param: number
+          tags_param: string[]
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          tags: string[] | null
+        }
+      }
+      admin_update_subscription: {
+        Args: {
+          id_param: string
+          name_param: string
+          description_param: string
+          price_param: number
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+        }
+      }
       check_table_exists: {
         Args: { table_name: string }
         Returns: boolean

@@ -1,4 +1,3 @@
-
 export interface SubscriptionTier {
   id: string;
   name: string;
@@ -11,6 +10,7 @@ export interface Addon {
   name: string;
   description?: string;
   price: number;
+  tags?: string[];
 }
 
 export interface TeamMember {

@@ -31,7 +31,7 @@ export async function createAddon(addon: Omit<Addon, 'id'>): Promise<Addon | nul
         name_param: addon.name,
         description_param: addon.description,
         price_param: addon.price,
-        tags_param: addon.tags
+        tags_param: addon.tags || []  // Add default empty array if tags is undefined
       });
     
     if (error) {
@@ -56,7 +56,7 @@ export async function updateAddon(id: string, addon: Partial<Addon>): Promise<Ad
         name_param: addon.name,
         description_param: addon.description,
         price_param: addon.price,
-        tags_param: addon.tags
+        tags_param: addon.tags || []  // Add default empty array if tags is undefined
       });
     
     if (error) {

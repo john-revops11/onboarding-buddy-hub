@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -32,7 +33,7 @@ const subscriptionSchema = z.object({
 type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 
 interface SubscriptionFormProps {
-  initialData?: SubscriptionFormValues;
+  initialData?: SubscriptionFormValues & { id?: string };  // Add optional id field
   isEditing?: boolean;
 }
 
@@ -85,9 +86,9 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
       
       let result;
       
-      if (isEditing && initialData) {
+      if (isEditing && initialData?.id) {
         // Update existing subscription using the updated function
-        result = await updateSubscriptionTier(initialData.id || "", subscriptionData);
+        result = await updateSubscriptionTier(initialData.id, subscriptionData);
       } else {
         // Insert new subscription using the updated function
         result = await createSubscriptionTier(subscriptionData);
