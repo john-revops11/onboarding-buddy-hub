@@ -64,7 +64,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
         addonsByClient[item.client_id] = [];
       }
       if (item.addons) {
-        // Properly cast the addon data to ensure it has the right type
+        // The addons property is an object, not an array, so access its properties directly
         const addon: Addon = {
           id: String(item.addons.id),
           name: String(item.addons.name),
