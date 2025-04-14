@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
-import Index from "./pages/Index"; // Corrected casing to match the actual file
+import Index from "./pages/index"; // Fixed casing to match the actual file
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -25,34 +25,8 @@ import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
-import { createContext } from "react";
+import { AuthProvider, useAuth } from "./contexts/auth-context";
 import type { User } from "./types/auth";
-import type { AuthContextType } from "./contexts/auth/types";
-
-// Create the Auth Context
-const AuthContext = createContext<AuthContextType>({
-  state: {
-    isAuthenticated: false,
-    user: null,
-    error: null,
-    isLoading: false,
-  },
-  login: async () => {},
-  logout: () => {},
-  getAllUsers: async () => [],
-  approveUser: async () => {},
-  rejectUser: async () => {},
-  clearError: () => {},
-});
-
-// Custom hook to use the auth context
-export const useAuth = (): AuthContextType => {
-  const context = React.useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
 
 function App() {
   return (
@@ -61,120 +35,6 @@ function App() {
         <AppContent />
       </AuthProvider>
     </Router>
-  );
-}
-
-function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState({
-    isAuthenticated: false,
-    user: null,
-    error: null,
-    isLoading: false,
-  });
-
-  useEffect(() => {
-    const storedAuth = localStorage.getItem(siteConfig.localStorageKey);
-    if (storedAuth) {
-      const authData = JSON.parse(storedAuth);
-      setState({
-        ...state,
-        isAuthenticated: authData.isAuthenticated,
-        user: authData.user,
-      });
-    }
-  }, []);
-
-  const login = async (credentials: any) => {
-    setState({ ...state, isLoading: true, error: null });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const mockUser = {
-        id: "1",
-        name: "John Doe",
-        email: credentials.email,
-        role: credentials.email === "admin@example.com" ? "admin" : "user",
-        status: "approved",
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem(
-        siteConfig.localStorageKey,
-        JSON.stringify({ isAuthenticated: true, user: mockUser })
-      );
-      setState({
-        ...state,
-        isAuthenticated: true,
-        user: mockUser,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      setState({ ...state, error: error.message, isLoading: false });
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem(siteConfig.localStorageKey);
-    setState({ ...state, isAuthenticated: false, user: null });
-  };
-
-  const getAllUsers = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const mockUsers = [
-      {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        role: "user",
-        status: "approved",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        role: "user",
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "3",
-        name: "Admin User",
-        email: "admin@example.com",
-        role: "admin",
-        status: "approved",
-        createdAt: new Date().toISOString(),
-      },
-    ];
-    return mockUsers;
-  };
-
-  const approveUser = async (userId: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log(`User ${userId} approved`);
-  };
-
-  const rejectUser = async (userId: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log(`User ${userId} rejected`);
-  };
-
-  const clearError = () => {
-    setState({ ...state, error: null });
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        state,
-        login,
-        logout,
-        getAllUsers,
-        approveUser,
-        rejectUser,
-        clearError,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
   );
 }
 
