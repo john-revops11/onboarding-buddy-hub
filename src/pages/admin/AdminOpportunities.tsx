@@ -20,33 +20,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, PlusCircle, Trash2, Save } from "lucide-react";
+import { FileText, PlusCircle, Trash2, Save, UsersRound } from "lucide-react";
 
 const AdminOpportunities = () => {
   const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState<string>("");
   
-  // Mock data - in a real app, this would come from an API
-  const clients = [
-    { id: "client1", name: "Acme Corporation" },
-    { id: "client2", name: "GlobalTech Industries" },
-    { id: "client3", name: "Pacific Northwest Trust" },
-  ];
+  // Empty arrays instead of mock data
+  const clients: { id: string; name: string }[] = [];
   
-  const [opportunities, setOpportunities] = useState([
-    {
-      id: 1,
-      title: "Inventory Management Optimization",
-      description: "Analysis shows potential for 15% reduction in holding costs through improved inventory forecasting.",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "Customer Segmentation Enhancement",
-      description: "Current segmentation can be refined to target high-value customer groups more effectively.",
-      priority: "medium",
-    }
-  ]);
+  const [opportunities, setOpportunities] = useState<{
+    id: number;
+    title: string;
+    description: string;
+    priority: string;
+  }[]>([]);
   
   const [newOpportunity, setNewOpportunity] = useState({
     title: "",
@@ -54,23 +42,18 @@ const AdminOpportunities = () => {
     priority: "medium"
   });
   
-  const [presentations, setPresentations] = useState([
-    {
-      id: 1,
-      title: "Q1 2025 Strategy Review",
-      link: "https://drive.google.com/file/d/1example"
-    },
-    {
-      id: 2,
-      title: "Implementation Roadmap",
-      link: "https://drive.google.com/file/d/2example"
-    }
-  ]);
+  const [presentations, setPresentations] = useState<{
+    id: number;
+    title: string;
+    link: string;
+  }[]>([]);
   
   const [newPresentation, setNewPresentation] = useState({
     title: "",
     link: ""
   });
+  
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleAddOpportunity = () => {
     if (!newOpportunity.title || !newOpportunity.description) {
@@ -172,16 +155,26 @@ const AdminOpportunities = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger className="w-full md:w-80">
-                <SelectValue placeholder="Select a client" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {clients.length > 0 ? (
+              <Select value={selectedClient} onValueChange={setSelectedClient}>
+                <SelectTrigger className="w-full md:w-80">
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="bg-muted/30 p-6 rounded-lg text-center">
+                <UsersRound size={36} className="mx-auto mb-2 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-1">No Clients Available</h3>
+                <p className="text-muted-foreground mb-4">
+                  There are no clients in the system yet. Clients need to be added before opportunities can be managed.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
         
@@ -196,33 +189,39 @@ const AdminOpportunities = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  {opportunities.map((opportunity) => (
-                    <div key={opportunity.id} className="p-4 border rounded-lg bg-card flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-medium">{opportunity.title}</h3>
-                          <div className={`px-2 py-1 text-xs rounded-full ${
-                            opportunity.priority === 'high' 
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
-                              : opportunity.priority === 'medium'
-                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                              : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                          }`}>
-                            {opportunity.priority.charAt(0).toUpperCase() + opportunity.priority.slice(1)}
+                  {opportunities.length > 0 ? (
+                    opportunities.map((opportunity) => (
+                      <div key={opportunity.id} className="p-4 border rounded-lg bg-card flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-medium">{opportunity.title}</h3>
+                            <div className={`px-2 py-1 text-xs rounded-full ${
+                              opportunity.priority === 'high' 
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+                                : opportunity.priority === 'medium'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                            }`}>
+                              {opportunity.priority.charAt(0).toUpperCase() + opportunity.priority.slice(1)}
+                            </div>
                           </div>
+                          <p className="text-sm text-muted-foreground mt-1">{opportunity.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{opportunity.description}</p>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteOpportunity(opportunity.id)}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteOpportunity(opportunity.id)}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
+                    ))
+                  ) : (
+                    <div className="text-center p-6 bg-muted/20 rounded-lg">
+                      <p className="text-muted-foreground">No opportunities added yet.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 
                 <div className="border rounded-lg p-4 bg-muted/50">
@@ -288,29 +287,35 @@ const AdminOpportunities = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  {presentations.map((presentation) => (
-                    <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <div className="mr-3 p-2 bg-primary/10 rounded">
-                          <FileText size={18} className="text-primary" />
+                  {presentations.length > 0 ? (
+                    presentations.map((presentation) => (
+                      <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center">
+                          <div className="mr-3 p-2 bg-primary/10 rounded">
+                            <FileText size={18} className="text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{presentation.title}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[400px]">
+                              {presentation.link}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{presentation.title}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[400px]">
-                            {presentation.link}
-                          </p>
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeletePresentation(presentation.id)}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeletePresentation(presentation.id)}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
+                    ))
+                  ) : (
+                    <div className="text-center p-6 bg-muted/20 rounded-lg">
+                      <p className="text-muted-foreground">No presentations added yet.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 
                 <div className="border rounded-lg p-4 bg-muted/50">
