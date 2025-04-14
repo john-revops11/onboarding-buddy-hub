@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { XCircle } from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const LoginPage = () => {
   const { state, login, clearError } = useAuth();
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const from = location.state?.from?.pathname || "/dashboard";
 
@@ -39,16 +42,60 @@ const LoginPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials({ ...credentials, [name]: value });
+    
+    // Clear validation errors when user starts typing
+    if (submitAttempted) {
+      setLoginError(null);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    if (!credentials.email.trim()) {
+      setLoginError("Email is required");
+      return false;
+    }
+    
+    if (!credentials.password) {
+      setLoginError("Password is required");
+      return false;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(credentials.email)) {
+      setLoginError("Please enter a valid email address");
+      return false;
+    }
+    
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoginError(null);
     
     try {
       await login(credentials);
     } catch (error: any) {
-      setLoginError(error.message || "Login failed. Please check your credentials.");
+      // Handle specific error types
+      if (error.code === "invalid_credentials") {
+        setLoginError("Invalid email or password. Please try again.");
+      } else if (error.code === "user_not_found") {
+        setLoginError("No account found with this email address.");
+      } else if (error.code === "too_many_attempts") {
+        setLoginError("Too many login attempts. Please try again later.");
+      } else if (error.message?.includes("network")) {
+        setLoginError("Network error. Please check your connection and try again.");
+      } else {
+        setLoginError(error.message || "Login failed. Please try again.");
+      }
+      console.error("Login error:", error);
     }
   };
 
@@ -76,9 +123,10 @@ const LoginPage = () => {
           </motion.div>
 
           {loginError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-              {loginError}
-            </div>
+            <Alert variant="destructive" className="mb-4 bg-red-50 border-red-200 text-red-700">
+              <XCircle className="h-4 w-4 mr-2" />
+              <AlertDescription>{loginError}</AlertDescription>
+            </Alert>
           )}
 
           <motion.div 
@@ -96,8 +144,8 @@ const LoginPage = () => {
                   placeholder="Email address"
                   value={credentials.email}
                   onChange={handleInputChange}
-                  required
-                  className="h-11"
+                  className={`h-11 ${submitAttempted && !credentials.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  aria-invalid={submitAttempted && !credentials.email ? "true" : "false"}
                 />
               </div>
               
@@ -109,8 +157,8 @@ const LoginPage = () => {
                   placeholder="Password"
                   value={credentials.password}
                   onChange={handleInputChange}
-                  required
-                  className="h-11"
+                  className={`h-11 ${submitAttempted && !credentials.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  aria-invalid={submitAttempted && !credentials.password ? "true" : "false"}
                 />
               </div>
               
