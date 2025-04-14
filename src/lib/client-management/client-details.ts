@@ -84,6 +84,7 @@ export async function getClientDetails(clientId: string): Promise<{
       addons: Array.isArray(addonData) 
         ? addonData.map((item) => {
             if (item && item.addon) {
+              // Fix: Access the name property correctly from the addon object
               return item.addon.name || 'Unknown Addon';
             }
             return 'Unknown Addon';
@@ -96,6 +97,7 @@ export async function getClientDetails(clientId: string): Promise<{
     const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
       ? teamData.map((member) => ({
           id: member.id,
+          // Fix: Access properties correctly from the user object
           name: member.user ? member.user.name : 'Pending User',
           email: member.email,
           role: member.user ? member.user.role : 'Pending',

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,9 +30,8 @@ export default function AdminSettingsPage() {
     // In a real app, you would save these settings to a backend
     localStorage.setItem('adminSettings', JSON.stringify(settings));
     
-    toast({
-      description: "System settings have been updated successfully.",
-    });
+    // Fix: Use toast correctly without title property
+    toast("System settings have been updated successfully.");
   };
 
   return (
