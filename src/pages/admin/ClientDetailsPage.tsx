@@ -118,7 +118,7 @@ const ClientDetailsPage = () => {
           addons: Array.isArray(addonData) 
             ? addonData.map((item: any) => {
                 // Check if addon exists and has a name property
-                if (item.addon && typeof item.addon === 'object') {
+                if (item.addon && typeof item.addon === 'object' && 'name' in item.addon) {
                   return item.addon.name || 'Unknown Addon';
                 }
                 return 'Unknown Addon';
@@ -131,11 +131,11 @@ const ClientDetailsPage = () => {
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
           ? teamData.map((member: any) => ({
               id: member.id,
-              name: member.user && typeof member.user === 'object' 
+              name: member.user && typeof member.user === 'object' && 'name' in member.user
                 ? (member.user.name || 'Pending User') 
                 : 'Pending User',
               email: member.email,
-              role: member.user && typeof member.user === 'object' 
+              role: member.user && typeof member.user === 'object' && 'role' in member.user
                 ? (member.user.role || 'Pending') 
                 : 'Pending',
               status: member.invitation_status
