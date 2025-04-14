@@ -15,12 +15,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
+import { ChevronRight, ShieldCheck, Facebook, Twitter, Linkedin } from "lucide-react";
+import { motion } from "framer-motion";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  rememberMe: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -48,6 +52,7 @@ const LoginPage = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -80,31 +85,60 @@ const LoginPage = () => {
     }
   };
 
-  return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-r from-slate-100 to-slate-200">
-      <div className="mx-auto grid w-full max-w-md gap-6 px-8 md:px-0">
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Welcome back</h1>
-          <p className="text-sm text-slate-500">
-            Enter your credentials to access your account
-          </p>
-        </div>
+  const fillDemoCredentials = () => {
+    form.setValue("email", "demo@revify.com");
+    form.setValue("password", "demo123456");
+  };
 
-        <div className="grid gap-6">
+  return (
+    <div className="flex min-h-screen w-full">
+      {/* Left Panel - Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 lg:px-16 xl:px-24 bg-white relative overflow-hidden">
+        {/* Decorative Circles */}
+        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 rounded-full bg-primary-50 opacity-70"></div>
+        <div className="absolute bottom-[-5%] left-[-5%] w-48 h-48 rounded-full bg-accentGreen-100 opacity-60"></div>
+        
+        <div className="w-full max-w-md z-10">
+          {/* Logo and Title */}
+          <div className="flex flex-col items-center mb-8">
+            <img 
+              src="/lovable-uploads/f3d33af0-d889-42a2-bbfb-7e82d4722926.png" 
+              alt="Revify Logo" 
+              className="h-12 mb-4"
+            />
+            <h1 className="text-3xl font-bold text-center text-neutral-900">Welcome back</h1>
+            <p className="text-center text-neutral-600 mt-2">
+              Enter your credentials to access your account
+            </p>
+          </div>
+
+          {/* Demo Account Button */}
+          <div className="mb-6">
+            <button
+              onClick={fillDemoCredentials}
+              className="w-full flex items-center justify-center py-2.5 px-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+            >
+              <Icons.user className="mr-2 h-4 w-4 text-neutral-500" />
+              <span className="text-sm text-neutral-700 font-medium">Use demo account</span>
+            </button>
+          </div>
+
+          {/* Login Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-neutral-700">Email</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder="name@company.com"
                         autoComplete="email"
                         disabled={isLoading}
+                        className="h-11 rounded-lg border-neutral-200 focus:border-primary-600"
                         {...field}
                       />
                     </FormControl>
@@ -117,13 +151,22 @@ const LoginPage = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel className="text-neutral-700">Password</FormLabel>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Password"
+                        placeholder="••••••••"
                         autoComplete="current-password"
                         disabled={isLoading}
+                        className="h-11 rounded-lg border-neutral-200 focus:border-primary-600"
                         {...field}
                       />
                     </FormControl>
@@ -131,32 +174,137 @@ const LoginPage = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              
+              {/* Remember Me Checkbox */}
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary-600 data-[state=checked]:border-primary-600"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm text-neutral-600 font-normal">
+                        Remember me for 30 days
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-primary-600 hover:bg-primary-700" 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...
                   </>
                 ) : (
-                  "Sign In"
+                  <>
+                    Sign In
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
                 )}
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
-            <Link
-              to="/forgot-password"
-              className="hover:text-primary underline underline-offset-4"
-            >
-              Forgot your password?
-            </Link>
+
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-neutral-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-2 bg-white text-neutral-500">Or sign in with</span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <button className="flex justify-center items-center py-2.5 px-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors">
+                <Facebook size={18} className="text-[#4267B2]" />
+              </button>
+              <button className="flex justify-center items-center py-2.5 px-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors">
+                <Twitter size={18} className="text-[#1DA1F2]" />
+              </button>
+              <button className="flex justify-center items-center py-2.5 px-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors">
+                <Linkedin size={18} className="text-[#0077B5]" />
+              </button>
+            </div>
           </div>
-          <div className="text-center text-sm">
-            <p className="text-slate-500">
-              Don't have an account? Please contact your administrator
-              to receive an invitation.
+
+          <p className="text-center text-neutral-600 text-sm mt-8">
+            Don't have an account? Please contact your administrator
+            to receive an invitation.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel - Security Info */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary-600 to-primary-700 text-white relative">
+        {/* Decorative Elements */}
+        <div className="absolute top-[20%] right-[10%] w-64 h-64 rounded-full bg-primary-400 opacity-10"></div>
+        <div className="absolute bottom-[15%] left-[5%] w-48 h-48 rounded-full bg-primary-400 opacity-10"></div>
+        
+        <div className="flex flex-col justify-center items-center p-12 w-full max-w-lg mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-primary-700/30 backdrop-blur-sm p-8 rounded-xl border border-primary-400/20"
+          >
+            <div className="flex items-center mb-6">
+              <div className="p-3 rounded-full bg-primary-400/20 mr-4">
+                <ShieldCheck size={28} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold">Secure Login</h2>
+            </div>
+            
+            <p className="mb-6 text-primary-50 leading-relaxed">
+              Your security is our top priority. All connections to Revify are encrypted
+              and we implement industry-standard protection for your data.
             </p>
-          </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 mt-1">
+                  <svg className="h-5 w-5 text-accentGreen-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="ml-3 text-sm text-primary-50">
+                  <span className="font-medium text-white">End-to-end encryption</span> for all your data transfers
+                </p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 mt-1">
+                  <svg className="h-5 w-5 text-accentGreen-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="ml-3 text-sm text-primary-50">
+                  <span className="font-medium text-white">Two-factor authentication</span> for enhanced account security
+                </p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-5 w-5 mt-1">
+                  <svg className="h-5 w-5 text-accentGreen-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="ml-3 text-sm text-primary-50">
+                  <span className="font-medium text-white">Regular security audits</span> to ensure compliance with industry standards
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
