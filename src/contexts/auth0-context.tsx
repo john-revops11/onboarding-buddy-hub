@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
@@ -10,18 +9,14 @@ import { User } from "@/types/auth";
 export const Auth0ProviderWithNavigate = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  // Replace these values with your actual Auth0 credentials
-  const domain = import.meta.env.VITE_AUTH0_DOMAIN || "YOUR_AUTH0_DOMAIN"; 
-  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "YOUR_AUTH0_CLIENT_ID";
+  // Use the provided Auth0 credentials
+  const domain = "dev-yn0u8awz8ljn8d2a.us.auth0.com"; 
+  const clientId = "wHXdj4cYZq2MYBKmxHqfZaIq2wyxtXrO";
   const redirectUri = window.location.origin;
 
   const onRedirectCallback = (appState: any) => {
     navigate(appState?.returnTo || "/dashboard");
   };
-
-  if (!domain || domain === "YOUR_AUTH0_DOMAIN" || !clientId || clientId === "YOUR_AUTH0_CLIENT_ID") {
-    console.warn("Auth0 is not properly configured. Please set the VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID environment variables.");
-  }
 
   return (
     <Auth0Provider
@@ -63,8 +58,9 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
   } = useAuth0();
   const [token, setToken] = React.useState<string | null>(null);
   const [user, setUser] = React.useState<User | null>(null);
+  
   // Get the Auth0 domain for use in the namespace
-  const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || "YOUR_AUTH0_DOMAIN";
+  const auth0Domain = "dev-yn0u8awz8ljn8d2a.us.auth0.com";
 
   // Get token when authenticated
   useEffect(() => {
@@ -101,7 +97,6 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
       let appRole: "admin" | "user" = "user";
       
       // Check Auth0 roles and map to application roles
-      // This assumes you've set up the Auth0 roles as described below
       const namespace = `${auth0Domain}/roles`;
       if (auth0User[namespace] && 
           Array.isArray(auth0User[namespace])) {
