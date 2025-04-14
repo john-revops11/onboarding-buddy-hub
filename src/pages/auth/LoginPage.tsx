@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -18,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Auth0Button } from "@/components/auth/Auth0Button";
 import { HexagonPattern } from "@/components/auth/AuthHexagons";
@@ -38,11 +37,10 @@ const LoginPage = () => {
   const { toast } = useToast();
   const { login, state } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Get the intended destination from location state or default to dashboard
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // If already authenticated, redirect to the appropriate dashboard
   useEffect(() => {
     if (state.isAuthenticated) {
       const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
@@ -60,24 +58,22 @@ const LoginPage = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    if (isLoading) return; // Prevent multiple submissions
-    
+    if (isLoading) return;
+
     setIsLoading(true);
-    
+
     try {
       await login({
         email: data.email,
         password: data.password,
       });
-      
+
       // Auth state changes will trigger the useEffect for redirect
-      
     } catch (error: any) {
       console.error("Login error:", error);
-      
-      // Show more specific error messages based on error type
+
       const errorMessage = error.message || "Invalid email or password. Please try again.";
-      
+
       toast({
         title: "Login Failed",
         description: errorMessage,
@@ -90,13 +86,10 @@ const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* Left Panel - Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 lg:px-16 xl:px-24 bg-white relative overflow-hidden">
-        {/* Decorative Hexagons - Using our component */}
         <HexagonPattern color="#67af44" area="login" />
         
         <div className="w-full max-w-md z-10">
-          {/* Logo and Title */}
           <motion.div 
             className="flex flex-col items-center mb-8"
             initial={{ opacity: 0, y: -20 }}
@@ -114,7 +107,6 @@ const LoginPage = () => {
             </p>
           </motion.div>
 
-          {/* Login Form */}
           <Form {...form}>
             <motion.form 
               onSubmit={form.handleSubmit(onSubmit)} 
@@ -158,21 +150,34 @@ const LoginPage = () => {
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        autoComplete="current-password"
-                        disabled={isLoading}
-                        className="h-11 rounded-lg border-neutral-200 focus:border-accentGreen-600"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          autoComplete="current-password"
+                          disabled={isLoading}
+                          className="h-11 rounded-lg border-neutral-200 focus:border-accentGreen-600 pr-10"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-accentGreen-600 focus:outline-none"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              {/* Remember Me Checkbox */}
               <FormField
                 control={form.control}
                 name="rememberMe"
@@ -212,7 +217,6 @@ const LoginPage = () => {
                 )}
               </Button>
 
-              {/* Auth0 Login Button */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
@@ -233,9 +237,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right Panel - Security Info */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-accentGreen-600 to-accentGreen-700 text-white relative">
-        {/* Using HexagonPattern and SecurityInfo components */}
         <HexagonPattern color="#ffffff" area="security" />
         
         <div className="flex flex-col justify-center p-12 w-full max-w-lg mx-auto z-10">
