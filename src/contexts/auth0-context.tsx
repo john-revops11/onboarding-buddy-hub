@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
@@ -104,14 +103,13 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
         const auth0Roles = auth0User[namespace];
         if (auth0Roles.includes('admin_account')) {
           appRole = "admin";
-        } else if (auth0Roles.includes('client_account')) {
+        } else if (auth0Roles.includes('user_account')) {
           appRole = "user";
         }
       }
       
       if (profile) {
         // User exists, update if needed and return existing profile
-        // You may want to update the profile with Auth0 information here
         return {
           id: profile.id,
           email: profile.email,
