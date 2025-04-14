@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardSidebar';
@@ -117,11 +116,7 @@ const ClientDetailsPage = () => {
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
             ? addonData.map((item: SupabaseAddonResult) => {
-                // Fixed: Handle addon as a scalar object, not an array
-                if (item && item.addon && typeof item.addon === 'object') {
-                  return item.addon.name || 'Unknown Addon';
-                }
-                return 'Unknown Addon';
+                return item.addon?.name || 'Unknown Addon';
               }) 
             : [],
           joinDate: clientData.created_at ? new Date(clientData.created_at).toISOString().split('T')[0] : 'Unknown'
@@ -131,13 +126,9 @@ const ClientDetailsPage = () => {
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
           ? teamData.map((member: SupabaseTeamMemberResult) => ({
               id: member.id,
-              name: member.user && typeof member.user === 'object'
-                ? (member.user.name || 'Pending User') 
-                : 'Pending User',
+              name: member.user?.name || 'Pending User',
               email: member.email,
-              role: member.user && typeof member.user === 'object'
-                ? (member.user.role || 'Pending') 
-                : 'Pending',
+              role: member.user?.role || 'Pending',
               status: member.invitation_status
             })) 
           : [];
