@@ -3,12 +3,12 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export interface NavItemProps {
   name: string;
   path: string;
   icon: LucideIcon;
+  onClick?: () => void;
 }
 
 export interface NavGroupProps {
@@ -30,7 +30,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider",
-          isGroupActive ? "text-sidebar-accent" : "text-muted-foreground"
+          isGroupActive ? "text-primary-500" : "text-muted-foreground"
         )}
       >
         <span>{title}</span>
@@ -46,24 +46,33 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
           {items.map((item) => {
             // Check if item.icon is defined before rendering
             const IconComponent = item.icon;
+            const isActive = currentPath === item.path;
+            
             return (
               <button
                 key={item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => item.onClick ? item.onClick() : navigate(item.path)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  currentPath === item.path 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive 
+                    ? "bg-primary-600/10 text-primary-600 font-semibold" 
+                    : "text-sidebar-foreground hover:bg-primary-600/5 hover:text-primary-600"
                 )}
               >
+                {isActive && (
+                  <span 
+                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-600" 
+                    aria-hidden="true" 
+                  />
+                )}
+                
                 {IconComponent && (
                   <IconComponent 
                     size={18} 
                     className={cn(
-                      currentPath === item.path 
-                        ? "text-sidebar-accent-foreground" 
-                        : "text-muted-foreground group-hover:text-sidebar-accent"
+                      isActive 
+                        ? "text-primary-600" 
+                        : "text-muted-foreground group-hover:text-primary-600"
                     )}
                   />
                 )}

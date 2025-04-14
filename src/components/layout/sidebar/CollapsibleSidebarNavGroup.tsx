@@ -33,9 +33,10 @@ export function CollapsibleSidebarNavGroup({
       {!collapsed && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider ${
-            isGroupActive ? "text-sidebar-accent" : "text-muted-foreground"
-          }`}
+          className={cn(
+            "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider",
+            isGroupActive ? "text-primary-500" : "text-muted-foreground"
+          )}
         >
           <span>{title}</span>
           {isOpen ? (
@@ -47,7 +48,7 @@ export function CollapsibleSidebarNavGroup({
       )}
       
       {(isOpen || collapsed) && (
-        <div className={`mt-1 space-y-1 ${collapsed ? "" : "pl-2"}`}>
+        <div className={cn("mt-1 space-y-1", collapsed ? "" : "pl-2")}>
           {items.map((item) => {
             const IconComponent = item.icon;
             const isActive = currentPath === item.path;
@@ -57,21 +58,27 @@ export function CollapsibleSidebarNavGroup({
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors", 
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full", 
                   isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                  collapsed ? "w-full justify-center" : "w-full"
+                    ? "bg-primary-600/10 text-primary-600 font-semibold" 
+                    : "text-sidebar-foreground hover:bg-primary-600/5 hover:text-primary-600",
+                  collapsed ? "justify-center" : ""
                 )}
                 title={collapsed ? item.name : undefined}
               >
+                {isActive && !collapsed && (
+                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-600" 
+                    aria-hidden="true" />
+                )}
+                
                 {IconComponent && (
                   <IconComponent 
                     size={collapsed ? 22 : 18} 
-                    className={isActive 
-                      ? "text-sidebar-accent-foreground" 
-                      : "text-muted-foreground group-hover:text-sidebar-accent"
-                    }
+                    className={cn(
+                      isActive 
+                        ? "text-primary-600" 
+                        : "text-muted-foreground group-hover:text-primary-600"
+                    )}
                   />
                 )}
                 {!collapsed && <span>{item.name}</span>}

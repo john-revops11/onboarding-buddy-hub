@@ -28,7 +28,7 @@ export function InsightEmbed({ embedLink, webViewLink, fileName, isLoading, erro
   }
 
   const renderControls = () => (
-    <div className="flex gap-2 mb-4">
+    <div className="flex flex-wrap gap-2 mb-4">
       {webViewLink && (
         <TooltipProvider>
           <Tooltip>
@@ -40,7 +40,8 @@ export function InsightEmbed({ embedLink, webViewLink, fileName, isLoading, erro
                 className="hover:bg-primary/5 transition-colors"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Open in Google Drive
+                <span className="hidden sm:inline">Open in Google Drive</span>
+                <span className="sm:hidden">Open</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -60,7 +61,7 @@ export function InsightEmbed({ embedLink, webViewLink, fileName, isLoading, erro
                 className="hover:bg-primary/5 transition-colors"
               >
                 <Download className="mr-2 h-4 w-4" />
-                Download
+                <span>Download</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -78,7 +79,7 @@ export function InsightEmbed({ embedLink, webViewLink, fileName, isLoading, erro
         {renderControls()}
         <div className="flex flex-col items-center justify-center py-12 bg-muted/10 rounded-lg shadow-sm">
           <AlertCircle className="h-8 w-8 text-destructive mb-2" />
-          <p className="text-center mb-4 max-w-md">
+          <p className="text-center mb-4 max-w-md px-4">
             Unable to display the latest insight preview. You can try opening it directly in Google Drive or downloading it.
           </p>
         </div>
@@ -90,11 +91,14 @@ export function InsightEmbed({ embedLink, webViewLink, fileName, isLoading, erro
     <div className="space-y-4">
       {renderControls()}
       {embedLink ? (
-        <iframe 
-          src={embedLink} 
-          className="w-full h-[600px] border border-neutral-200 rounded-lg shadow-sm"
-          title={fileName || "Latest Insight Document"}
-        />
+        <div className="w-full h-[300px] sm:h-[450px] md:h-[600px] relative">
+          <iframe 
+            src={embedLink} 
+            className="w-full h-full border border-neutral-200 rounded-lg shadow-sm absolute inset-0"
+            title={fileName || "Latest Insight Document"}
+            loading="lazy"
+          />
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 bg-muted/10 rounded-lg shadow-sm">
           <p className="text-center mb-4">No document available to preview.</p>
