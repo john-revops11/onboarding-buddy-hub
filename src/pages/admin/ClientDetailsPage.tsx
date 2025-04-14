@@ -116,7 +116,7 @@ const ClientDetailsPage = () => {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
-            ? addonData.map((item: SupabaseAddonResult) => {
+            ? addonData.map((item: any) => {
                 // Check if addon exists and has a name property
                 if (item.addon && typeof item.addon === 'object') {
                   return item.addon.name || 'Unknown Addon';
@@ -129,7 +129,7 @@ const ClientDetailsPage = () => {
         
         // Format team members data
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map((member: SupabaseTeamMemberResult) => ({
+          ? teamData.map((member: any) => ({
               id: member.id,
               name: member.user && typeof member.user === 'object' 
                 ? (member.user.name || 'Pending User') 
