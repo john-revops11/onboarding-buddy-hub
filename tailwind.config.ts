@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -50,15 +49,15 @@ export default {
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				accentGreen: {
-					100: '#E6F8F1',
-					200: '#CEF1E3',
-					300: '#9FE4C6',
-					400: '#71D7AA',
-					500: '#42CA8D',
-					600: '#2EBD85', // Main accent color
-					700: '#249E6D',
-					800: '#1A7F56',
-					900: '#10503A',
+					100: '#f0f7eb',
+					200: '#e0efd6',
+					300: '#c2dfae',
+					400: '#a3cf86',
+					500: '#85bf5e',
+					600: '#67af44',
+					700: '#528c36',
+					800: '#3e6a29',
+					900: '#2a471c',
 				},
 				neutral: {
 					200: '#E5EAF1',
@@ -120,9 +119,8 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Define green-base for compatibility with existing codebase
-				'green-base': '#2EBD85',
-				'green-hover': '#249E6D',
+				'green-base': '#67af44',
+				'green-hover': '#528c36',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
