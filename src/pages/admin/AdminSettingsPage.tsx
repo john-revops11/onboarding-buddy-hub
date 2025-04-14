@@ -32,7 +32,6 @@ export default function AdminSettingsPage() {
     localStorage.setItem('adminSettings', JSON.stringify(settings));
     
     toast({
-      title: "Settings saved",
       description: "System settings have been updated successfully.",
     });
   };
