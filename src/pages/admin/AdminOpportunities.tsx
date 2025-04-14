@@ -20,7 +20,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, PlusCircle, Trash2, Save, UsersRound } from "lucide-react";
+import { 
+  FileText, 
+  PlusCircle, 
+  Trash2, 
+  Save, 
+  UsersRound,
+  InfoIcon,
+  AlertTriangle
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const AdminOpportunities = () => {
   const { toast } = useToast();
@@ -142,14 +161,19 @@ const AdminOpportunities = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Opportunities Management</h1>
-        <p className="text-muted-foreground">
-          Manage client opportunities and presentation links.
-        </p>
+        <div className="flex flex-col space-y-1.5">
+          <h1 className="text-3xl font-bold tracking-tight">Opportunities Management</h1>
+          <p className="text-muted-foreground">
+            Manage client opportunities and presentation links.
+          </p>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Client Selection</CardTitle>
+        <Card className="border-primary/10 shadow-md">
+          <CardHeader className="pb-3 bg-gradient-to-r from-primary-50 to-transparent">
+            <CardTitle className="flex items-center gap-2">
+              <UsersRound size={20} className="text-primary" />
+              Client Selection
+            </CardTitle>
             <CardDescription>
               Select a client to manage their opportunities
             </CardDescription>
@@ -157,7 +181,7 @@ const AdminOpportunities = () => {
           <CardContent>
             {clients.length > 0 ? (
               <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className="w-full md:w-80">
+                <SelectTrigger className="w-full md:w-80 focus:ring-primary/40">
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,12 +191,19 @@ const AdminOpportunities = () => {
                 </SelectContent>
               </Select>
             ) : (
-              <div className="bg-muted/30 p-6 rounded-lg text-center">
-                <UsersRound size={36} className="mx-auto mb-2 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-1">No Clients Available</h3>
-                <p className="text-muted-foreground mb-4">
+              <div className="bg-muted/30 p-8 rounded-lg text-center border border-dashed border-muted-foreground/30">
+                <UsersRound size={40} className="mx-auto mb-3 text-muted-foreground/70" />
+                <h3 className="text-lg font-medium mb-2">No Clients Available</h3>
+                <p className="text-muted-foreground mb-5 max-w-md mx-auto">
                   There are no clients in the system yet. Clients need to be added before opportunities can be managed.
                 </p>
+                <Button 
+                  variant="outline"
+                  className="bg-primary/5 hover:bg-primary/10 border-primary/20"
+                  onClick={() => window.location.href = '/admin/clients'}
+                >
+                  Go to Client Management
+                </Button>
               </div>
             )}
           </CardContent>
@@ -180,96 +211,175 @@ const AdminOpportunities = () => {
         
         {selectedClient && (
           <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Manage Opportunities</CardTitle>
-                <CardDescription>
-                  Add, edit, or remove client opportunities
-                </CardDescription>
+            <Card className="border-primary/10 shadow-md">
+              <CardHeader className="pb-3 bg-gradient-to-r from-primary-50 to-transparent">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <span>Manage Opportunities</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={16} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Add, edit, or remove opportunities that could impact the client's business.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                    <CardDescription>
+                      Add, edit, or remove client opportunities
+                    </CardDescription>
+                  </div>
+                  <div className="text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                    Total: {opportunities.length}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   {opportunities.length > 0 ? (
-                    opportunities.map((opportunity) => (
-                      <div key={opportunity.id} className="p-4 border rounded-lg bg-card flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-medium">{opportunity.title}</h3>
-                            <div className={`px-2 py-1 text-xs rounded-full ${
-                              opportunity.priority === 'high' 
-                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
-                                : opportunity.priority === 'medium'
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                            }`}>
-                              {opportunity.priority.charAt(0).toUpperCase() + opportunity.priority.slice(1)}
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">{opportunity.description}</p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteOpportunity(opportunity.id)}
+                    <div className="grid gap-3">
+                      {opportunities.map((opportunity) => (
+                        <div 
+                          key={opportunity.id} 
+                          className="p-4 border rounded-lg bg-card hover:shadow-sm transition-shadow flex justify-between items-start"
                         >
-                          <Trash2 size={18} />
-                        </Button>
-                      </div>
-                    ))
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="font-medium">{opportunity.title}</h3>
+                              <div className={`px-2 py-1 text-xs rounded-full ${
+                                opportunity.priority === 'high' 
+                                  ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+                                  : opportunity.priority === 'medium'
+                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                              }`}>
+                                {opportunity.priority.charAt(0).toUpperCase() + opportunity.priority.slice(1)}
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{opportunity.description}</p>
+                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="text-destructive hover:text-white hover:bg-destructive"
+                              >
+                                <Trash2 size={18} />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-destructive">
+                                  <AlertTriangle size={18} />
+                                  <h4 className="font-medium">Confirm deletion</h4>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  Are you sure you want to delete this opportunity? This action cannot be undone.
+                                </p>
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="outline" size="sm">Cancel</Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => handleDeleteOpportunity(opportunity.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-center p-6 bg-muted/20 rounded-lg">
+                    <div className="text-center p-8 bg-muted/20 rounded-lg border border-dashed border-muted-foreground/30">
                       <p className="text-muted-foreground">No opportunities added yet.</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add your first opportunity using the form below.
+                      </p>
                     </div>
                   )}
                 </div>
                 
-                <div className="border rounded-lg p-4 bg-muted/50">
-                  <h3 className="text-sm font-medium mb-3">Add New Opportunity</h3>
-                  <div className="space-y-3">
-                    <Input 
-                      placeholder="Opportunity Title" 
-                      value={newOpportunity.title}
-                      onChange={(e) => setNewOpportunity({...newOpportunity, title: e.target.value})}
-                    />
-                    <Textarea 
-                      placeholder="Opportunity Description" 
-                      value={newOpportunity.description}
-                      onChange={(e) => setNewOpportunity({...newOpportunity, description: e.target.value})}
-                    />
-                    <div className="flex flex-wrap gap-3">
-                      <label className="flex items-center space-x-2">
-                        <input 
-                          type="radio" 
-                          name="priority" 
-                          checked={newOpportunity.priority === "high"} 
-                          onChange={() => setNewOpportunity({...newOpportunity, priority: "high"})}
-                          className="text-primary"
-                        />
-                        <span>High Priority</span>
+                <div className="border rounded-lg p-5 bg-muted/10 shadow-sm">
+                  <h3 className="text-base font-medium mb-4 flex items-center gap-2">
+                    <PlusCircle size={18} className="text-primary" />
+                    Add New Opportunity
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="form-group">
+                      <label htmlFor="opp-title" className="text-sm font-medium block mb-1.5">
+                        Opportunity Title <span className="text-destructive">*</span>
                       </label>
-                      <label className="flex items-center space-x-2">
-                        <input 
-                          type="radio" 
-                          name="priority" 
-                          checked={newOpportunity.priority === "medium"} 
-                          onChange={() => setNewOpportunity({...newOpportunity, priority: "medium"})}
-                          className="text-primary"
-                        />
-                        <span>Medium Priority</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input 
-                          type="radio" 
-                          name="priority" 
-                          checked={newOpportunity.priority === "low"} 
-                          onChange={() => setNewOpportunity({...newOpportunity, priority: "low"})}
-                          className="text-primary"
-                        />
-                        <span>Low Priority</span>
-                      </label>
+                      <Input 
+                        id="opp-title"
+                        placeholder="E.g., Increase conversion rate" 
+                        value={newOpportunity.title}
+                        onChange={(e) => setNewOpportunity({...newOpportunity, title: e.target.value})}
+                        className="focus-visible:ring-primary/40"
+                      />
                     </div>
-                    <Button onClick={handleAddOpportunity} className="w-full">
+                    
+                    <div className="form-group">
+                      <label htmlFor="opp-desc" className="text-sm font-medium block mb-1.5">
+                        Opportunity Description <span className="text-destructive">*</span>
+                      </label>
+                      <Textarea 
+                        id="opp-desc"
+                        placeholder="Describe the opportunity in detail" 
+                        value={newOpportunity.description}
+                        onChange={(e) => setNewOpportunity({...newOpportunity, description: e.target.value})}
+                        className="min-h-[100px] focus-visible:ring-primary/40"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label className="text-sm font-medium block mb-1.5">
+                        Priority Level
+                      </label>
+                      <div className="flex flex-wrap gap-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="priority" 
+                            checked={newOpportunity.priority === "high"} 
+                            onChange={() => setNewOpportunity({...newOpportunity, priority: "high"})}
+                            className="text-primary"
+                          />
+                          <span className="text-sm">High Priority</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="priority" 
+                            checked={newOpportunity.priority === "medium"} 
+                            onChange={() => setNewOpportunity({...newOpportunity, priority: "medium"})}
+                            className="text-primary"
+                          />
+                          <span className="text-sm">Medium Priority</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="priority" 
+                            checked={newOpportunity.priority === "low"} 
+                            onChange={() => setNewOpportunity({...newOpportunity, priority: "low"})}
+                            className="text-primary"
+                          />
+                          <span className="text-sm">Low Priority</span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleAddOpportunity} 
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
                       <PlusCircle size={16} className="mr-2" />
                       Add Opportunity
                     </Button>
@@ -278,9 +388,12 @@ const AdminOpportunities = () => {
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Manage Presentations</CardTitle>
+            <Card className="border-primary/10 shadow-md">
+              <CardHeader className="pb-3 bg-gradient-to-r from-primary-50 to-transparent">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText size={20} className="text-primary" />
+                  Manage Presentations
+                </CardTitle>
                 <CardDescription>
                   Add or remove client presentation links
                 </CardDescription>
@@ -288,58 +401,123 @@ const AdminOpportunities = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   {presentations.length > 0 ? (
-                    presentations.map((presentation) => (
-                      <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center">
-                          <div className="mr-3 p-2 bg-primary/10 rounded">
-                            <FileText size={18} className="text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{presentation.title}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[400px]">
-                              {presentation.link}
-                            </p>
-                          </div>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeletePresentation(presentation.id)}
+                    <div className="grid gap-3">
+                      {presentations.map((presentation) => (
+                        <div 
+                          key={presentation.id} 
+                          className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow"
                         >
-                          <Trash2 size={18} />
-                        </Button>
-                      </div>
-                    ))
+                          <div className="flex items-center">
+                            <div className="mr-3 p-2 bg-primary/10 rounded-full">
+                              <FileText size={18} className="text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{presentation.title}</p>
+                              <a 
+                                href={presentation.link} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-xs text-primary underline underline-offset-2 hover:text-primary/80 truncate max-w-[300px] sm:max-w-[400px] inline-block"
+                              >
+                                {presentation.link}
+                              </a>
+                            </div>
+                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="text-destructive hover:text-white hover:bg-destructive"
+                              >
+                                <Trash2 size={18} />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" align="end">
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-destructive">
+                                  <AlertTriangle size={18} />
+                                  <h4 className="font-medium">Confirm deletion</h4>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  Are you sure you want to delete this presentation link? This action cannot be undone.
+                                </p>
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="outline" size="sm">Cancel</Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => handleDeletePresentation(presentation.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-center p-6 bg-muted/20 rounded-lg">
+                    <div className="text-center p-8 bg-muted/20 rounded-lg border border-dashed border-muted-foreground/30">
                       <p className="text-muted-foreground">No presentations added yet.</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add your first presentation link using the form below.
+                      </p>
                     </div>
                   )}
                 </div>
                 
-                <div className="border rounded-lg p-4 bg-muted/50">
-                  <h3 className="text-sm font-medium mb-3">Add New Presentation Link</h3>
-                  <div className="space-y-3">
-                    <Input 
-                      placeholder="Presentation Title" 
-                      value={newPresentation.title}
-                      onChange={(e) => setNewPresentation({...newPresentation, title: e.target.value})}
-                    />
-                    <Input 
-                      placeholder="Google Drive Link" 
-                      value={newPresentation.link}
-                      onChange={(e) => setNewPresentation({...newPresentation, link: e.target.value})}
-                    />
-                    <Button onClick={handleAddPresentation} className="w-full">
+                <div className="border rounded-lg p-5 bg-muted/10 shadow-sm">
+                  <h3 className="text-base font-medium mb-4 flex items-center gap-2">
+                    <PlusCircle size={18} className="text-primary" />
+                    Add New Presentation Link
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="form-group">
+                      <label htmlFor="pres-title" className="text-sm font-medium block mb-1.5">
+                        Presentation Title <span className="text-destructive">*</span>
+                      </label>
+                      <Input 
+                        id="pres-title"
+                        placeholder="E.g., Q1 2025 Performance Review" 
+                        value={newPresentation.title}
+                        onChange={(e) => setNewPresentation({...newPresentation, title: e.target.value})}
+                        className="focus-visible:ring-primary/40"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="pres-link" className="text-sm font-medium block mb-1.5">
+                        Google Drive Link <span className="text-destructive">*</span>
+                      </label>
+                      <Input 
+                        id="pres-link"
+                        placeholder="https://drive.google.com/..." 
+                        value={newPresentation.link}
+                        onChange={(e) => setNewPresentation({...newPresentation, link: e.target.value})}
+                        className="focus-visible:ring-primary/40"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Make sure the link has appropriate sharing permissions
+                      </p>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleAddPresentation} 
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
                       <PlusCircle size={16} className="mr-2" />
                       Add Presentation
                     </Button>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t p-4">
-                <Button onClick={handleSaveChanges} className="ml-auto">
+              <CardFooter className="border-t p-4 bg-muted/10">
+                <Button 
+                  onClick={handleSaveChanges} 
+                  className="ml-auto bg-accentGreen-600 hover:bg-accentGreen-600/90"
+                >
                   <Save size={16} className="mr-2" />
                   Save Changes
                 </Button>
