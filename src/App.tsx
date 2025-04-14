@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
@@ -7,7 +8,6 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
-import { useAuth } from "./contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import Index from "./pages";
@@ -27,21 +27,10 @@ import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
 import { createContext } from "react";
 import type { User } from "./types/auth";
+import type { AuthContextType } from "./contexts/auth/types";
 
-const AuthContext = createContext<{
-  state: {
-    isAuthenticated: boolean;
-    user: User | null;
-    error: string | null;
-    isLoading: boolean;
-  };
-  login: (credentials: any) => Promise<void>;
-  logout: () => void;
-  getAllUsers: () => Promise<any[]>;
-  approveUser: (userId: string) => Promise<void>;
-  rejectUser: (userId: string) => Promise<void>;
-  clearError: () => void;
-}>({
+// Create the Auth Context
+const AuthContext = createContext<AuthContextType>({
   state: {
     isAuthenticated: false,
     user: null,
@@ -55,6 +44,15 @@ const AuthContext = createContext<{
   rejectUser: async () => {},
   clearError: () => {},
 });
+
+// Custom hook to use the auth context
+export const useAuth = (): AuthContextType => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 function App() {
   return (
@@ -281,11 +279,3 @@ function AppContent() {
 }
 
 export default App;
-
-export const useAuth = () => {
-  const context = React.useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
