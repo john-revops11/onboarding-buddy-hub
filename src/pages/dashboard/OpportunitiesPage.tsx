@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
@@ -26,6 +27,12 @@ import {
   Search,
   Download,
   Info,
+  ArrowUpRight,
+  BarChart,
+  TrendingUp,
+  Calendar,
+  Filter,
+  ChevronDown
 } from "lucide-react";
 import {
   Select,
@@ -41,6 +48,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getClientFiles } from "@/utils/googleDriveUtils";
+import { InsightEmbed } from "@/components/insights/InsightEmbed";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const OpportunitiesPage = () => {
   const { state } = useAuth();
@@ -50,6 +65,7 @@ const OpportunitiesPage = () => {
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [documentFilter, setDocumentFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("all");
   
   const opportunities = [
     {
@@ -145,36 +161,75 @@ const OpportunitiesPage = () => {
     setSelectedDocument(null);
   };
 
+  // Function to determine row class based on index for alternating row colors
+  const getRowClass = (index) => {
+    return index % 2 === 0 ? "bg-white" : "bg-muted/20";
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Opportunities & Actions</h1>
-        <p className="text-muted-foreground">
-          Review key strategic opportunities identified by Revify and access related diagnostic reports and presentations.
-        </p>
+        <div className="flex flex-col space-y-1.5">
+          <h1 className="text-3xl font-bold tracking-tight">Opportunities & Actions</h1>
+          <p className="text-muted-foreground">
+            Review key strategic opportunities identified by Revify and access related diagnostic reports and presentations.
+          </p>
+        </div>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="col-span-2">
-            <CardHeader>
-              <CardTitle>Consulting Tier</CardTitle>
+          <Card className="col-span-2 transition-all duration-200 hover:shadow-md">
+            <CardHeader className="pb-3 bg-gradient-to-r from-white to-muted/5">
+              <CardTitle className="flex items-center gap-2 text-xl">Consulting Tier</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Elite Consulting Tier</p>
-                  <p className="text-sm text-muted-foreground">Premium access to all Revify services and features</p>
+              <div className="bg-white border border-primary/20 rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <BarChart className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Elite Consulting Tier</p>
+                    <p className="text-sm text-muted-foreground">Premium access to all Revify services and features</p>
+                  </div>
                 </div>
-                <Button variant="outline" size="sm">View Benefits</Button>
+                <Button variant="outline" size="sm" className="hover:bg-primary/5">View Benefits</Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="col-span-2">
-            <CardHeader>
-              <CardTitle>Top Opportunities</CardTitle>
-              <CardDescription>
-                Review key strategic opportunities identified by Revify and access related diagnostic reports.
-              </CardDescription>
+          <Card className="col-span-2 transition-all duration-200 hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">Top Opportunities</CardTitle>
+                <CardDescription>
+                  Review key strategic opportunities identified by Revify and access related diagnostic reports.
+                </CardDescription>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <Filter size={15} />
+                    Time Frame
+                    <ChevronDown size={15} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[180px]">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => setTimeFilter("all")}>
+                      All Time
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTimeFilter("year")}>
+                      This Year
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTimeFilter("quarter")}>
+                      This Quarter
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTimeFilter("month")}>
+                      This Month
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="opportunities" value={activeTab} onValueChange={setActiveTab}>
@@ -195,9 +250,9 @@ const OpportunitiesPage = () => {
                     </div>
                     
                     {opportunities.length > 0 ? (
-                      <div className="border rounded-lg overflow-auto">
+                      <div className="border rounded-lg overflow-auto shadow-sm">
                         <Table>
-                          <TableHeader>
+                          <TableHeader className="bg-muted/30">
                             <TableRow>
                               <TableHead>Opportunity Area</TableHead>
                               <TableHead>Opportunity Description</TableHead>
@@ -209,15 +264,43 @@ const OpportunitiesPage = () => {
                                       <TooltipTrigger asChild>
                                         <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
                                       </TooltipTrigger>
-                                      <TooltipContent>
-                                        Estimated total size of the prize if fully realized
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p>Estimated total size of the prize if fully realized</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>
                               </TableHead>
-                              <TableHead>Current Level / Baseline</TableHead>
-                              <TableHead>Target Level</TableHead>
+                              <TableHead>
+                                <div className="flex items-center">
+                                  <span>Current Level / Baseline</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p>Current performance baseline as measured during assessment</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </TableHead>
+                              <TableHead>
+                                <div className="flex items-center">
+                                  <span>Target Level</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p>Goal metric to achieve defined opportunity value</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </TableHead>
                               <TableHead className="text-right">
                                 <div className="flex items-center justify-end">
                                   <span>$MM Annual Target Opportunity</span>
@@ -226,19 +309,34 @@ const OpportunitiesPage = () => {
                                       <TooltipTrigger asChild>
                                         <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
                                       </TooltipTrigger>
-                                      <TooltipContent>
-                                        Estimated value tied to achieving the defined Target Level
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p>Estimated value tied to achieving the defined Target Level</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>
                               </TableHead>
-                              <TableHead>Tracking Dashboard</TableHead>
+                              <TableHead>
+                                <div className="flex items-center">
+                                  <span>Tracking Dashboard</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info size={14} className="ml-1 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p>Where to monitor progress for this opportunity</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </TableHead>
+                              <TableHead className="text-center">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {opportunities.map((opportunity) => (
-                              <TableRow key={opportunity.id}>
+                            {opportunities.map((opportunity, index) => (
+                              <TableRow key={opportunity.id} className={getRowClass(index)}>
                                 <TableCell className="font-medium">{opportunity.area}</TableCell>
                                 <TableCell>{opportunity.description}</TableCell>
                                 <TableCell className="text-right">{formatCurrency(opportunity.totalAnnualOpportunity)}</TableCell>
@@ -246,18 +344,28 @@ const OpportunitiesPage = () => {
                                 <TableCell>{opportunity.targetLevel}</TableCell>
                                 <TableCell className="text-right">{formatCurrency(opportunity.targetOpportunity)}</TableCell>
                                 <TableCell>{opportunity.trackingDashboard}</TableCell>
+                                <TableCell className="text-center">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-primary hover:bg-primary/5 transition-colors"
+                                  >
+                                    <ArrowUpRight size={14} className="mr-1" />
+                                    View Details
+                                  </Button>
+                                </TableCell>
                               </TableRow>
                             ))}
-                            <TableRow>
-                              <TableCell colSpan={2} className="font-bold text-right">Total</TableCell>
-                              <TableCell className="text-right font-bold">
+                            <TableRow className="bg-muted/30 font-bold">
+                              <TableCell colSpan={2} className="text-right">Total</TableCell>
+                              <TableCell className="text-right">
                                 {formatCurrency(opportunities.reduce((sum, opp) => sum + opp.totalAnnualOpportunity, 0))}
                               </TableCell>
                               <TableCell colSpan={2}></TableCell>
-                              <TableCell className="text-right font-bold">
+                              <TableCell className="text-right">
                                 {formatCurrency(opportunities.reduce((sum, opp) => sum + opp.targetOpportunity, 0))}
                               </TableCell>
-                              <TableCell></TableCell>
+                              <TableCell colSpan={2}></TableCell>
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -327,16 +435,19 @@ const OpportunitiesPage = () => {
                         ) : filteredDocuments.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {filteredDocuments.map((doc) => (
-                              <div key={doc.id} className="border rounded-lg p-4 flex flex-col">
+                              <div key={doc.id} className="border rounded-lg p-4 flex flex-col hover:shadow-md transition-all duration-200 bg-white">
                                 <div className="flex items-start mb-3">
                                   <div className="mr-3 p-2 bg-primary/10 rounded">
                                     <FileText size={18} className="text-primary" />
                                   </div>
                                   <div className="flex-1">
                                     <h4 className="font-medium">{doc.name}</h4>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {new Date(doc.modifiedTime).toLocaleDateString()}
-                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Calendar size={12} className="text-muted-foreground" />
+                                      <p className="text-xs text-muted-foreground">
+                                        {new Date(doc.modifiedTime).toLocaleDateString()}
+                                      </p>
+                                    </div>
                                     {doc.type && (
                                       <Badge variant="outline" className="mt-2 text-xs">
                                         {doc.type}
@@ -348,7 +459,7 @@ const OpportunitiesPage = () => {
                                   <Button 
                                     variant="outline" 
                                     size="sm" 
-                                    className="flex-1"
+                                    className="flex-1 hover:bg-primary/5 transition-colors"
                                     onClick={() => handleOpenDocument(doc)}
                                   >
                                     Open
@@ -392,14 +503,28 @@ const OpportunitiesPage = () => {
                         <div className="flex justify-between items-center">
                           <h3 className="text-lg font-medium">{selectedDocument.name}</h3>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={handleCloseDocument}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={handleCloseDocument}
+                              className="hover:bg-muted/20 transition-colors"
+                            >
                               Back to Library
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="hover:bg-muted/20 transition-colors"
+                            >
                               <Download size={14} className="mr-1" />
                               Download
                             </Button>
-                            <Button variant="outline" size="sm" asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="hover:bg-primary/5 transition-colors"
+                              asChild
+                            >
                               <a href={selectedDocument.webViewLink} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink size={14} className="mr-1" />
                                 Open in Drive
@@ -408,32 +533,14 @@ const OpportunitiesPage = () => {
                           </div>
                         </div>
                         
-                        <div className="border rounded-lg overflow-hidden h-[600px]">
-                          {selectedDocument.embedLink ? (
-                            <iframe
-                              src={selectedDocument.embedLink}
-                              width="100%"
-                              height="600"
-                              title={selectedDocument.name}
-                              className="border-0"
-                            ></iframe>
-                          ) : (
-                            <div className="flex items-center justify-center h-full bg-muted/20">
-                              <div className="text-center p-4">
-                                <p className="text-muted-foreground mb-2">
-                                  Unable to display the document preview.
-                                </p>
-                                <div className="flex gap-2 justify-center">
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={selectedDocument.webViewLink} target="_blank" rel="noopener noreferrer">
-                                      <ExternalLink size={14} className="mr-1" />
-                                      Open in Drive
-                                    </a>
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                        <div className="border rounded-lg overflow-hidden h-[600px] shadow-sm">
+                          <InsightEmbed
+                            embedLink={selectedDocument.embedLink}
+                            webViewLink={selectedDocument.webViewLink}
+                            fileName={selectedDocument.name}
+                            isLoading={false}
+                            error={null}
+                          />
                         </div>
                       </div>
                     )}
@@ -443,35 +550,67 @@ const OpportunitiesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="col-span-2">
-            <CardHeader>
-              <CardTitle>Client Presentations</CardTitle>
-              <CardDescription>Access your strategic recommendations and reports</CardDescription>
+          <Card className="col-span-2 transition-all duration-200 hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-xl">Client Presentations</CardTitle>
+                <CardDescription>Access your strategic recommendations and reports</CardDescription>
+              </div>
+              <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                <Calendar size={12} className="mr-1" />
+                Last Updated: Apr 2025
+              </Badge>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {presentations.map((presentation) => (
-                  <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-all duration-200 bg-white">
                     <div className="flex items-center">
                       <div className="mr-3 p-2 bg-primary/10 rounded">
                         <FileText size={18} className="text-primary" />
                       </div>
                       <div>
                         <p className="font-medium">{presentation.title}</p>
-                        <p className="text-xs text-muted-foreground">{presentation.date}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Calendar size={12} className="text-muted-foreground" />
+                          <p className="text-xs text-muted-foreground">{presentation.date}</p>
+                          {presentation.type && (
+                            <Badge variant="outline" size="sm" className="text-xs">
+                              {presentation.type}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={presentation.link} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink size={14} className="mr-1" />
-                        Open
-                      </a>
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="hover:bg-primary/5 transition-colors" asChild>
+                        <a href={presentation.link} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={14} className="mr-1" />
+                          Open
+                        </a>
+                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Info size={14} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="max-w-[200px]">
+                            <p>This document contains strategic recommendations based on recent analytics.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                 ))}
               </div>
               <div className="mt-4">
-                <Button variant="outline" className="w-full" asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full hover:bg-primary/5 transition-colors flex items-center justify-center"
+                  asChild
+                >
                   <a 
                     href="https://drive.google.com/drive/folders/client-specific-folder" 
                     target="_blank" 
