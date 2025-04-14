@@ -30,7 +30,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider",
-          isGroupActive ? "text-primary-500" : "text-muted-foreground"
+          isGroupActive ? "text-accentGreen-600" : "text-muted-foreground"
         )}
       >
         <span>{title}</span>
@@ -55,13 +55,13 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                 className={cn(
                   "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive 
-                    ? "bg-primary-600/10 text-primary-600 font-semibold" 
+                    ? "bg-accentGreen-600/10 text-accentGreen-600 font-semibold" 
                     : "text-sidebar-foreground hover:bg-primary-600/5 hover:text-primary-600"
                 )}
               >
                 {isActive && (
                   <span 
-                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-600" 
+                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-accentGreen-600" 
                     aria-hidden="true" 
                   />
                 )}
@@ -71,7 +71,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                     size={18} 
                     className={cn(
                       isActive 
-                        ? "text-primary-600" 
+                        ? "text-accentGreen-600" 
                         : "text-muted-foreground group-hover:text-primary-600"
                     )}
                   />
