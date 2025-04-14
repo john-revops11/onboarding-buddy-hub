@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardSidebar';
@@ -116,8 +115,9 @@ const ClientDetailsPage = () => {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
-            ? addonData.map((item: SupabaseAddonResult) => {
-                if (item.addon) {
+            ? addonData.map((item: any) => {
+                // Check if addon exists and has a name property
+                if (item.addon && typeof item.addon === 'object') {
                   return item.addon.name || 'Unknown Addon';
                 }
                 return 'Unknown Addon';
@@ -128,11 +128,15 @@ const ClientDetailsPage = () => {
         
         // Format team members data
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map((member: SupabaseTeamMemberResult) => ({
+          ? teamData.map((member: any) => ({
               id: member.id,
-              name: member.user ? (member.user.name || 'Pending User') : 'Pending User',
+              name: member.user && typeof member.user === 'object' 
+                ? (member.user.name || 'Pending User') 
+                : 'Pending User',
               email: member.email,
-              role: member.user ? (member.user.role || 'Pending') : 'Pending',
+              role: member.user && typeof member.user === 'object' 
+                ? (member.user.role || 'Pending') 
+                : 'Pending',
               status: member.invitation_status
             })) 
           : [];
