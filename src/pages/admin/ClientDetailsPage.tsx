@@ -88,7 +88,7 @@ const ClientDetailsPage = () => {
         if (teamError) throw teamError;
         
         // Format the client data
-        const formattedClient = {
+        const formattedClient: ClientDetails = {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: addonData?.map(addon => addon.addon?.name) || [],
@@ -96,7 +96,7 @@ const ClientDetailsPage = () => {
         };
         
         // Format team members data
-        const formattedTeamMembers = teamData?.map(member => ({
+        const formattedTeamMembers: TeamMember[] = teamData?.map(member => ({
           id: member.id,
           name: member.user?.name || 'Pending User',
           email: member.email,
