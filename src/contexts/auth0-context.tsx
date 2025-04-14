@@ -63,6 +63,8 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
   } = useAuth0();
   const [token, setToken] = React.useState<string | null>(null);
   const [user, setUser] = React.useState<User | null>(null);
+  // Get the Auth0 domain for use in the namespace
+  const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || "YOUR_AUTH0_DOMAIN";
 
   // Get token when authenticated
   useEffect(() => {
@@ -100,9 +102,10 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
       
       // Check Auth0 roles and map to application roles
       // This assumes you've set up the Auth0 roles as described below
-      if (auth0User[`${domain}/roles`] && 
-          Array.isArray(auth0User[`${domain}/roles`])) {
-        const auth0Roles = auth0User[`${domain}/roles`];
+      const namespace = `${auth0Domain}/roles`;
+      if (auth0User[namespace] && 
+          Array.isArray(auth0User[namespace])) {
+        const auth0Roles = auth0User[namespace];
         if (auth0Roles.includes('admin_account')) {
           appRole = "admin";
         } else if (auth0Roles.includes('client_account')) {
