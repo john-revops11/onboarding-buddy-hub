@@ -1,10 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ClientFormValues } from "@/lib/types/client-types";
+import { ClientFormValues, ClientCreationResult } from "@/lib/types/client-types";
 
 // Create a new client with subscription, addons and team members
-export async function createClient(data: ClientFormValues) {
+export async function createClient(data: ClientFormValues): Promise<string> {
   try {
     // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase

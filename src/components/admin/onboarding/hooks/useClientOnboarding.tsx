@@ -7,7 +7,7 @@ import { ClientFormSchema, ClientFormValues } from "../formSchema";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/client-management/create-client";
+import { createClient } from "@/lib/client-management";
 
 export const useClientOnboarding = () => {
   const { toast } = useToast();
@@ -100,9 +100,13 @@ export const useClientOnboarding = () => {
       console.log("Selected addons:", selectedAddons);
 
       // Create client with selected addons
+      // Fix: Ensure required properties are present
       const clientId = await createClient({
-        ...data,
-        addons: selectedAddons
+        email: data.email,
+        companyName: data.companyName,
+        subscriptionTierId: data.subscriptionTierId,
+        addons: selectedAddons,
+        teamMembers: data.teamMembers
       });
       
       if (clientId) {
