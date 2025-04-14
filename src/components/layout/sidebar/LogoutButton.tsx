@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth0Bridge } from "@/contexts/auth0-context";
 import { Button } from "@/components/ui/button";
 
 interface LogoutButtonProps {
@@ -10,11 +10,11 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ collapsed = false }: LogoutButtonProps) {
-  const { logout } = useAuth();
+  const { logoutWithAuth0 } = useAuth0Bridge();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
+    await logoutWithAuth0();
     navigate("/login");
   };
 

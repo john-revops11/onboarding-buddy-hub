@@ -10,7 +10,7 @@ export const Auth0Button = () => {
   return (
     <Button
       type="button"
-      className="w-full mt-4 bg-accentGreen-600 hover:bg-accentGreen-700"
+      className="w-full h-11 bg-accentGreen-600 hover:bg-accentGreen-700"
       disabled={isLoading}
       onClick={() => loginWithAuth0()}
     >
