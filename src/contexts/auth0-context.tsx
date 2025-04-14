@@ -103,7 +103,7 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
         const auth0Roles = auth0User[namespace];
         if (auth0Roles.includes('admin_account')) {
           appRole = "admin";
-        } else if (auth0Roles.includes('user_account')) {
+        } else if (auth0Roles.includes('client_account')) {
           appRole = "user";
         }
       }
