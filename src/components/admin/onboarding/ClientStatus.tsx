@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ClientStatus() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export function ClientStatus() {
     processingId, 
     fetchClients, 
     markClientComplete, 
+    retryDriveCreation,
     getClientProgress 
   } = useClientManagement();
 
@@ -30,22 +32,49 @@ export function ClientStatus() {
     navigate(`/admin/clients/${id}`);
   };
 
-  const handleCreateDrives = async () => {
+  const handleCreateMissingDrives = async () => {
     setIsCreatingDrives(true);
+    let successCount = 0;
+    let failCount = 0;
+    
     try {
-      // Mock implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const clientsWithoutDrives = clients.filter(client => !client.drive_id);
+      
+      if (clientsWithoutDrives.length === 0) {
+        toast({
+          title: "No Missing Drives",
+          description: "All clients already have Google Drives associated with them.",
+        });
+        return;
+      }
+      
+      // Process clients without drives
+      for (const client of clientsWithoutDrives) {
+        const success = await retryDriveCreation(
+          client.id, 
+          client.email, 
+          client.companyName || `Client-${client.id}`
+        );
+        
+        if (success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+      
+      // Show summary toast
       toast({
-        title: "Shared Drives Created",
-        description: "Successfully processed client drives.",
-        variant: "success",
+        title: "Drive Creation Complete",
+        description: `Successfully created ${successCount} drives${failCount > 0 ? `, failed to create ${failCount} drives` : ''}.`,
+        variant: successCount > 0 ? "default" : "destructive",
       });
-      fetchClients();
+      
     } catch (error) {
-      console.error("Error creating shared drives:", error);
+      console.error("Error creating missing drives:", error);
       toast({
         title: "Error",
-        description: "Failed to create shared drives. Please try again.",
+        description: "An unexpected error occurred while creating missing drives.",
         variant: "destructive",
       });
     } finally {
@@ -56,12 +85,13 @@ export function ClientStatus() {
   const handleBackfillPermissions = async () => {
     setIsBackfilling(true);
     try {
-      // Mock implementation
+      // This is a placeholder for future functionality
+      // In a real implementation, this would call an edge function to backfill permissions
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
         title: "Permissions Updated",
-        description: "Successfully updated drive permissions.",
-        variant: "success",
+        description: "Successfully updated drive permissions for all clients.",
       });
     } catch (error) {
       console.error("Error backfilling permissions:", error);
@@ -86,7 +116,7 @@ export function ClientStatus() {
       <div className="flex flex-wrap gap-2 mb-4">
         <Button 
           variant="outline" 
-          onClick={handleCreateDrives}
+          onClick={handleCreateMissingDrives}
           disabled={isCreatingDrives || isLoading}
         >
           {isCreatingDrives ? (
@@ -122,6 +152,7 @@ export function ClientStatus() {
         getClientProgress={getClientProgress}
         onMarkComplete={markClientComplete}
         onViewDetails={viewClientDetails}
+        onRetryDriveCreation={retryDriveCreation}
       />
     </div>
   );

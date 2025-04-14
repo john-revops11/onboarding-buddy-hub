@@ -7,7 +7,7 @@ import { ClientFormSchema, ClientFormValues } from "../formSchema";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@/lib/client-management/create-client";
 
 export const useClientOnboarding = () => {
   const { toast } = useToast();
@@ -99,69 +99,35 @@ export const useClientOnboarding = () => {
       console.log("Form data:", data);
       console.log("Selected addons:", selectedAddons);
 
-      // Store client in database
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .insert({
-          email: data.email,
-          company_name: data.companyName || null,
-          subscription_id: data.subscriptionTierId,
-          status: 'pending'
-        })
-        .select();
-
-      if (clientError) throw clientError;
+      // Create client with selected addons
+      const result = await createClient(data, selectedAddons);
       
-      const clientId = clientData[0].id;
-      
-      // Add selected addons
-      if (selectedAddons.length > 0) {
-        const addonInserts = selectedAddons.map(addonId => ({
-          client_id: clientId,
-          addon_id: addonId
-        }));
+      if (result.success) {
+        toast({
+          title: "Client onboarded successfully",
+          description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
+        });
         
-        const { error: addonsError } = await supabase
-          .from('client_addons')
-          .insert(addonInserts);
-          
-        if (addonsError) throw addonsError;
-      }
-      
-      // Add team members
-      if (data.teamMembers.length > 0) {
-        const memberInserts = data.teamMembers
-          .filter(member => member.email.trim() !== '')
-          .map(member => ({
-            client_id: clientId,
-            email: member.email,
-            invitation_status: 'pending'
-          }));
-          
-        if (memberInserts.length > 0) {
-          const { error: teamError } = await supabase
-            .from('team_members')
-            .insert(memberInserts);
-            
-          if (teamError) throw teamError;
+        if (!result.driveCreationSuccess) {
+          toast({
+            title: "Note about Google Drive",
+            description: "There was an issue creating the Google Drive for this client. You can try again later from the Client Status page.",
+            variant: "warning",
+          });
         }
+        
+        // Reset form
+        form.reset();
+        setSelectedAddons([]);
+        setActiveTab("client-info");
+      } else {
+        throw new Error(result.error);
       }
-      
-      toast({
-        title: "Client onboarded successfully",
-        description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
-      });
-      
-      // Reset form
-      form.reset();
-      setSelectedAddons([]);
-      setActiveTab("client-info");
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error onboarding client:", error);
       toast({
         title: "Error",
-        description: "Failed to onboard client. Please try again.",
+        description: error.message || "Failed to onboard client. Please try again.",
         variant: "destructive",
       });
     } finally {
