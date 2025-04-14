@@ -19,3 +19,19 @@ export {
   calculateOnboardingProgress,
   completeClientOnboarding as finalizeClientOnboarding
 } from './onboarding-progress';
+
+// Export subscription-related functions
+export {
+  createSubscriptionTier,
+  updateSubscriptionTier,
+  deleteSubscriptionTier,
+  getSubscriptionTiers,
+} from '../subscription-management';
+
+// Export addon-related functions
+export {
+  createAddon,
+  updateAddon,
+  deleteAddon,
+  getAddons,
+} from '../addon-management';

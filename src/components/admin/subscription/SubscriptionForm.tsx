@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -19,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { createSubscriptionTier, updateSubscriptionTier } from "@/lib/subscription-management";
 
 const subscriptionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -82,32 +81,20 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
         name: data.name,
         description: data.description,
         price: numericPrice,
-        // Features are stored as part of the subscription in a real implementation
-        // Here we're just logging them as they would typically be in a separate table
-        // or as a JSON field
       };
       
       let result;
       
       if (isEditing && initialData) {
-        // Update existing subscription
-        const { data: updatedData, error } = await supabase
-          .from('subscriptions')
-          .update(subscriptionData)
-          .eq('name', initialData.name)
-          .select();
-          
-        if (error) throw error;
-        result = updatedData;
+        // Update existing subscription using the updated function
+        result = await updateSubscriptionTier(initialData.id || "", subscriptionData);
       } else {
-        // Insert new subscription
-        const { data: insertedData, error } = await supabase
-          .from('subscriptions')
-          .insert(subscriptionData)
-          .select();
-          
-        if (error) throw error;
-        result = insertedData;
+        // Insert new subscription using the updated function
+        result = await createSubscriptionTier(subscriptionData);
+      }
+      
+      if (!result) {
+        throw new Error("Failed to save subscription");
       }
       
       console.log("Subscription saved:", result);

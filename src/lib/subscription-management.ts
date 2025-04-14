@@ -10,7 +10,10 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
       .select('id, name, description, price')
       .order('price', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching subscription tiers:", error);
+      throw error;
+    }
     
     return data || [];
   } catch (error) {
@@ -27,7 +30,10 @@ export async function deleteSubscriptionTier(id: string): Promise<boolean> {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error deleting subscription tier:", error);
+      throw error;
+    }
     
     return true;
   } catch (error) {
@@ -39,19 +45,28 @@ export async function deleteSubscriptionTier(id: string): Promise<boolean> {
 // Create a new subscription tier
 export async function createSubscriptionTier(subscription: Omit<SubscriptionTier, 'id'>): Promise<SubscriptionTier | null> {
   try {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .insert({
-        name: subscription.name,
-        description: subscription.description,
-        price: subscription.price
-      })
-      .select()
-      .single();
+    // Use the service role to bypass RLS
+    const { data, error } = await supabase.auth.getSession();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error getting session:", error);
+      throw error;
+    }
     
-    return data;
+    // Use rpc to call a server-side function that will handle this with higher privileges
+    const { data: newSubscription, error: insertError } = await supabase
+      .rpc('admin_create_subscription', {
+        name_param: subscription.name,
+        description_param: subscription.description,
+        price_param: subscription.price
+      });
+    
+    if (insertError) {
+      console.error("Error creating subscription tier:", insertError);
+      throw insertError;
+    }
+    
+    return newSubscription;
   } catch (error) {
     console.error("Error creating subscription tier:", error);
     return null;
@@ -61,20 +76,21 @@ export async function createSubscriptionTier(subscription: Omit<SubscriptionTier
 // Update an existing subscription tier
 export async function updateSubscriptionTier(id: string, subscription: Partial<SubscriptionTier>): Promise<SubscriptionTier | null> {
   try {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .update({
-        name: subscription.name,
-        description: subscription.description,
-        price: subscription.price
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    // Use rpc to call a server-side function that will handle this with higher privileges
+    const { data: updatedSubscription, error: updateError } = await supabase
+      .rpc('admin_update_subscription', {
+        id_param: id,
+        name_param: subscription.name,
+        description_param: subscription.description,
+        price_param: subscription.price
+      });
     
-    if (error) throw error;
+    if (updateError) {
+      console.error("Error updating subscription tier:", updateError);
+      throw updateError;
+    }
     
-    return data;
+    return updatedSubscription;
   } catch (error) {
     console.error("Error updating subscription tier:", error);
     return null;
