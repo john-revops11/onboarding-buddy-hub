@@ -1,8 +1,8 @@
 
 @layer base {
   .dark {
-    // Ensure primary-900 is explicitly defined
-    --primary-900: 215 28% 17%; // Match the dark mode foreground color
-    --primary-900-rgb: 215, 28%, 17%; // Add RGB version for rgba support
+    /* Ensure primary-900 is explicitly defined */
+    --primary-900: 215 28% 17%; /* Match the dark mode foreground color */
+    --primary-900-rgb: 215, 28%, 17%; /* Add RGB version for rgba support */
   }
 }
