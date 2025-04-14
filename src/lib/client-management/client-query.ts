@@ -63,12 +63,15 @@ export async function getClients(): Promise<OnboardingClient[]> {
       if (!addonsByClient[item.client_id]) {
         addonsByClient[item.client_id] = [];
       }
+      
+      // Fix: Correctly handle the addons property by checking its type
       if (item.addons) {
-        // The addons property is a single object in this case, not an array
+        // Ensure we're treating item.addons as an object, not an array
+        const addonData = item.addons as any; // Type assertion to handle the shape
         const addon: Addon = {
-          id: String(item.addons?.id || ''),
-          name: String(item.addons?.name || ''),
-          price: Number(item.addons?.price || 0)
+          id: String(addonData.id || ''),
+          name: String(addonData.name || ''),
+          price: Number(addonData.price || 0)
         };
         addonsByClient[item.client_id].push(addon);
       }
@@ -79,14 +82,14 @@ export async function getClients(): Promise<OnboardingClient[]> {
       // Handle subscriptions object type
       let subscriptionTier: SubscriptionTier = { id: '', name: 'None', price: 0 };
       
-      // Check if client.subscriptions exists and is an object with id and name properties
-      if (client.subscriptions && 
-          typeof client.subscriptions === 'object' &&
-          client.subscriptions !== null) {
+      // Fix: Correctly handle the subscriptions property by checking its type
+      if (client.subscriptions && typeof client.subscriptions === 'object' && client.subscriptions !== null) {
+        // Ensure we're treating client.subscriptions as an object, not an array
+        const subscriptionData = client.subscriptions as any; // Type assertion to handle the shape
         subscriptionTier = {
-          id: String(client.subscriptions?.id || ''),
-          name: String(client.subscriptions?.name || 'None'),
-          price: Number(client.subscriptions?.price || 0)
+          id: String(subscriptionData.id || ''),
+          name: String(subscriptionData.name || 'None'),
+          price: Number(subscriptionData.price || 0)
         };
       }
         
