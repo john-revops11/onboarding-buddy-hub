@@ -139,8 +139,8 @@ const AdminDashboard = () => {
                     { name: "Apr", value: 119 },
                     { name: "May", value: 124 },
                   ]}
-                  xAxisKey="name"
-                  yAxisKey="value"
+                  categories={["value"]}
+                  index="name"
                 />
               </div>
             </CardContent>
@@ -164,8 +164,8 @@ const AdminDashboard = () => {
                     { name: "Week 3", value: 624 },
                     { name: "Week 4", value: 879 },
                   ]}
-                  xAxisKey="name"
-                  yAxisKey="value"
+                  categories={["value"]}
+                  index="name"
                 />
               </div>
             </CardContent>
@@ -191,8 +191,8 @@ const AdminDashboard = () => {
                   { name: "Sat", value: 45 },
                   { name: "Sun", value: 32 },
                 ]} 
-                xAxisKey="name"
-                yAxisKey="value"
+                categories={["value"]}
+                index="name"
               />
             </CardContent>
           </Card>
@@ -213,8 +213,8 @@ const AdminDashboard = () => {
                   { name: "Apr", started: 34, completed: 28 },
                   { name: "May", started: 38, completed: 32 },
                 ]}
-                xAxisKey="name"
-                yAxisKey={["started", "completed"]}
+                categories={["started", "completed"]}
+                index="name"
                 colors={["#9b87f5", "#6E59A5"]}
               />
             </CardContent>
