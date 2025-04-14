@@ -1,4 +1,6 @@
 
-.notification-item.unread {
-  @apply bg-primary-50 dark:bg-primary-900/20;
+@layer components {
+  .notification-item.unread {
+    @apply bg-primary-50 dark:bg-primary-900/20;
+  }
 }
