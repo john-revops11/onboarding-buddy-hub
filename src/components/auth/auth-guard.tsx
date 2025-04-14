@@ -1,7 +1,6 @@
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
-import { useAuth0Bridge } from "@/contexts/auth0-context";
 
 interface AuthGuardProps {
   requiredRole?: "admin" | "user";
@@ -9,11 +8,10 @@ interface AuthGuardProps {
 
 export const AuthGuard = ({ requiredRole }: AuthGuardProps) => {
   const { state } = useAuth();
-  const { isLoading: auth0Loading } = useAuth0Bridge();
   const location = useLocation();
   
-  // If still loading Auth0, show nothing (or could add a loading spinner)
-  if (auth0Loading) {
+  // If still loading, show a loading spinner
+  if (state.isLoading) {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accentGreen-600"></div>
     </div>;

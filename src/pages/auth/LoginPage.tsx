@@ -2,35 +2,55 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Auth0Button } from "@/components/auth/Auth0Button";
 import { HexagonPattern } from "@/components/auth/AuthHexagons";
 import { SecurityInfo } from "@/components/auth/SecurityInfo";
-import { useAuth0Bridge } from "@/contexts/auth0-context";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Icons } from "@/components/icons";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isLoading, user, error } = useAuth0Bridge();
+  const { state, login, clearError } = useAuth();
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const from = location.state?.from?.pathname || "/dashboard";
 
   useEffect(() => {
     // Clear any previous errors on component mount
+    clearError();
     setLoginError(null);
     
-    if (isAuthenticated) {
+    if (state.isAuthenticated) {
       console.log("User is authenticated, redirecting to dashboard");
-      console.log("User role:", user?.role);
-      const redirectPath = user?.role === "admin" ? "/admin" : "/dashboard";
+      console.log("User role:", state.user?.role);
+      const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
       navigate(redirectPath, { replace: true });
     }
     
-    // Set login error if Auth0 reports an error
-    if (error) {
-      setLoginError(error);
+    // Set login error if auth reports an error
+    if (state.error) {
+      setLoginError(state.error);
     }
-  }, [isAuthenticated, user, navigate, error]);
+  }, [state.isAuthenticated, state.user, state.error, navigate, clearError]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials({ ...credentials, [name]: value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    
+    try {
+      await login(credentials);
+    } catch (error: any) {
+      setLoginError(error.message || "Login failed. Please check your credentials.");
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -67,7 +87,48 @@ const LoginPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Auth0Button />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Email address"
+                  value={credentials.email}
+                  onChange={handleInputChange}
+                  required
+                  className="h-11"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  value={credentials.password}
+                  onChange={handleInputChange}
+                  required
+                  className="h-11"
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full h-11 bg-accentGreen-600 hover:bg-accentGreen-700"
+                disabled={state.isLoading}
+              >
+                {state.isLoading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </Button>
+            </form>
             
             <p className="text-center text-neutral-600 text-sm mt-4">
               Don't have an account? Please contact your administrator
