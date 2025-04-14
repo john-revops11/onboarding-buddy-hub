@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, X, Save } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { createAddon, updateAddon } from "@/lib/addon-management";
 
 const addonSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,7 +33,7 @@ const addonSchema = z.object({
 type AddonFormValues = z.infer<typeof addonSchema>;
 
 interface AddonFormProps {
-  initialData?: AddonFormValues;
+  initialData?: AddonFormValues & { id?: string };
   isEditing?: boolean;
 }
 
@@ -58,13 +58,14 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
   const tags = form.watch("tags");
 
   const addTag = () => {
-    if (tagInput.trim()) {
-      const currentTags = form.getValues("tags");
-      if (!currentTags.includes(tagInput.trim())) {
-        form.setValue("tags", [...currentTags, tagInput.trim()]);
-      }
-      setTagInput("");
+    if (tagInput.trim() === "") return;
+    
+    const currentTags = form.getValues("tags");
+    // Prevent duplicate tags
+    if (!currentTags.includes(tagInput.trim())) {
+      form.setValue("tags", [...currentTags, tagInput.trim()]);
     }
+    setTagInput("");
   };
 
   const removeTag = (tag: string) => {
@@ -75,7 +76,7 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
     );
   };
 
-  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addTag();
@@ -98,38 +99,29 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
       
       let result;
       
-      if (isEditing && initialData) {
+      if (isEditing && initialData?.id) {
         // Update existing addon
-        const { data: updatedData, error } = await supabase
-          .from('addons')
-          .update(addonData)
-          .eq('name', initialData.name)
-          .select();
-          
-        if (error) throw error;
-        result = updatedData;
+        result = await updateAddon(initialData.id, addonData);
       } else {
         // Insert new addon
-        const { data: insertedData, error } = await supabase
-          .from('addons')
-          .insert(addonData)
-          .select();
-          
-        if (error) throw error;
-        result = insertedData;
+        result = await createAddon(addonData);
       }
       
-      console.log("Add-on saved:", result);
+      if (!result) {
+        throw new Error("Failed to save addon");
+      }
+      
+      console.log("Addon saved:", result);
       
       toast({
         title: `Add-on ${isEditing ? "updated" : "created"} successfully`,
         description: `${data.name} add-on has been ${isEditing ? "updated" : "created"}.`,
       });
       
-      // Navigate back to add-ons list
+      // Navigate back to addons list
       navigate("/admin/addons");
     } catch (error) {
-      console.error("Error submitting add-on:", error);
+      console.error("Error submitting addon:", error);
       toast({
         title: "Error",
         description: `Failed to ${isEditing ? "update" : "create"} add-on. Please try again.`,
@@ -188,7 +180,7 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
             <FormItem>
               <FormLabel>Price</FormLabel>
               <FormControl>
-                <Input placeholder="49.99" {...field} />
+                <Input placeholder="99.99" {...field} />
               </FormControl>
               <FormDescription>
                 Monthly add-on price
@@ -198,46 +190,51 @@ export function AddonForm({ initialData, isEditing = false }: AddonFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="tags"
-          render={() => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                    {tag}
-                    <X
-                      size={14}
-                      className="cursor-pointer"
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter tag (e.g., reporting, premium)"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addTag}
+        <div className="space-y-4">
+          <FormLabel>Tags</FormLabel>
+          <FormDescription>
+            Add tags to categorize this add-on (e.g., reporting, analytics)
+          </FormDescription>
+          
+          <div className="flex gap-2">
+            <Input 
+              placeholder="Enter a tag"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addTag}
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} /> Add
+            </Button>
+          </div>
+          
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tags.map((tag) => (
+                <Badge 
+                  key={tag} 
+                  variant="secondary"
+                  className="flex items-center gap-1 px-3 py-1"
                 >
-                  <Plus size={16} />
-                </Button>
-              </div>
-              <FormDescription>
-                Categories or tags to organize add-ons
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
+                  {tag}
+                  <button 
+                    type="button" 
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 text-xs hover:text-destructive"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </Badge>
+              ))}
+            </div>
           )}
-        />
+        </div>
 
         <div className="flex justify-end gap-4">
           <Button

@@ -70,11 +70,6 @@ export const adminNavGroups: SidebarNavGroup[] = [
         icon: "Package",
         href: "/admin/addons",
       },
-    ],
-  },
-  {
-    title: "Billing",
-    items: [
       {
         title: "Subscriptions",
         icon: "CreditCard",
