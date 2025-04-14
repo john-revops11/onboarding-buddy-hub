@@ -25,6 +25,9 @@ import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
+import SettingsPage from "./pages/dashboard/SettingsPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/auth-context";
 import type { User } from "./types/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -95,6 +98,14 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
         
         <Route
           path="/admin"
@@ -136,8 +147,16 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminSettingsPage />
+            </ProtectedRoute>
+          }
+        />
         
-        <Route path="*" element={<div>404 Not Found</div>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
     </>
