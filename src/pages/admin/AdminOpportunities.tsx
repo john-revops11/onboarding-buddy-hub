@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
@@ -103,8 +102,7 @@ const AdminOpportunities = () => {
   
   const handleAddOpportunity = () => {
     if (!newOpportunity.title || !newOpportunity.description) {
-      toast({
-        title: "Missing fields",
+      toast.error("Missing fields", {
         description: "Please fill in all required fields"
       });
       return;
@@ -124,8 +122,7 @@ const AdminOpportunities = () => {
       priority: "medium"
     });
     
-    toast({
-      title: "Opportunity added",
+    toast.success("Opportunity added", {
       description: "The opportunity has been added successfully"
     });
   };
@@ -133,16 +130,14 @@ const AdminOpportunities = () => {
   const handleDeleteOpportunity = (id: number) => {
     setOpportunities(opportunities.filter(o => o.id !== id));
     
-    toast({
-      title: "Opportunity deleted",
+    toast.success("Opportunity deleted", {
       description: "The opportunity has been removed"
     });
   };
   
   const handleAddPresentation = () => {
     if (!newPresentation.title || !newPresentation.link) {
-      toast({
-        title: "Missing fields",
+      toast.error("Missing fields", {
         description: "Please fill in all required fields"
       });
       return;
@@ -161,8 +156,7 @@ const AdminOpportunities = () => {
       link: ""
     });
     
-    toast({
-      title: "Presentation added",
+    toast.success("Presentation added", {
       description: "The presentation link has been added successfully"
     });
   };
@@ -170,15 +164,13 @@ const AdminOpportunities = () => {
   const handleDeletePresentation = (id: number) => {
     setPresentations(presentations.filter(p => p.id !== id));
     
-    toast({
-      title: "Presentation deleted",
+    toast.success("Presentation deleted", {
       description: "The presentation link has been removed"
     });
   };
   
   const handleSaveChanges = () => {
-    toast({
-      title: "Changes saved",
+    toast.success("Changes saved", {
       description: "All changes have been saved successfully"
     });
   };

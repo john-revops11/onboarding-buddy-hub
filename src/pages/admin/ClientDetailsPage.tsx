@@ -9,12 +9,32 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+interface ClientDetails {
+  id: string;
+  email: string;
+  company_name: string;
+  onboarding_completed: boolean;
+  status: string;
+  created_at: string;
+  subscription: string;
+  addons: string[];
+  joinDate: string;
+}
+
 const ClientDetailsPage = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [client, setClient] = useState(null);
-  const [teamMembers, setTeamMembers] = useState([]);
+  const [client, setClient] = useState<ClientDetails | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
     const fetchClientDetails = async () => {
