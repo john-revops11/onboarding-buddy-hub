@@ -100,28 +100,21 @@ export const useClientOnboarding = () => {
       console.log("Selected addons:", selectedAddons);
 
       // Create client with selected addons
-      const result = await createClient(data, selectedAddons);
+      const clientId = await createClient({
+        ...data,
+        addons: selectedAddons
+      });
       
-      if (result.success) {
+      if (clientId) {
         toast({
           title: "Client onboarded successfully",
           description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
         });
         
-        if (!result.driveCreationSuccess) {
-          toast({
-            title: "Note about Google Drive",
-            description: "There was an issue creating the Google Drive for this client. You can try again later from the Client Status page.",
-            variant: "destructive",  // Changed from "warning" to "destructive"
-          });
-        }
-        
         // Reset form
         form.reset();
         setSelectedAddons([]);
         setActiveTab("client-info");
-      } else {
-        throw new Error(result.error);
       }
     } catch (error: any) {
       console.error("Error onboarding client:", error);

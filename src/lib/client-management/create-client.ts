@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
+import { ClientFormValues } from "@/lib/types/client-types";
 
-export async function createClient(data: ClientFormValues, selectedAddons: string[]) {
+// Create a new client with subscription, addons and team members
+export async function createClient(data: ClientFormValues) {
   try {
     // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase
@@ -17,49 +18,13 @@ export async function createClient(data: ClientFormValues, selectedAddons: strin
       .select('id')
       .single();
 
-    if (clientError) {
-      console.error("Error creating client:", clientError);
-      throw clientError;
-    }
+    if (clientError) throw clientError;
     
     const clientId = clientData.id;
-    let driveCreationSuccess = false;
-    let driveId = null;
     
-    // Step 2: Create a Google Drive for the client
-    try {
-      // Updated to use proper method with apiKey from Supabase client
-      const { data: driveData, error: driveError } = await supabase.functions.invoke('create-google-drive', {
-        body: {
-          userEmail: data.email,
-          companyName: data.companyName || `Client-${clientId}`
-        }
-      });
-      
-      if (driveError) {
-        console.error('Error creating Google Drive:', driveError);
-        // Log the error but continue with client creation
-      } else if (driveData && driveData.driveId) {
-        // Update client with the drive ID
-        driveId = driveData.driveId;
-        driveCreationSuccess = true;
-        
-        await supabase
-          .from('clients')
-          .update({ 
-            drive_id: driveData.driveId,
-            drive_name: driveData.simulated ? `(Simulated) ${data.companyName}` : data.companyName
-          })
-          .eq('id', clientId);
-      }
-    } catch (driveError) {
-      console.error('Failed to create Google Drive:', driveError);
-      // Continue with client creation despite Drive creation failure
-    }
-    
-    // Step 3: Add selected addons
-    if (selectedAddons.length > 0) {
-      const addonRecords = selectedAddons.map(addonId => ({
+    // Step 2: Add addons if selected
+    if (data.addons && data.addons.length > 0) {
+      const addonRecords = data.addons.map(addonId => ({
         client_id: clientId,
         addon_id: addonId
       }));
@@ -68,46 +33,29 @@ export async function createClient(data: ClientFormValues, selectedAddons: strin
         .from('client_addons')
         .insert(addonRecords);
       
-      if (addonError) {
-        console.error("Error adding addons:", addonError);
-        throw addonError;
-      }
+      if (addonError) throw addonError;
     }
     
-    // Step 4: Add team members
-    if (data.teamMembers && data.teamMembers.length > 0) {
-      const teamMemberRecords = data.teamMembers
-        .filter(member => member.email.trim() !== '')
-        .map(member => ({
-          client_id: clientId,
-          email: member.email,
-          invitation_status: 'pending'
-        }));
-        
-      if (teamMemberRecords.length > 0) {
-        const { error: teamError } = await supabase
-          .from('team_members')
-          .insert(teamMemberRecords);
-          
-        if (teamError) {
-          console.error("Error adding team members:", teamError);
-          throw teamError;
-        }
-      }
-    }
+    // Step 3: Add team members
+    const teamMemberRecords = data.teamMembers.map(member => ({
+      client_id: clientId,
+      email: member.email,
+      invitation_status: 'pending'
+    }));
     
-    // Return client creation result with drive creation status
-    return { 
-      success: true, 
-      clientId, 
-      driveCreationSuccess,
-      driveId
-    };
+    const { error: teamError } = await supabase
+      .from('team_members')
+      .insert(teamMemberRecords);
+    
+    if (teamError) throw teamError;
+    
+    return clientId;
   } catch (error: any) {
-    console.error("Error creating client:", error);
-    return { 
-      success: false, 
-      error: error.message || "An unexpected error occurred" 
-    };
+    toast({
+      title: "Error creating client",
+      description: error.message || "An unexpected error occurred",
+      variant: "destructive",
+    });
+    throw error;
   }
 }

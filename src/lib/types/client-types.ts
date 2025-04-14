@@ -27,15 +27,11 @@ export interface OnboardingClient {
   teamMembers: TeamMember[];
   status: string;
   created_at: string;
-  drive_id?: string;
-  drive_name?: string;
 }
 
 export interface ClientCreationResult {
   success: boolean;
   clientId?: string;
-  driveCreationSuccess?: boolean;
-  driveId?: string | null;
   error?: string;
 }
 

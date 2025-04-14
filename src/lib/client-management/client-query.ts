@@ -16,8 +16,6 @@ export async function getClients(): Promise<OnboardingClient[]> {
         company_name, 
         status, 
         created_at,
-        drive_id,
-        drive_name,
         subscriptions:subscription_id (id, name, price)
       `)
       .order('created_at', { ascending: false });
@@ -101,9 +99,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
         addons: addonsByClient[client.id] || [],
         teamMembers: teamMembersByClient[client.id] || [],
         status: client.status,
-        created_at: client.created_at,
-        drive_id: client.drive_id,
-        drive_name: client.drive_name
+        created_at: client.created_at
       };
     });
   } catch (error: any) {
