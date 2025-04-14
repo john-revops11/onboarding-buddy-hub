@@ -82,6 +82,11 @@ export function ClientStatus() {
     }
   };
 
+  // Modify this function to make it void instead of returning a boolean
+  const handleRetryDriveCreation = async (id: string, email: string, companyName: string): Promise<void> => {
+    await retryDriveCreation(id, email, companyName);
+  };
+
   const handleBackfillPermissions = async () => {
     setIsBackfilling(true);
     try {
@@ -152,7 +157,7 @@ export function ClientStatus() {
         getClientProgress={getClientProgress}
         onMarkComplete={markClientComplete}
         onViewDetails={viewClientDetails}
-        onRetryDriveCreation={retryDriveCreation}
+        onRetryDriveCreation={handleRetryDriveCreation}
       />
     </div>
   );

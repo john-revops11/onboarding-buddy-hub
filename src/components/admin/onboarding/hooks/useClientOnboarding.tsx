@@ -112,7 +112,7 @@ export const useClientOnboarding = () => {
           toast({
             title: "Note about Google Drive",
             description: "There was an issue creating the Google Drive for this client. You can try again later from the Client Status page.",
-            variant: "warning",
+            variant: "destructive",  // Changed from "warning" to "destructive"
           });
         }
         

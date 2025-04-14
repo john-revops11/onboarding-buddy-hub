@@ -38,3 +38,12 @@ export interface ClientCreationResult {
   driveId?: string | null;
   error?: string;
 }
+
+// Add ClientFormValues type from formSchema.ts
+export interface ClientFormValues {
+  email: string;
+  companyName?: string;
+  subscriptionTierId: string;
+  addons: string[];
+  teamMembers: { email: string }[];
+}

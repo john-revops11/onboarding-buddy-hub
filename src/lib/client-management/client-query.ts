@@ -1,9 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingClient } from "@/lib/types/client-types";
+import { OnboardingClient, SubscriptionTier } from "@/lib/types/client-types";
 
-// Type definition for subscription tier options
-type TierOption = { id: string; name: string };
+// Fix the type definition to match SubscriptionTier
+type TierOption = SubscriptionTier;
 
 // Get all clients with their subscription info
 export async function getClients(): Promise<OnboardingClient[]> {
@@ -16,7 +16,9 @@ export async function getClients(): Promise<OnboardingClient[]> {
         company_name, 
         status, 
         created_at,
-        subscriptions:subscription_id (id, name)
+        drive_id,
+        drive_name,
+        subscriptions:subscription_id (id, name, price)
       `)
       .order('created_at', { ascending: false });
     
@@ -37,7 +39,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
       .from('client_addons')
       .select(`
         client_id,
-        addons:addon_id (id, name)
+        addons:addon_id (id, name, price)
       `)
       .in('client_id', clientIds);
     
@@ -69,13 +71,14 @@ export async function getClients(): Promise<OnboardingClient[]> {
     // Format the response
     return data.map(client => {
       // Handle subscriptions object type
-      let subscriptionTier: TierOption = { id: '', name: 'None' };
+      let subscriptionTier: SubscriptionTier = { id: '', name: 'None', price: 0 };
       
       // Check if client.subscriptions exists and is an object with id and name properties
       if (client.subscriptions && typeof client.subscriptions === 'object' && 'id' in client.subscriptions && 'name' in client.subscriptions) {
         subscriptionTier = {
           id: String(client.subscriptions.id),
-          name: String(client.subscriptions.name)
+          name: String(client.subscriptions.name),
+          price: Number(client.subscriptions.price || 0)
         };
       }
         
@@ -87,7 +90,9 @@ export async function getClients(): Promise<OnboardingClient[]> {
         addons: addonsByClient[client.id] || [],
         teamMembers: teamMembersByClient[client.id] || [],
         status: client.status,
-        created_at: client.created_at
+        created_at: client.created_at,
+        drive_id: client.drive_id,
+        drive_name: client.drive_name
       };
     });
   } catch (error: any) {
