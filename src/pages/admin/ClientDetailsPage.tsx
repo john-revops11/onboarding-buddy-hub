@@ -29,22 +29,23 @@ interface ClientDetails {
   joinDate: string;
 }
 
-// Define types for Supabase query results
+// Define proper types for Supabase query results
 interface SupabaseAddonResult {
-  addon?: {
-    name?: string;
-  }
+  addon_id: string;
+  addon: {
+    name: string;
+  };
 }
 
 interface SupabaseTeamMemberResult {
   id: string;
   email: string;
   invitation_status: string;
-  user?: {
-    name?: string;
-    email?: string;
-    role?: string;
-  }
+  user: {
+    name: string | null;
+    email: string | null;
+    role: string | null;
+  } | null;
 }
 
 const ClientDetailsPage = () => {
@@ -109,18 +110,20 @@ const ClientDetailsPage = () => {
         const formattedClient: ClientDetails = {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
-          addons: addonData?.map((item: SupabaseAddonResult) => item.addon?.name || 'Unknown Addon') || [],
+          addons: Array.isArray(addonData) ? addonData.map(item => 
+            item.addon && typeof item.addon === 'object' ? (item.addon.name || 'Unknown Addon') : 'Unknown Addon'
+          ) : [],
           joinDate: clientData.created_at ? new Date(clientData.created_at).toISOString().split('T')[0] : 'Unknown'
         };
         
         // Format team members data
-        const formattedTeamMembers: TeamMember[] = teamData?.map((member: SupabaseTeamMemberResult) => ({
+        const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) ? teamData.map(member => ({
           id: member.id,
-          name: member.user?.name || 'Pending User',
+          name: member.user && typeof member.user === 'object' ? (member.user.name || 'Pending User') : 'Pending User',
           email: member.email,
-          role: member.user?.role || 'Pending',
+          role: member.user && typeof member.user === 'object' ? (member.user.role || 'Pending') : 'Pending',
           status: member.invitation_status
-        })) || [];
+        })) : [];
         
         setClient(formattedClient);
         setTeamMembers(formattedTeamMembers);
