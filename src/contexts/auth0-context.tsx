@@ -1,22 +1,28 @@
+
 import React, { createContext, useContext, useEffect } from "react";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
 
 // Auth0 wrapper component
 export const Auth0ProviderWithNavigate = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  // Use the provided Auth0 credentials
-  const domain = "dev-yn0u8awz8ljn8d2a.us.auth0.com"; 
-  const clientId = "wHXdj4cYZq2MYBKmxHqfZaIq2wyxtXrO";
+  // Get Auth0 credentials from environment variables
+  const domain = import.meta.env.VITE_AUTH0_DOMAIN || "dev-yn0u8awz8ljn8d2a.us.auth0.com";
+  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "wHXdj4cYZq2MYBKmxHqfZaIq2wyxtXrO";
+  
+  // Use the current URL's origin as the redirect URI base
   const redirectUri = window.location.origin;
 
   const onRedirectCallback = (appState: any) => {
     navigate(appState?.returnTo || "/dashboard");
   };
+
+  if (!domain || !clientId) {
+    console.error("Missing Auth0 configuration. Please set VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID environment variables.");
+  }
 
   return (
     <Auth0Provider
@@ -24,12 +30,11 @@ export const Auth0ProviderWithNavigate = ({ children }: { children: React.ReactN
       clientId={clientId}
       authorizationParams={{
         redirect_uri: redirectUri,
-        scope: "openid profile email",
-        useJwtAuth: true,
-        useFormData: false
+        scope: "openid profile email"
       }}
       onRedirectCallback={onRedirectCallback}
       cacheLocation="localstorage"
+      useRefreshTokens={true}
     >
       {children}
     </Auth0Provider>
@@ -45,7 +50,6 @@ interface Auth0ContextInterface {
   error: string | null;
   loginWithAuth0: () => void;
   logoutWithAuth0: () => void;
-  syncUserWithSupabase: (auth0User: any) => Promise<User>;
 }
 
 const Auth0BridgeContext = createContext<Auth0ContextInterface | null>(null);
@@ -63,9 +67,6 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
   const [token, setToken] = React.useState<string | null>(null);
   const [user, setUser] = React.useState<User | null>(null);
   
-  // Get the Auth0 domain for use in the namespace
-  const auth0Domain = "dev-yn0u8awz8ljn8d2a.us.auth0.com";
-
   // Get token when authenticated
   useEffect(() => {
     const getToken = async () => {
@@ -74,9 +75,16 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
           const accessToken = await getAccessTokenSilently();
           setToken(accessToken);
           
-          // Sync Auth0 user with Supabase profile
-          const syncedUser = await syncUserWithSupabase(auth0User);
-          setUser(syncedUser);
+          // Map Auth0 user to our User type
+          setUser({
+            id: auth0User.sub || '',
+            email: auth0User.email || '',
+            name: auth0User.name || '',
+            role: auth0User['https://my-app.com/roles']?.includes('admin') ? 'admin' : 'user',
+            createdAt: new Date().toISOString(),
+            avatar: auth0User.picture,
+            status: 'approved'
+          });
         } catch (error) {
           console.error("Error getting token", error);
         }
@@ -86,89 +94,11 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
     getToken();
   }, [isAuthenticated, auth0User, getAccessTokenSilently]);
 
-  const syncUserWithSupabase = async (auth0User: any): Promise<User> => {
-    if (!auth0User) throw new Error("No Auth0 user to sync");
-    
-    try {
-      // Check if user exists in profiles table
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', auth0User.email)
-        .maybeSingle();
-      
-      // Map Auth0 roles to our application roles
-      let appRole: "admin" | "user" = "user";
-      
-      // Check Auth0 roles and map to application roles
-      const namespace = `${auth0Domain}/roles`;
-      if (auth0User[namespace] && 
-          Array.isArray(auth0User[namespace])) {
-        const auth0Roles = auth0User[namespace];
-        if (auth0Roles.includes('admin_account')) {
-          appRole = "admin";
-        } else if (auth0Roles.includes('user_account')) {
-          appRole = "user";
-        }
-      }
-      
-      if (profile) {
-        // User exists, update if needed and return existing profile
-        return {
-          id: profile.id,
-          email: profile.email,
-          name: profile.name || auth0User.name,
-          role: profile.role as "admin" | "user",
-          avatar: profile.avatar_url || auth0User.picture,
-          status: profile.status as "pending" | "approved" | "rejected",
-          createdAt: profile.created_at,
-          onboardingStatus: profile.onboarding_status
-        };
-      } else {
-        // Create new profile
-        const { data: newProfile, error } = await supabase
-          .from('profiles')
-          .insert({
-            id: auth0User.sub, // Use Auth0 user ID as profile ID
-            email: auth0User.email,
-            name: auth0User.name,
-            role: appRole, // Assign mapped role from Auth0
-            avatar_url: auth0User.picture,
-            status: 'pending' // New users need approval
-          })
-          .select('*')
-          .single();
-        
-        if (error) throw error;
-        
-        return {
-          id: newProfile.id,
-          email: newProfile.email,
-          name: newProfile.name,
-          role: newProfile.role as "admin" | "user",
-          avatar: newProfile.avatar_url,
-          status: newProfile.status as "pending" | "approved" | "rejected",
-          createdAt: newProfile.created_at,
-          onboardingStatus: newProfile.onboarding_status
-        };
-      }
-    } catch (error) {
-      console.error("Error syncing user with Supabase:", error);
-      toast({
-        title: "Error",
-        description: "Failed to sync user profile. Please contact support.",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
-
   const loginWithAuth0 = () => {
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: window.location.origin,
-        scope: "openid profile email",
-        useJwtAuth: true
+        scope: "openid profile email"
       }
     });
   };
@@ -190,8 +120,7 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
     token,
     error: error?.message || null,
     loginWithAuth0,
-    logoutWithAuth0,
-    syncUserWithSupabase
+    logoutWithAuth0
   };
 
   return (
