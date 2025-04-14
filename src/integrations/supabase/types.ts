@@ -371,6 +371,44 @@ export type Database = {
         }
         Relationships: []
       }
+      invitation_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          is_valid: boolean
+          team_member_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_valid?: boolean
+          team_member_id: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_valid?: boolean
+          team_member_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_tokens_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_progress: {
         Row: {
           client_id: string
@@ -590,6 +628,10 @@ export type Database = {
       create_drive_usage_table: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_invitation_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_secret: {
         Args: { secret_name: string }
