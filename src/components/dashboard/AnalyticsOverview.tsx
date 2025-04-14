@@ -1,14 +1,11 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
 import { Tag } from "@/components/ui/Tag";
 
 export function AnalyticsOverview() {
   return (
     <div className="grid gap-6">
-      {/* Both Monthly Performance and Weekly Trends cards have been removed as requested */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xl font-semibold">Analytics Overview</CardTitle>

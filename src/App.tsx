@@ -35,9 +35,6 @@ import OnboardingPage from "./pages/dashboard/OnboardingPage";
 
 // New Pages for Revify Portal requirements
 import InsightsPage from "./pages/dashboard/InsightsPage";
-import DiagnosticReviewsPage from "./pages/dashboard/DiagnosticReviewsPage";
-import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
-import AdminDiagnosticReviewsPage from "./pages/admin/AdminDiagnosticReviewsPage";
 
 // Subscription and Onboarding Pages
 import AdminSubscriptionsPage from "./pages/admin/subscriptions/AdminSubscriptionsPage";
@@ -80,7 +77,6 @@ const App = () => {
                 
                 {/* New User Routes */}
                 <Route path="/insights" element={<InsightsPage />} />
-                <Route path="/diagnostic-reviews" element={<DiagnosticReviewsPage />} />
               </Route>
 
               {/* Admin Routes */}
@@ -97,10 +93,6 @@ const App = () => {
                 <Route path="/admin/opportunities" element={<AdminOpportunities />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/clients/:id" element={<AdminDashboard />} />
-                
-                {/* New Admin Routes */}
-                <Route path="/admin/insights" element={<AdminInsightsPage />} />
-                <Route path="/admin/diagnostic-reviews" element={<AdminDiagnosticReviewsPage />} />
                 
                 {/* Subscription and Onboarding Routes */}
                 <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />

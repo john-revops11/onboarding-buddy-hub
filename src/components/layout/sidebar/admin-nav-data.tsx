@@ -72,19 +72,4 @@ export const adminNavGroups: SidebarNavGroup[] = [
       },
     ],
   },
-  {
-    title: "Insights & Reviews",
-    items: [
-      {
-        title: "Insights",
-        icon: "BarChart2",
-        href: "/admin/insights",
-      },
-      {
-        title: "Diagnostic Reviews",
-        icon: "FileSearch",
-        href: "/admin/diagnostic-reviews",
-      },
-    ],
-  },
 ];
