@@ -117,8 +117,8 @@ const ClientDetailsPage = () => {
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
             ? addonData.map((item: any) => {
-                // Check if addon exists and has a name property
-                if (item.addon && typeof item.addon === 'object' && 'name' in item.addon) {
+                // Fixed: Handle addon as a scalar object, not an array
+                if (item && item.addon && typeof item.addon === 'object') {
                   return item.addon.name || 'Unknown Addon';
                 }
                 return 'Unknown Addon';
@@ -131,11 +131,11 @@ const ClientDetailsPage = () => {
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
           ? teamData.map((member: any) => ({
               id: member.id,
-              name: member.user && typeof member.user === 'object' && 'name' in member.user
+              name: member.user && typeof member.user === 'object'
                 ? (member.user.name || 'Pending User') 
                 : 'Pending User',
               email: member.email,
-              role: member.user && typeof member.user === 'object' && 'role' in member.user
+              role: member.user && typeof member.user === 'object'
                 ? (member.user.role || 'Pending') 
                 : 'Pending',
               status: member.invitation_status
