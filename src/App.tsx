@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth-context";
+import { Auth0ProviderWithNavigate, Auth0BridgeProvider } from "@/contexts/auth0-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 // Pages (import statements kept as is)
@@ -53,67 +54,71 @@ const App = () => {
   return (
     // Ensure all providers are properly nested
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <TooltipProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Navigate to="/login" />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/client-registration" element={<ClientRegistrationPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/verify" element={<VerifyPage />} />
+      <BrowserRouter>
+        <Auth0ProviderWithNavigate>
+          <Auth0BridgeProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Navigate to="/login" />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/client-registration" element={<ClientRegistrationPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/verify" element={<VerifyPage />} />
 
-              {/* User Routes */}
-              <Route element={<AuthGuard requiredRole="user" />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
-                <Route path="/opportunities" element={<OpportunitiesPage />} />
-                <Route path="/data-uploads" element={<DataUploadsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                
-                {/* New User Routes */}
-                <Route path="/insights" element={<InsightsPage />} />
-              </Route>
+                  {/* User Routes */}
+                  <Route element={<AuthGuard requiredRole="user" />}>
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/onboarding" element={<OnboardingPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/knowledge-hub" element={<KnowledgeHubPage />} />
+                    <Route path="/opportunities" element={<OpportunitiesPage />} />
+                    <Route path="/data-uploads" element={<DataUploadsPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    
+                    {/* New User Routes */}
+                    <Route path="/insights" element={<InsightsPage />} />
+                  </Route>
 
-              {/* Admin Routes */}
-              <Route element={<AuthGuard requiredRole="admin" />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/clients" element={<AdminClients />} />
-                <Route path="/admin/checklists" element={<AdminChecklists />} />
-                <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
-                <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
-                <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
-                <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
-                <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
-                <Route path="/admin/files" element={<AdminFiles />} />
-                <Route path="/admin/opportunities" element={<AdminOpportunities />} />
-                <Route path="/admin/settings" element={<SettingsPage />} />
-                <Route path="/admin/clients/:id" element={<AdminDashboard />} />
-                
-                {/* Subscription and Onboarding Routes */}
-                <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
-                <Route path="/admin/subscriptions/create" element={<CreateSubscriptionPage />} />
-                <Route path="/admin/subscriptions/edit/:id" element={<EditSubscriptionPage />} />
-                <Route path="/admin/addons" element={<AdminAddonsPage />} />
-                <Route path="/admin/addons/create" element={<CreateAddonPage />} />
-                <Route path="/admin/addons/edit/:id" element={<EditAddonPage />} />
-                <Route path="/admin/onboarding" element={<AdminOnboardingPage />} />
-              </Route>
+                  {/* Admin Routes */}
+                  <Route element={<AuthGuard requiredRole="admin" />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/clients" element={<AdminClients />} />
+                    <Route path="/admin/checklists" element={<AdminChecklists />} />
+                    <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
+                    <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
+                    <Route path="/admin/checklists/assign/:id" element={<AssignChecklist />} />
+                    <Route path="/admin/checklists/view-assignment/:id" element={<ViewAssignedChecklist />} />
+                    <Route path="/admin/checklists/edit-assignment/:id" element={<ViewAssignedChecklist />} />
+                    <Route path="/admin/files" element={<AdminFiles />} />
+                    <Route path="/admin/opportunities" element={<AdminOpportunities />} />
+                    <Route path="/admin/settings" element={<SettingsPage />} />
+                    <Route path="/admin/clients/:id" element={<AdminDashboard />} />
+                    
+                    {/* Subscription and Onboarding Routes */}
+                    <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+                    <Route path="/admin/subscriptions/create" element={<CreateSubscriptionPage />} />
+                    <Route path="/admin/subscriptions/edit/:id" element={<EditSubscriptionPage />} />
+                    <Route path="/admin/addons" element={<AdminAddonsPage />} />
+                    <Route path="/admin/addons/create" element={<CreateAddonPage />} />
+                    <Route path="/admin/addons/edit/:id" element={<EditAddonPage />} />
+                    <Route path="/admin/onboarding" element={<AdminOnboardingPage />} />
+                  </Route>
 
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
-        </BrowserRouter>
-      </AuthProvider>
+                  {/* Catch-all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </AuthProvider>
+          </Auth0BridgeProvider>
+        </Auth0ProviderWithNavigate>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
