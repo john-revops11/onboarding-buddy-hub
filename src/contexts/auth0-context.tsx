@@ -24,8 +24,12 @@ export const Auth0ProviderWithNavigate = ({ children }: { children: React.ReactN
       clientId={clientId}
       authorizationParams={{
         redirect_uri: redirectUri,
+        scope: "openid profile email",
+        useJwtAuth: true,
+        useFormData: false
       }}
       onRedirectCallback={onRedirectCallback}
+      cacheLocation="localstorage"
     >
       {children}
     </Auth0Provider>
@@ -160,7 +164,13 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
   };
 
   const loginWithAuth0 = () => {
-    loginWithRedirect();
+    loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: window.location.origin,
+        scope: "openid profile email",
+        useJwtAuth: true
+      }
+    });
   };
 
   const logoutWithAuth0 = () => {

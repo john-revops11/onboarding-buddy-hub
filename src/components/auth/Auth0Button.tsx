@@ -2,6 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth0Bridge } from "@/contexts/auth0-context";
+import { Icons } from "@/components/icons";
 
 export const Auth0Button = () => {
   const { loginWithAuth0, isLoading } = useAuth0Bridge();
@@ -13,7 +14,14 @@ export const Auth0Button = () => {
       disabled={isLoading}
       onClick={() => loginWithAuth0()}
     >
-      {isLoading ? "Connecting..." : "Login with Auth0"}
+      {isLoading ? (
+        <>
+          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        "Login with Auth0"
+      )}
     </Button>
   );
 };
