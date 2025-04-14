@@ -29,8 +29,9 @@ const AdminClients = () => {
     navigate("/admin/onboarding");
   };
 
-  const handleMarkComplete = (id: string) => {
-    markClientComplete(id);
+  // Fix: Make sure handleMarkComplete returns a Promise
+  const handleMarkComplete = async (id: string): Promise<void> => {
+    return markClientComplete(id);
   };
 
   const handleViewDetails = (id: string) => {
