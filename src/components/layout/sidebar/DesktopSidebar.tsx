@@ -23,18 +23,16 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
   const navGroups = isAdmin ? adminNavGroups : userNavGroups;
 
   return (
-    <div className={`bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto ${collapsed ? 'w-[70px]' : 'min-w-[240px] max-w-[240px]'}`}>
+    <div className={`bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto ${collapsed ? 'w-[90px]' : 'min-w-[280px] max-w-[280px]'}`}>
       <div className="p-4 relative">
         <div className="flex flex-col items-center mb-6">
           {collapsed ? (
-            // Favicon when collapsed - using the new logo
             <img
               src="/lovable-uploads/9ab08585-112a-41c2-9706-a57751815ffb.png"
               alt="Logo"
               className="h-10 w-10"
             />
           ) : (
-            // Full logo when expanded
             <img
               src="/lovable-uploads/78ce9c1d-4a0e-48f9-b47b-d2ed2bacdbe5.png"
               alt="Logo"
@@ -43,7 +41,6 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
           )}
         </div>
         
-        {/* Toggle collapse button */}
         <button 
           onClick={() => setCollapsed(!collapsed)}
           className="absolute right-2 top-4 p-1.5 rounded-full hover:bg-sidebar-accent text-sidebar-foreground"
