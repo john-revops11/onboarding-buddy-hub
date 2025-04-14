@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -12,7 +12,8 @@ import {
   ExternalLink,
   Search,
   ChevronDown,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,48 +21,20 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getClientFiles, getLatestFile } from "@/utils/googleDriveUtils";
-import { useState as useHookState, useEffect } from "react";
+import { toast } from "sonner";
 
-// Sample opportunity data (in a real app this would come from the backend)
-const opportunitiesData = [
-  {
-    id: "opp1",
-    area: "Price Realization",
-    description: "Implement value-based pricing strategy across product lines to capture additional margin",
-    annualOpportunity: 2.4, // in millions
-    targetLevel: "Increase by 15%",
-    targetOpportunity: 1.2, // in millions
-    trackingDashboard: "Pricing Scorecard"
-  },
-  {
-    id: "opp2",
-    area: "Inventory Holding Costs",
-    description: "Optimize inventory levels based on demand forecasting and improved supplier relationships",
-    annualOpportunity: 1.8, // in millions
-    targetLevel: "Reduce by 22%",
-    targetOpportunity: 0.85, // in millions
-    trackingDashboard: "Inventory Analytics"
-  },
-  {
-    id: "opp3",
-    area: "Customer Churn",
-    description: "Implement proactive retention program focused on high-value accounts",
-    annualOpportunity: 3.2, // in millions
-    targetLevel: "Achieve <5% Churn",
-    targetOpportunity: 1.5, // in millions
-    trackingDashboard: "Customer Health"
-  }
-];
+// Interface for opportunity data
+interface Opportunity {
+  id: string;
+  area: string;
+  description: string;
+  annualOpportunity: number;
+  targetLevel: string;
+  targetOpportunity: number;
+  trackingDashboard: string;
+}
 
-// Format currency in millions
-const formatCurrency = (value: number) => {
-  if (value >= 1) {
-    return `$${value.toFixed(1)}M`;
-  } else {
-    return `$${(value * 1000).toFixed(0)}K`;
-  }
-};
-
+// Interface for diagnostic documents
 interface DiagnosticDocument {
   id: string;
   name: string;
@@ -72,31 +45,69 @@ interface DiagnosticDocument {
   type?: string;
 }
 
+// Format currency in millions
+const formatCurrency = (value: number) => {
+  if (value >= 1) {
+    return `$${value.toFixed(1)}M`;
+  } else {
+    return `$${(value * 1000).toFixed(0)}K`;
+  }
+};
+
 const OpportunitiesPage = () => {
   const [activeTab, setActiveTab] = useState("opportunities");
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [documents, setDocuments] = useState<DiagnosticDocument[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<DiagnosticDocument | null>(null);
   const [isViewingDocument, setIsViewingDocument] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoadingOpportunities, setIsLoadingOpportunities] = useState(true);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null);
+  const [documentsError, setDocumentsError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
 
   useEffect(() => {
+    const fetchOpportunities = async () => {
+      setIsLoadingOpportunities(true);
+      try {
+        // In a real implementation, this would fetch from a real API
+        const response = await fetch('/api/opportunities');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch opportunities');
+        }
+        
+        const data = await response.json();
+        setOpportunities(data.opportunities || []);
+        setOpportunitiesError(null);
+      } catch (err) {
+        console.error("Error fetching opportunities:", err);
+        setOpportunitiesError("Could not load opportunities data. Please try again later.");
+        toast.error("Failed to load opportunities data");
+      } finally {
+        setIsLoadingOpportunities(false);
+      }
+    };
+
     const fetchDocuments = async () => {
-      setIsLoading(true);
+      setIsLoadingDocuments(true);
       try {
         // Assuming clientId is available, in a real app this would come from auth
         const clientId = "current-client";
         const docs = await getClientFiles(clientId, "diagnostic");
         setDocuments(docs);
-        setError(null);
+        setDocumentsError(null);
       } catch (err) {
         console.error("Error fetching documents:", err);
-        setError("Could not load diagnostic documents. Please try again later.");
+        setDocumentsError("Could not load diagnostic documents. Please try again later.");
+        toast.error("Failed to load diagnostic documents");
       } finally {
-        setIsLoading(false);
+        setIsLoadingDocuments(false);
       }
     };
 
+    fetchOpportunities();
     fetchDocuments();
   }, []);
 
@@ -108,6 +119,21 @@ const OpportunitiesPage = () => {
   const handleCloseDocument = () => {
     setIsViewingDocument(false);
   };
+
+  // Filter and sort documents
+  const filteredDocuments = documents.filter(doc => 
+    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.modifiedTime).getTime() - new Date(a.modifiedTime).getTime();
+    } else if (sortOrder === "oldest") {
+      return new Date(a.modifiedTime).getTime() - new Date(b.modifiedTime).getTime();
+    } else { // name
+      return a.name.localeCompare(b.name);
+    }
+  });
 
   return (
     <DashboardLayout>
@@ -143,7 +169,22 @@ const OpportunitiesPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {opportunitiesData.length > 0 ? (
+                {isLoadingOpportunities ? (
+                  <div className="py-12 flex justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : opportunitiesError ? (
+                  <div className="py-12 text-center text-muted-foreground">
+                    <p>{opportunitiesError}</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : opportunities.length > 0 ? (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -163,7 +204,7 @@ const OpportunitiesPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {opportunitiesData.map((opp) => (
+                        {opportunities.map((opp) => (
                           <TableRow key={opp.id}>
                             <TableCell className="font-medium">{opp.area}</TableCell>
                             <TableCell className="max-w-md">{opp.description}</TableCell>
@@ -198,7 +239,22 @@ const OpportunitiesPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {!isViewingDocument ? (
+                {isLoadingDocuments ? (
+                  <div className="py-12 flex justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : documentsError ? (
+                  <div className="py-12 text-center text-muted-foreground">
+                    <p>{documentsError}</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : !isViewingDocument ? (
                   <>
                     <div className="flex flex-col md:flex-row gap-4 mb-6">
                       <div className="relative w-full md:w-64">
@@ -207,12 +263,15 @@ const OpportunitiesPage = () => {
                           type="text"
                           placeholder="Search documents..."
                           className="pl-8 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                         />
                       </div>
                       <div className="relative w-full md:w-44">
                         <select
                           className="h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                          defaultValue="newest"
+                          value={sortOrder}
+                          onChange={(e) => setSortOrder(e.target.value)}
                         >
                           <option value="newest">Newest First</option>
                           <option value="oldest">Oldest First</option>
@@ -222,21 +281,23 @@ const OpportunitiesPage = () => {
                       </div>
                     </div>
 
-                    {isLoading ? (
-                      <div className="py-12 text-center text-muted-foreground">
-                        <p>Loading documents...</p>
-                      </div>
-                    ) : error ? (
-                      <div className="py-12 text-center text-muted-foreground">
-                        <p>{error}</p>
-                      </div>
-                    ) : documents.length === 0 ? (
+                    {documents.length === 0 ? (
                       <div className="py-12 text-center text-muted-foreground">
                         <p>No diagnostic documents available yet.</p>
                       </div>
+                    ) : sortedDocuments.length === 0 ? (
+                      <div className="py-12 text-center text-muted-foreground">
+                        <p>No documents match your search criteria.</p>
+                        <Button
+                          variant="link"
+                          onClick={() => setSearchQuery("")}
+                        >
+                          Clear search
+                        </Button>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {documents.map((doc) => (
+                        {sortedDocuments.map((doc) => (
                           <div key={doc.id} className="border rounded-lg p-4">
                             <div className="flex items-start mb-2">
                               <FileText className="h-8 w-8 mr-2 text-muted-foreground" />
@@ -266,8 +327,7 @@ const OpportunitiesPage = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                // In a real app, this would trigger a download
-                                onClick={() => window.open(doc.webViewLink, '_blank')}
+                                onClick={() => window.open(doc.webViewLink + '&export=download', '_blank')}
                               >
                                 <Download className="mr-1 h-4 w-4" />
                                 Download
@@ -294,6 +354,7 @@ const OpportunitiesPage = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => window.open(selectedDoc?.webViewLink + '&export=download', '_blank')}
                         >
                           <Download className="mr-1 h-4 w-4" />
                           Download

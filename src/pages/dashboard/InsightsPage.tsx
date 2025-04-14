@@ -8,6 +8,7 @@ import { InsightEmbed } from "@/components/insights/InsightEmbed";
 import { InsightsList } from "@/components/insights/InsightsList";
 import { getClientFiles, getLatestFile } from "@/utils/googleDriveUtils";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Interface for insight documents
 interface InsightDocument {
@@ -45,6 +46,7 @@ const InsightsPage = () => {
       } catch (err) {
         console.error("Error fetching latest insight:", err);
         setLatestError("Could not load the latest insight document.");
+        toast.error("Failed to load the latest insight document");
       } finally {
         setIsLoadingLatest(false);
       }
@@ -57,6 +59,9 @@ const InsightsPage = () => {
         const clientId = "current-client";
         const allInsights = await getClientFiles(clientId, "insights");
         
+        // Calculate total pages
+        setTotalPages(Math.ceil(allInsights.length / itemsPerPage));
+        
         // Remove the latest insight from the list if it exists
         if (latestInsight) {
           const filteredInsights = allInsights.filter(
@@ -64,19 +69,15 @@ const InsightsPage = () => {
           );
           setInsights(filteredInsights);
         } else {
-          // If no latest insight is set yet, show all and set pages
-          setInsights(allInsights.slice(1)); // Assuming the first one is the latest
+          // If no latest insight is set yet, show all insights except potentially the first one
+          setInsights(allInsights.length > 0 ? allInsights.slice(1) : []);
         }
-        
-        // Calculate total pages
-        setTotalPages(Math.ceil(
-          (latestInsight ? allInsights.length - 1 : allInsights.length) / itemsPerPage
-        ));
         
         setArchiveError(null);
       } catch (err) {
         console.error("Error fetching insights list:", err);
         setArchiveError("Could not load historical insights.");
+        toast.error("Failed to load historical insights");
       } finally {
         setIsLoadingArchive(false);
       }
@@ -84,7 +85,7 @@ const InsightsPage = () => {
 
     fetchLatestInsight();
     fetchInsightsList();
-  }, []);
+  }, [latestInsight?.id]);
 
   // Function to format the current month and year
   const formatCurrentMonthYear = (document: InsightDocument | null) => {

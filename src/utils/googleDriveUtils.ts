@@ -1,71 +1,76 @@
 
-// Simple mock implementation for client file operations without Google Drive integration
+// Real implementation for Google Drive integration
+import { toast } from "sonner";
 
-export const getClientFiles = async (clientId: string, folderType: string) => {
-  // Mock implementation
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
-  
-  // Generate several months of documents
-  const files = [];
-  
-  // Current month document
-  files.push({
-    id: "file-current",
-    name: `${currentYear}-${String(currentMonth).padStart(2, '0')}-insight.pdf`,
-    size: "1.4 MB",
-    modifiedTime: currentDate.toISOString(),
-    status: "processed",
-    type: folderType === "insights" ? "monthly" : folderType,
-    webViewLink: "#",
-    embedLink: "#"
-  });
-  
-  // Previous months (generate up to 12 previous months)
-  for (let i = 1; i <= 12; i++) {
-    let month = currentMonth - i;
-    let year = currentYear;
+// Types for Google Drive files
+export interface DriveFile {
+  id: string;
+  name: string;
+  size: string;
+  modifiedTime: string;
+  status?: string;
+  type?: string;
+  webViewLink: string;
+  embedLink: string;
+}
+
+// Get all files from a client folder
+export const getClientFiles = async (clientId: string, folderType: string): Promise<DriveFile[]> => {
+  try {
+    const response = await fetch(`/api/drive/${clientId}/folders/${folderType}/files`);
     
-    // Handle previous year crossover
-    if (month <= 0) {
-      month += 12;
-      year -= 1;
+    if (!response.ok) {
+      throw new Error(`Failed to fetch files: ${response.statusText}`);
     }
     
-    files.push({
-      id: `file-${year}-${month}`,
-      name: `${year}-${String(month).padStart(2, '0')}-insight.pdf`,
-      size: `${(Math.random() * 2 + 0.8).toFixed(1)} MB`,
-      modifiedTime: new Date(year, month - 1, 15).toISOString(),
-      status: "processed",
-      type: i % 3 === 0 ? "quarterly" : "monthly",
-      webViewLink: "#",
-      embedLink: "#"
-    });
+    const data = await response.json();
+    return data.files;
+  } catch (error) {
+    console.error("Error fetching client files:", error);
+    toast.error("Failed to load files. Please try again later.");
+    return [];
   }
-  
-  return files;
 };
 
-export const getLatestFile = async (clientId: string, folderType: string) => {
-  const files = await getClientFiles(clientId, folderType);
-  return files[0]; // Return the first file as the "latest" one
+// Get the latest file from a client folder
+export const getLatestFile = async (clientId: string, folderType: string): Promise<DriveFile | null> => {
+  try {
+    const response = await fetch(`/api/drive/${clientId}/folders/${folderType}/latest`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch latest file: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.file || null;
+  } catch (error) {
+    console.error("Error fetching latest file:", error);
+    toast.error("Failed to load the latest file. Please try again later.");
+    return null;
+  }
 };
 
-export const uploadFileToClientFolder = async (clientId: string, folderType: string, file: File) => {
-  // Mock upload delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Return a mock response
-  return {
-    id: `new-${Date.now()}`,
-    name: file.name,
-    size: file.size,
-    modifiedTime: new Date().toISOString(),
-    webViewLink: "#",
-    embedLink: "#"
-  };
+// Upload a file to a client folder
+export const uploadFileToClientFolder = async (clientId: string, folderType: string, file: File): Promise<DriveFile | null> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`/api/drive/${clientId}/folders/${folderType}/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    toast.success(`File "${file.name}" uploaded successfully`);
+    return data.file;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    toast.error("Failed to upload file. Please try again later.");
+    return null;
+  }
 };
