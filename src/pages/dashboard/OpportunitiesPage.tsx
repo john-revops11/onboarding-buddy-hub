@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
@@ -161,7 +160,6 @@ const OpportunitiesPage = () => {
     setSelectedDocument(null);
   };
 
-  // Function to determine row class based on index for alternating row colors
   const getRowClass = (index) => {
     return index % 2 === 0 ? "bg-white" : "bg-muted/20";
   };
@@ -575,7 +573,7 @@ const OpportunitiesPage = () => {
                           <Calendar size={12} className="text-muted-foreground" />
                           <p className="text-xs text-muted-foreground">{presentation.date}</p>
                           {presentation.type && (
-                            <Badge variant="outline" size="sm" className="text-xs">
+                            <Badge variant="outline" className="text-xs">
                               {presentation.type}
                             </Badge>
                           )}
