@@ -157,11 +157,12 @@ serve(async (req: Request) => {
 
     try {
       // Create Shared Drive with consistent naming
+      // Fix: Pass requestId as a query parameter, not in the requestBody
       const driveResponse = await driveService.drives.create({
         requestBody: {
           name: companyName, // Use the company name directly as the drive name
         },
-        requestId: requestId,
+        requestId: requestId, // Properly pass the requestId as a separate parameter
         fields: 'id,name',
       });
 
