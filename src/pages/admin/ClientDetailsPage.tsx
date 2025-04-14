@@ -30,22 +30,26 @@ interface ClientDetails {
 }
 
 // Define proper types for Supabase query results
+interface AddonData {
+  name: string;
+}
+
 interface SupabaseAddonResult {
   addon_id: string;
-  addon: {
-    name: string;
-  };
+  addon: AddonData;
+}
+
+interface UserData {
+  name: string | null;
+  email: string | null;
+  role: string | null;
 }
 
 interface SupabaseTeamMemberResult {
   id: string;
   email: string;
   invitation_status: string;
-  user: {
-    name: string | null;
-    email: string | null;
-    role: string | null;
-  } | null;
+  user: UserData | null;
 }
 
 const ClientDetailsPage = () => {
@@ -87,6 +91,7 @@ const ClientDetailsPage = () => {
         const { data: addonData, error: addonError } = await supabase
           .from('client_addons')
           .select(`
+            addon_id,
             addon:addon_id(name)
           `)
           .eq('client_id', clientId);
@@ -110,20 +115,31 @@ const ClientDetailsPage = () => {
         const formattedClient: ClientDetails = {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
-          addons: Array.isArray(addonData) ? addonData.map(item => 
-            item.addon && typeof item.addon === 'object' ? (item.addon.name || 'Unknown Addon') : 'Unknown Addon'
-          ) : [],
+          addons: Array.isArray(addonData) 
+            ? addonData.map(item => {
+                if (item.addon && typeof item.addon === 'object') {
+                  return item.addon.name || 'Unknown Addon';
+                }
+                return 'Unknown Addon';
+              }) 
+            : [],
           joinDate: clientData.created_at ? new Date(clientData.created_at).toISOString().split('T')[0] : 'Unknown'
         };
         
         // Format team members data
-        const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) ? teamData.map(member => ({
-          id: member.id,
-          name: member.user && typeof member.user === 'object' ? (member.user.name || 'Pending User') : 'Pending User',
-          email: member.email,
-          role: member.user && typeof member.user === 'object' ? (member.user.role || 'Pending') : 'Pending',
-          status: member.invitation_status
-        })) : [];
+        const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
+          ? teamData.map(member => ({
+              id: member.id,
+              name: member.user && typeof member.user === 'object' 
+                ? (member.user.name || 'Pending User') 
+                : 'Pending User',
+              email: member.email,
+              role: member.user && typeof member.user === 'object' 
+                ? (member.user.role || 'Pending') 
+                : 'Pending',
+              status: member.invitation_status
+            })) 
+          : [];
         
         setClient(formattedClient);
         setTeamMembers(formattedTeamMembers);
