@@ -9,8 +9,7 @@ import {
 } from "react-router-dom";
 import { useAuth } from "./contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
-import { siteConfig } from "./config/site";
-import { DashboardLayout } from "@/components/layout/DashboardSidebar";
+import { siteConfig } from "@/config/site";
 import Index from "./pages";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
@@ -26,6 +25,36 @@ import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
+import { createContext } from "react";
+import type { User } from "./types/auth";
+
+const AuthContext = createContext<{
+  state: {
+    isAuthenticated: boolean;
+    user: User | null;
+    error: string | null;
+    isLoading: boolean;
+  };
+  login: (credentials: any) => Promise<void>;
+  logout: () => void;
+  getAllUsers: () => Promise<any[]>;
+  approveUser: (userId: string) => Promise<void>;
+  rejectUser: (userId: string) => Promise<void>;
+  clearError: () => void;
+}>({
+  state: {
+    isAuthenticated: false,
+    user: null,
+    error: null,
+    isLoading: false,
+  },
+  login: async () => {},
+  logout: () => {},
+  getAllUsers: async () => [],
+  approveUser: async () => {},
+  rejectUser: async () => {},
+  clearError: () => {},
+});
 
 function App() {
   return (
@@ -60,7 +89,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (credentials: any) => {
     setState({ ...state, isLoading: true, error: null });
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const mockUser = {
         id: "1",
@@ -91,7 +119,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getAllUsers = async () => {
-    // Simulate API call to fetch all users
     await new Promise((resolve) => setTimeout(resolve, 500));
     const mockUsers = [
       {
@@ -123,13 +150,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const approveUser = async (userId: string) => {
-    // Simulate API call to approve a user
     await new Promise((resolve) => setTimeout(resolve, 500));
     console.log(`User ${userId} approved`);
   };
 
   const rejectUser = async (userId: string) => {
-    // Simulate API call to reject a user
     await new Promise((resolve) => setTimeout(resolve, 500));
     console.log(`User ${userId} rejected`);
   };
@@ -139,9 +164,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <useAuth.Provider value={{ state, login, logout, getAllUsers, approveUser, rejectUser, clearError }}>
+    <AuthContext.Provider
+      value={{
+        state,
+        login,
+        logout,
+        getAllUsers,
+        approveUser,
+        rejectUser,
+        clearError,
+      }}
+    >
       {children}
-    </useAuth.Provider>
+    </AuthContext.Provider>
   );
 }
 
@@ -149,7 +184,6 @@ function AppContent() {
   const { state } = useAuth();
   const location = useLocation();
 
-  // Define protected routes
   const ProtectedRoute = ({
     children,
     requiredRole,
@@ -158,12 +192,10 @@ function AppContent() {
     requiredRole?: string;
   }) => {
     if (!state.isAuthenticated) {
-      // Redirect to login page if not authenticated
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     if (requiredRole && state.user?.role !== requiredRole) {
-      // Redirect to unauthorized page or another appropriate route
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
 
@@ -175,7 +207,6 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Index />} />
         
-        {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterInvitedUser />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -184,7 +215,6 @@ function AppContent() {
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/auth/register-client" element={<ClientRegistrationPage />} />
         
-        {/* Dashboard Routes */}
         <Route
           path="/dashboard"
           element={
@@ -202,7 +232,6 @@ function AppContent() {
           }
         />
         
-        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -244,7 +273,6 @@ function AppContent() {
           }
         />
         
-        {/* Catch-all route for 404 Not Found */}
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
       <Toaster />
@@ -253,3 +281,11 @@ function AppContent() {
 }
 
 export default App;
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
