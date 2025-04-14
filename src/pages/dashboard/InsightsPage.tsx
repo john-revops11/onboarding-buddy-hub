@@ -8,113 +8,191 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { 
-  BarChart2, 
-  TrendingUp, 
-  Users,
-  PieChart,
-  Loader2,
-  AlertCircle
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { getClientFiles, getLatestFile } from "@/utils/googleDriveUtils";
+import { InsightEmbed } from "@/components/insights/InsightEmbed";
+import { InsightsList } from "@/components/insights/InsightsList";
+
+interface InsightDocument {
+  id: string;
+  name: string;
+  modifiedTime: string;
+  webViewLink: string;
+  embedLink: string;
+}
 
 const InsightsPage = () => {
+  // State for the currently selected document (featured in the viewer)
+  const [selectedInsight, setSelectedInsight] = useState<InsightDocument | null>(null);
+  
+  // State for the list of historical documents
+  const [historicalInsights, setHistoricalInsights] = useState<InsightDocument[]>([]);
+  
+  // Loading and error states
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isListLoading, setIsListLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
+  // Mock client ID - in a real implementation, this would come from auth context
+  const clientId = "client-123";
+
+  // Function to fetch the latest insight
+  const fetchLatestInsight = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const latestFile = await getLatestFile(clientId, "insights");
+      if (latestFile) {
+        setSelectedInsight(latestFile as InsightDocument);
+      }
+    } catch (err) {
+      setError("Failed to load the latest insight document.");
+      console.error("Error fetching latest insight:", err);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
+  };
 
-    return () => clearTimeout(timer);
+  // Function to fetch historical insights
+  const fetchHistoricalInsights = async () => {
+    setIsListLoading(true);
+    setListError(null);
+    
+    try {
+      const files = await getClientFiles(clientId, "insights");
+      
+      // Filter out the currently selected insight if it exists
+      const filteredFiles = selectedInsight 
+        ? files.filter(file => file.id !== selectedInsight.id)
+        : files;
+      
+      // Sort by modification date, newest first
+      const sortedFiles = filteredFiles.sort((a, b) => 
+        new Date(b.modifiedTime).getTime() - new Date(a.modifiedTime).getTime()
+      );
+      
+      setHistoricalInsights(sortedFiles as InsightDocument[]);
+      
+      // Calculate total pages
+      setTotalPages(Math.ceil(sortedFiles.length / itemsPerPage));
+    } catch (err) {
+      setListError("Could not load historical insights.");
+      console.error("Error fetching historical insights:", err);
+    } finally {
+      setIsListLoading(false);
+    }
+  };
+
+  // Function to handle viewing a different insight
+  const handleViewInsight = (insight: InsightDocument) => {
+    setSelectedInsight(insight);
+    
+    // If the currently viewed document is changed, update the list of historical insights
+    fetchHistoricalInsights();
+  };
+
+  // Function to handle pagination
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Get current insights for pagination
+  const getCurrentInsights = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return historicalInsights.slice(startIndex, endIndex);
+  };
+
+  // Initial data fetching
+  useEffect(() => {
+    fetchLatestInsight();
   }, []);
+
+  // Fetch historical insights once we have the latest insight
+  useEffect(() => {
+    if (!isLoading) {
+      fetchHistoricalInsights();
+    }
+  }, [isLoading, selectedInsight]);
+
+  // Extract month and year for display
+  const getCurrentMonthYear = () => {
+    if (selectedInsight) {
+      // Try to extract from filename first (YYYY-MM format)
+      const dateMatch = selectedInsight.name.match(/(\d{4})-(\d{2})/);
+      if (dateMatch) {
+        const year = dateMatch[1];
+        const month = dateMatch[2];
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        return `${months[parseInt(month, 10) - 1]} ${year}`;
+      }
+      
+      // Fallback to modification date
+      const date = new Date(selectedInsight.modifiedTime);
+      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+    }
+    
+    // Default if no document is selected
+    const now = new Date();
+    return `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Performance Insights</h1>
-            <p className="text-muted-foreground">
-              Detailed performance metrics and insights will be available soon.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Latest Insights</h1>
+          <p className="text-muted-foreground">
+            Your regular performance snapshots and strategic recommendations from Revify. (Updated Monthly)
+          </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2 text-lg">Loading performance data...</span>
-          </div>
-        ) : error ? (
-          <div className="text-center py-8 bg-muted/20 rounded-lg">
-            <AlertCircle className="h-8 w-8 mx-auto text-destructive mb-2" />
-            <p className="text-destructive font-medium mb-2">{error}</p>
-            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
-              Retry
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <BarChart2 className="h-5 w-5 text-primary" />
-                  <CardTitle>Performance Overview</CardTitle>
-                </div>
-                <CardDescription>Insights will be displayed here soon</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center py-12">
-                <p className="text-muted-foreground">
-                  Performance metrics are currently being prepared. 
-                  Check back later for comprehensive insights.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <div className="grid gap-6 sm:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                    <CardTitle className="text-base">Performance</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">-</div>
-                  <p className="text-sm text-muted-foreground">Metrics pending</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-500" />
-                    <CardTitle className="text-base">Growth</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">-</div>
-                  <p className="text-sm text-muted-foreground">Metrics pending</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <PieChart className="h-4 w-4 text-purple-500" />
-                    <CardTitle className="text-base">Market Share</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">-</div>
-                  <p className="text-sm text-muted-foreground">Metrics pending</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Monthly Insight ({getCurrentMonthYear()})</CardTitle>
+            <CardDescription>
+              View and download your latest performance insights document
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InsightEmbed 
+              embedLink={selectedInsight?.embedLink || null}
+              webViewLink={selectedInsight?.webViewLink || null}
+              fileName={selectedInsight?.name || null}
+              isLoading={isLoading}
+              error={error}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Previous Insights</CardTitle>
+            <CardDescription>
+              Access your historical performance insights documents
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InsightsList 
+              insights={getCurrentInsights()}
+              isLoading={isListLoading}
+              error={listError}
+              onViewInsight={handleViewInsight}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
