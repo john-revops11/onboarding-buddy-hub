@@ -37,7 +37,7 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
         
         <SearchBar />
         
-        <div className="mb-6 overflow-y-auto">
+        <div className="mt-4 overflow-y-auto">
           {navGroups.map((group, index) => (
             <SidebarNavGroup
               key={index}

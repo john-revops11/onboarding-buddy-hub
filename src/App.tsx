@@ -22,11 +22,16 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
+import AdminFilesPage from "./pages/admin/AdminFiles";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import AdminOpportunitiesPage from "./pages/admin/AdminOpportunities";
+import AdminChecklists from "./pages/admin/AdminChecklists";
+import AdminAddonsPage from "./pages/admin/addons/AdminAddonsPage";
+import AdminSubscriptionsPage from "./pages/admin/subscriptions/AdminSubscriptionsPage";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider, useAuth } from "./contexts/auth-context";
@@ -170,6 +175,56 @@ function AppContent() {
             <ProtectedRoute requiredRole="admin">
               <DashboardLayout>
                 <AdminOnboardingPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/opportunities"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout>
+                <AdminOpportunitiesPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/files"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout>
+                <AdminFilesPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/checklists"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout>
+                <AdminChecklists />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/subscriptions"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout>
+                <AdminSubscriptionsPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/addons"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DashboardLayout>
+                <AdminAddonsPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
