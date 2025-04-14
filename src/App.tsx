@@ -21,6 +21,10 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
+import InsightsPage from "./pages/dashboard/InsightsPage";
+import OpportunitiesPage from "./pages/dashboard/OpportunitiesPage";
+import DataUploadsPage from "./pages/dashboard/DataUploadsPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminClients from "./pages/admin/AdminClients";
@@ -100,109 +104,99 @@ function AppContent() {
         {/* User dashboard routes - Protected and wrapped with DashboardLayout */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardPage />
-            </DashboardLayout>
+            <DashboardPage />
           </ProtectedRoute>
         } />
         <Route path="/onboarding" element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <OnboardingPage />
-            </DashboardLayout>
+            <OnboardingPage />
           </ProtectedRoute>
         } />
         <Route path="/knowledge-hub" element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <KnowledgeHubPage />
-            </DashboardLayout>
+            <KnowledgeHubPage />
           </ProtectedRoute>
         } />
         <Route path="/settings" element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <SettingsPage />
-            </DashboardLayout>
+            <SettingsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/insights" element={
+          <ProtectedRoute>
+            <InsightsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/opportunities" element={
+          <ProtectedRoute>
+            <OpportunitiesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/data-uploads" element={
+          <ProtectedRoute>
+            <DataUploadsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         } />
         
         {/* Admin routes - Protected with admin role and wrapped with DashboardLayout */}
         <Route path="/admin" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminDashboard />
-            </DashboardLayout>
+            <AdminDashboard />
           </ProtectedRoute>
         } />
         <Route path="/admin/users" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminUsers />
-            </DashboardLayout>
+            <AdminUsers />
           </ProtectedRoute>
         } />
         <Route path="/admin/clients" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminClients />
-            </DashboardLayout>
+            <AdminClients />
           </ProtectedRoute>
         } />
         <Route path="/admin/clients/:clientId" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <ClientDetailsPage />
-            </DashboardLayout>
+            <ClientDetailsPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/onboarding" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminOnboardingPage />
-            </DashboardLayout>
+            <AdminOnboardingPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/opportunities" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminOpportunitiesPage />
-            </DashboardLayout>
+            <AdminOpportunitiesPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/files" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminFilesPage />
-            </DashboardLayout>
+            <AdminFilesPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/checklists" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminChecklists />
-            </DashboardLayout>
+            <AdminChecklists />
           </ProtectedRoute>
         } />
         <Route path="/admin/subscriptions" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminSubscriptionsPage />
-            </DashboardLayout>
+            <AdminSubscriptionsPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/addons" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminAddonsPage />
-            </DashboardLayout>
+            <AdminAddonsPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/settings" element={
           <ProtectedRoute requiredRole="admin">
-            <DashboardLayout>
-              <AdminSettingsPage />
-            </DashboardLayout>
+            <AdminSettingsPage />
           </ProtectedRoute>
         } />
         
