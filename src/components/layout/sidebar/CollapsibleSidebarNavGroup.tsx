@@ -21,13 +21,11 @@ export function CollapsibleSidebarNavGroup({
   currentPath, 
   collapsed 
 }: CollapsibleNavGroupProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  // Check if any item in this group is active to determine initial open state
+  const isAnyItemActive = items.some(item => currentPath === item.path);
+  const [isOpen, setIsOpen] = useState(isAnyItemActive || true);
   const navigate = useNavigate();
   
-  // Check if any item in this group is active
-  const isGroupActive = items.some(item => currentPath === item.path);
-  
-  // Don't show the collapse/expand button if sidebar is collapsed
   return (
     <div className="mb-6">
       {!collapsed && (
@@ -35,7 +33,7 @@ export function CollapsibleSidebarNavGroup({
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider",
-            isGroupActive ? "text-accentGreen-600" : "text-muted-foreground"
+            isAnyItemActive ? "text-accentGreen-600" : "text-muted-foreground"
           )}
         >
           <span>{title}</span>

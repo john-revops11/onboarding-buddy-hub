@@ -66,8 +66,5 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
   );
 }
 
-// Export the icon component mapping for reuse
-export {
-  DesktopSidebar,
-  MobileSidebar,
-};
+// Export the components
+export { DesktopSidebar, MobileSidebar };
