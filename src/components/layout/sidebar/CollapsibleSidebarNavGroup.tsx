@@ -23,7 +23,8 @@ export function CollapsibleSidebarNavGroup({
 }: CollapsibleNavGroupProps) {
   // Check if any item in this group is active to determine initial open state
   const isAnyItemActive = items.some(item => currentPath === item.path);
-  const [isOpen, setIsOpen] = useState(isAnyItemActive || true);
+  // Initialize with isAnyItemActive OR true, not just true
+  const [isOpen, setIsOpen] = useState<boolean>(isAnyItemActive || true);
   const navigate = useNavigate();
   
   return (

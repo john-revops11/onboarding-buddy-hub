@@ -18,15 +18,16 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import VerifyPage from "./pages/auth/VerifyPage";
 import ClientRegistrationPage from "./pages/auth/ClientRegistrationPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
+import OnboardingPage from "./pages/dashboard/OnboardingPage";
+import KnowledgeHubPage from "./pages/dashboard/KnowledgeHubPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import AdminFilesPage from "./pages/admin/AdminFiles";
-import OnboardingPage from "./pages/dashboard/OnboardingPage";
 import ClientDetailsPage from "./pages/admin/ClientDetailsPage";
 import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
-import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminOpportunitiesPage from "./pages/admin/AdminOpportunities";
 import AdminChecklists from "./pages/admin/AdminChecklists";
@@ -97,148 +98,23 @@ function AppContent() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         
         {/* User dashboard routes - Protected */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <DashboardPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <OnboardingPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <SettingsPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
+        <Route path="/knowledge-hub" element={<ProtectedRoute><KnowledgeHubPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         
         {/* Admin routes - Protected with admin role */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminUsers />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/clients"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminClients />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/clients/:clientId"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <ClientDetailsPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/onboarding"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminOnboardingPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/opportunities"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminOpportunitiesPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/files"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminFilesPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/checklists"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminChecklists />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/subscriptions"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminSubscriptionsPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/addons"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminAddonsPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardLayout>
-                <AdminSettingsPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/clients" element={<ProtectedRoute requiredRole="admin"><AdminClients /></ProtectedRoute>} />
+        <Route path="/admin/clients/:clientId" element={<ProtectedRoute requiredRole="admin"><ClientDetailsPage /></ProtectedRoute>} />
+        <Route path="/admin/onboarding" element={<ProtectedRoute requiredRole="admin"><AdminOnboardingPage /></ProtectedRoute>} />
+        <Route path="/admin/opportunities" element={<ProtectedRoute requiredRole="admin"><AdminOpportunitiesPage /></ProtectedRoute>} />
+        <Route path="/admin/files" element={<ProtectedRoute requiredRole="admin"><AdminFilesPage /></ProtectedRoute>} />
+        <Route path="/admin/checklists" element={<ProtectedRoute requiredRole="admin"><AdminChecklists /></ProtectedRoute>} />
+        <Route path="/admin/subscriptions" element={<ProtectedRoute requiredRole="admin"><AdminSubscriptionsPage /></ProtectedRoute>} />
+        <Route path="/admin/addons" element={<ProtectedRoute requiredRole="admin"><AdminAddonsPage /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><AdminSettingsPage /></ProtectedRoute>} />
         
         {/* Catch all route for 404 */}
         <Route path="*" element={<NotFound />} />
