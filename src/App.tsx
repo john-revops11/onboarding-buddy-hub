@@ -32,6 +32,7 @@ import ChecklistEditor from "./pages/admin/ChecklistEditor";
 import AssignChecklist from "./pages/admin/AssignChecklist";
 import ViewAssignedChecklist from "./pages/admin/ViewAssignedChecklist";
 import OnboardingPage from "./pages/dashboard/OnboardingPage";
+import AdminClients from "./pages/admin/AdminClients";
 
 // New Pages for Revify Portal requirements
 import InsightsPage from "./pages/dashboard/InsightsPage";
@@ -83,6 +84,7 @@ const App = () => {
               <Route element={<AuthGuard requiredRole="admin" />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/clients" element={<AdminClients />} />
                 <Route path="/admin/checklists" element={<AdminChecklists />} />
                 <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
                 <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />
