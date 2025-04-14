@@ -16,16 +16,18 @@ import {
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardPage = () => {
   const { state } = useAuth();
   const navigate = useNavigate();
   const user = state.user;
   const [completedItems, setCompletedItems] = useState(0);
-  const [totalItems, setTotalItems] = useState(6);
+  const [totalItems, setTotalItems] = useState(0);
   const [clientStatus, setClientStatus] = useState(getClientStatus());
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check if we should redirect to onboarding
   useEffect(() => {
@@ -59,8 +61,64 @@ const DashboardPage = () => {
     }
   }, []);
   
+  // Fetch real checklist data
+  useEffect(() => {
+    const fetchChecklistData = async () => {
+      setIsLoading(true);
+      try {
+        if (!user?.id) return;
+        
+        // Get client ID for the current user
+        const { data: clientData, error: clientError } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+        
+        if (clientError) throw clientError;
+        
+        if (!clientData?.id) {
+          setTotalItems(0);
+          setCompletedItems(0);
+          return;
+        }
+        
+        // Get checklist items for the client
+        const { data: checklistData, error: checklistError } = await supabase
+          .from('client_checklists')
+          .select(`
+            checklist_id,
+            completed,
+            checklist:checklists(
+              id,
+              title
+            )
+          `)
+          .eq('client_id', clientData.id);
+        
+        if (checklistError) throw checklistError;
+        
+        if (checklistData && checklistData.length > 0) {
+          setTotalItems(checklistData.length);
+          setCompletedItems(checklistData.filter(item => item.completed).length);
+        } else {
+          setTotalItems(0);
+          setCompletedItems(0);
+        }
+      } catch (error) {
+        console.error("Error fetching checklist data:", error);
+        setTotalItems(0);
+        setCompletedItems(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchChecklistData();
+  }, [user]);
+  
   // Calculate progress percentage
-  const progress = Math.round((completedItems / totalItems) * 100);
+  const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   return (
     <DashboardLayout>
@@ -82,11 +140,21 @@ const DashboardPage = () => {
               <Badge variant="success" className="ml-2">Active</Badge>
             </CardHeader>
             <CardContent className="pt-2">
-              <ProgressOverview 
-                progress={progress} 
-                completedItems={completedItems} 
-                totalItems={totalItems} 
-              />
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : totalItems > 0 ? (
+                <ProgressOverview 
+                  progress={progress} 
+                  completedItems={completedItems} 
+                  totalItems={totalItems} 
+                />
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>No progress items available</p>
+                </div>
+              )}
               <div className="mt-4 flex justify-end">
                 <motion.div
                   whileHover={{ y: -2, scale: 1.02 }}

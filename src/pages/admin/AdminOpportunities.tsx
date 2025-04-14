@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { 
   FileText, 
   PlusCircle, 
@@ -27,7 +27,8 @@ import {
   Save, 
   UsersRound,
   InfoIcon,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import {
   Tooltip,
@@ -40,14 +41,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminOpportunities = () => {
-  const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState<string>("");
-  
-  // Empty arrays instead of mock data
-  const clients: { id: string; name: string }[] = [];
-  
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [opportunities, setOpportunities] = useState<{
     id: number;
     title: string;
@@ -72,14 +70,42 @@ const AdminOpportunities = () => {
     link: ""
   });
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch clients from database
+  useEffect(() => {
+    const fetchClients = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('id, company_name')
+          .order('company_name', { ascending: true });
+        
+        if (error) throw error;
+        
+        const formattedClients = data.map(client => ({
+          id: client.id,
+          name: client.company_name || `Client ${client.id.substring(0, 8)}`
+        }));
+        
+        setClients(formattedClients);
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        toast.error("Failed to load clients");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchClients();
+  }, []);
   
   const handleAddOpportunity = () => {
     if (!newOpportunity.title || !newOpportunity.description) {
       toast({
         title: "Missing fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        description: "Please fill in all required fields"
       });
       return;
     }
@@ -117,8 +143,7 @@ const AdminOpportunities = () => {
     if (!newPresentation.title || !newPresentation.link) {
       toast({
         title: "Missing fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        description: "Please fill in all required fields"
       });
       return;
     }
@@ -179,7 +204,12 @@ const AdminOpportunities = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {clients.length > 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
+                <span className="text-muted-foreground">Loading clients...</span>
+              </div>
+            ) : clients.length > 0 ? (
               <Select value={selectedClient} onValueChange={setSelectedClient}>
                 <SelectTrigger className="w-full md:w-80 focus:ring-primary/40">
                   <SelectValue placeholder="Select a client" />
