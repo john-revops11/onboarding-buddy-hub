@@ -19,13 +19,13 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
       {/* Desktop Sidebar - Only visible on lg breakpoint */}
       {!isMobile && <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
       
       <main className={cn(
-        "flex-1 overflow-auto",
-        collapsed && !isMobile ? "w-[calc(100%-70px)]" : isMobile ? "w-full" : "w-[calc(100%-240px)]"
+        "flex-1 flex flex-col overflow-hidden",
+        collapsed && !isMobile ? "w-[calc(100%-90px)]" : isMobile ? "w-full" : "w-[calc(100%-280px)]"
       )}>
         <TopBar 
           showMobileMenu={isMobile} 
@@ -50,15 +50,17 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
           </Drawer>
         )}
         
-        <motion.div 
-          className="p-4 md:p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.25 }}
-        >
-          {children}
-        </motion.div>
+        <div className="flex-1 overflow-auto">
+          <motion.div 
+            className="p-4 md:p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.25 }}
+          >
+            {children}
+          </motion.div>
+        </div>
       </main>
     </div>
   );

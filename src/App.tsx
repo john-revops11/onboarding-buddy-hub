@@ -53,6 +53,9 @@ function App() {
 function AppContent() {
   const { state } = useAuth();
   const location = useLocation();
+  console.log("Current route:", location.pathname);
+  console.log("User authenticated:", state.isAuthenticated);
+  console.log("User role:", state.user?.role);
 
   const ProtectedRoute = ({
     children,
@@ -62,10 +65,12 @@ function AppContent() {
     requiredRole?: string;
   }) => {
     if (!state.isAuthenticated) {
+      console.log("User not authenticated, redirecting to login");
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     if (requiredRole && state.user?.role !== requiredRole) {
+      console.log(`User does not have required role: ${requiredRole}, has: ${state.user?.role}`);
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
 

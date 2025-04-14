@@ -29,7 +29,7 @@ export function CollapsibleSidebarNavGroup({
   
   // Don't show the collapse/expand button if sidebar is collapsed
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       {!collapsed && (
         <button
           onClick={() => setIsOpen(!isOpen)}
