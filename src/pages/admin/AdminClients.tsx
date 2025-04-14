@@ -13,21 +13,28 @@ import { useNavigate } from "react-router-dom";
 
 const AdminClients = () => {
   const navigate = useNavigate();
+  const [filterStatus, setFilterStatus] = useState("all");
   const {
     clients,
     isLoading,
-    filterStatus,
-    setFilterStatus,
-    searchTerm,
-    setSearchTerm,
+    searchQuery,
+    setSearchQuery,
     processingId,
     getClientProgress,
-    handleMarkComplete,
-    handleViewDetails,
+    markClientComplete,
+    fetchClients
   } = useClientManagement();
 
   const handleAddNewClient = () => {
     navigate("/admin/onboarding");
+  };
+
+  const handleMarkComplete = (id: string) => {
+    markClientComplete(id);
+  };
+
+  const handleViewDetails = (id: string) => {
+    navigate(`/admin/clients/${id}`);
   };
 
   return (
@@ -58,8 +65,8 @@ const AdminClients = () => {
               <div className="relative w-full sm:w-2/3">
                 <Input
                   placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full"
                 />
               </div>
