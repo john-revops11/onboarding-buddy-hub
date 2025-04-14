@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingClient, SubscriptionTier } from "@/lib/types/client-types";
+import { OnboardingClient, SubscriptionTier, Addon } from "@/lib/types/client-types";
 
 // Fix the type definition to match SubscriptionTier
 type TierOption = SubscriptionTier;
