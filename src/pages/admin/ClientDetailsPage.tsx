@@ -36,7 +36,7 @@ interface AddonData {
 
 interface SupabaseAddonResult {
   addon_id: string;
-  addon: AddonData;
+  addon: AddonData | null;
 }
 
 interface UserData {
@@ -116,8 +116,8 @@ const ClientDetailsPage = () => {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
-            ? addonData.map(item => {
-                if (item.addon && typeof item.addon === 'object') {
+            ? addonData.map((item: SupabaseAddonResult) => {
+                if (item.addon) {
                   return item.addon.name || 'Unknown Addon';
                 }
                 return 'Unknown Addon';
@@ -128,15 +128,11 @@ const ClientDetailsPage = () => {
         
         // Format team members data
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map(member => ({
+          ? teamData.map((member: SupabaseTeamMemberResult) => ({
               id: member.id,
-              name: member.user && typeof member.user === 'object' 
-                ? (member.user.name || 'Pending User') 
-                : 'Pending User',
+              name: member.user ? (member.user.name || 'Pending User') : 'Pending User',
               email: member.email,
-              role: member.user && typeof member.user === 'object' 
-                ? (member.user.role || 'Pending') 
-                : 'Pending',
+              role: member.user ? (member.user.role || 'Pending') : 'Pending',
               status: member.invitation_status
             })) 
           : [];
