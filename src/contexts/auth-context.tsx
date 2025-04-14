@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { authReducer, initialState } from "./auth/auth-reducer";
@@ -19,6 +20,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Subscribe to auth state changes and update accordingly
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
         if (event === 'SIGNED_IN' && session) {
           // We use setTimeout to prevent deadlocks
           setTimeout(async () => {
@@ -80,6 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session on page load
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.id);
+      
       if (session) {
         // We use setTimeout to prevent deadlocks
         setTimeout(async () => {

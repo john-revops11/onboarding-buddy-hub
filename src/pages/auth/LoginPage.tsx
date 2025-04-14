@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HexagonPattern } from "@/components/auth/AuthHexagons";
 import { SecurityInfo } from "@/components/auth/SecurityInfo";
@@ -82,6 +82,7 @@ const LoginPage = () => {
     
     try {
       await login(credentials);
+      console.log("Login successful, waiting for redirect");
     } catch (error: any) {
       // Handle specific error types
       if (error.code === "invalid_credentials") {
@@ -160,6 +161,12 @@ const LoginPage = () => {
                   className={`h-11 ${submitAttempted && !credentials.password ? 'border-red-500 focus:ring-red-500' : ''}`}
                   aria-invalid={submitAttempted && !credentials.password ? "true" : "false"}
                 />
+              </div>
+              
+              <div className="flex justify-end">
+                <Link to="/forgot-password" className="text-sm text-accentGreen-600 hover:underline">
+                  Forgot password?
+                </Link>
               </div>
               
               <Button

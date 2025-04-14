@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
-import Index from "./pages/index"; // Updated to use lowercase import
+import Index from "./pages/index"; // Using lowercase import
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -28,9 +28,12 @@ import RegisterInvitedUser from "./pages/auth/RegisterInvitedUser";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider, useAuth } from "./contexts/auth-context";
 import type { User } from "./types/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DashboardLayout } from "./components/layout/DashboardSidebar";
+import { AuthGuard } from "./components/auth/auth-guard";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -72,8 +75,8 @@ function AppContent() {
   return (
     <>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Index />} />
-        
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterInvitedUser />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -81,12 +84,16 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/auth/register-client" element={<ClientRegistrationPage />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         
+        {/* User dashboard routes - Protected */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <DashboardLayout>
+                <DashboardPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -94,7 +101,9 @@ function AppContent() {
           path="/onboarding"
           element={
             <ProtectedRoute>
-              <OnboardingPage />
+              <DashboardLayout>
+                <OnboardingPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -102,16 +111,21 @@ function AppContent() {
           path="/settings"
           element={
             <ProtectedRoute>
-              <SettingsPage />
+              <DashboardLayout>
+                <SettingsPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
         
+        {/* Admin routes - Protected with admin role */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
+              <DashboardLayout>
+                <AdminDashboard />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -119,7 +133,9 @@ function AppContent() {
           path="/admin/users"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminUsers />
+              <DashboardLayout>
+                <AdminUsers />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -127,7 +143,9 @@ function AppContent() {
           path="/admin/clients"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminClients />
+              <DashboardLayout>
+                <AdminClients />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -135,7 +153,9 @@ function AppContent() {
           path="/admin/clients/:clientId"
           element={
             <ProtectedRoute requiredRole="admin">
-              <ClientDetailsPage />
+              <DashboardLayout>
+                <ClientDetailsPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -143,7 +163,9 @@ function AppContent() {
           path="/admin/onboarding"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminOnboardingPage />
+              <DashboardLayout>
+                <AdminOnboardingPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -151,11 +173,14 @@ function AppContent() {
           path="/admin/settings"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminSettingsPage />
+              <DashboardLayout>
+                <AdminSettingsPage />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
         
+        {/* Catch all route for 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
