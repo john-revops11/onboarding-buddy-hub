@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, Trash2, Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,13 +25,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getSubscriptionTiers } from "@/lib/subscription-management";
+import { getSubscriptionTiers, deleteSubscriptionTier } from "@/lib/subscription-management";
+import { initializeDefaultData } from "@/lib/client-management/setup-defaults";
 import { SubscriptionTier } from "@/lib/types/client-types";
-import { supabase } from "@/integrations/supabase/client";
 
 const AdminSubscriptionsPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [subscriptions, setSubscriptions] = useState<SubscriptionTier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
@@ -43,14 +42,16 @@ const AdminSubscriptionsPage = () => {
   const fetchSubscriptions = async () => {
     setIsLoading(true);
     try {
+      // First check if we need to create default data
+      await initializeDefaultData();
+      
+      // Then fetch subscriptions
       const subscriptionData = await getSubscriptionTiers();
       setSubscriptions(subscriptionData);
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription plans. Please try again.",
-        variant: "destructive",
+      toast("Failed to load subscription plans. Please try again.", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
     } finally {
       setIsLoading(false);
@@ -59,28 +60,20 @@ const AdminSubscriptionsPage = () => {
 
   const handleDeleteSubscription = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('subscriptions')
-        .delete()
-        .eq('id', id);
+      const success = await deleteSubscriptionTier(id);
       
-      if (error) throw error;
+      if (!success) throw new Error("Failed to delete subscription");
       
       // Update the local state
       setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
       
-      toast({
-        title: "Subscription deleted",
-        description: "The subscription has been removed successfully.",
-      });
+      toast("The subscription has been removed successfully.");
       
       setSubscriptionToDelete(null);
     } catch (error) {
       console.error("Error deleting subscription:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete subscription. Please try again.",
-        variant: "destructive",
+      toast("Failed to delete subscription. Please try again.", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
     }
   };

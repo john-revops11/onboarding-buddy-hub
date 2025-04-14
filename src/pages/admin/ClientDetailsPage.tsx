@@ -116,7 +116,7 @@ const ClientDetailsPage = () => {
           ...clientData,
           subscription: clientData.subscription?.name || 'No Subscription',
           addons: Array.isArray(addonData) 
-            ? addonData.map((item: any) => {
+            ? addonData.map((item: SupabaseAddonResult) => {
                 // Fixed: Handle addon as a scalar object, not an array
                 if (item && item.addon && typeof item.addon === 'object') {
                   return item.addon.name || 'Unknown Addon';
@@ -129,7 +129,7 @@ const ClientDetailsPage = () => {
         
         // Format team members data
         const formattedTeamMembers: TeamMember[] = Array.isArray(teamData) 
-          ? teamData.map((member: any) => ({
+          ? teamData.map((member: SupabaseTeamMemberResult) => ({
               id: member.id,
               name: member.user && typeof member.user === 'object'
                 ? (member.user.name || 'Pending User') 

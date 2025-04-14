@@ -37,6 +37,8 @@ import AdminOpportunitiesPage from "./pages/admin/AdminOpportunities";
 import AdminChecklists from "./pages/admin/AdminChecklists";
 import AdminAddonsPage from "./pages/admin/addons/AdminAddonsPage";
 import AdminSubscriptionsPage from "./pages/admin/subscriptions/AdminSubscriptionsPage";
+import CreateSubscriptionPage from "./pages/admin/subscriptions/CreateSubscriptionPage";
+import EditSubscriptionPage from "./pages/admin/subscriptions/EditSubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider, useAuth } from "./contexts/auth-context";
@@ -187,6 +189,16 @@ function AppContent() {
         <Route path="/admin/subscriptions" element={
           <ProtectedRoute requiredRole="admin">
             <AdminSubscriptionsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/subscriptions/create" element={
+          <ProtectedRoute requiredRole="admin">
+            <CreateSubscriptionPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/subscriptions/edit/:id" element={
+          <ProtectedRoute requiredRole="admin">
+            <EditSubscriptionPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/addons" element={
