@@ -20,7 +20,7 @@ export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }
 
   const handleNavClick = (path: string) => {
     navigate(path);
-    onNavItemClick();
+    onNavItemClick(); // Close mobile sidebar after navigation
   };
 
   return (
