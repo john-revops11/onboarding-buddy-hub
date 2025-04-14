@@ -100,13 +100,17 @@ export const useClientOnboarding = () => {
       console.log("Selected addons:", selectedAddons);
 
       // Create client with selected addons
-      // Fix: Ensure required properties are present
+      // Ensure the teamMembers array contains objects with required email properties
+      const validTeamMembers = data.teamMembers.map(member => ({
+        email: member.email || "" // Ensure email is always a string, even if empty
+      }));
+
       const clientId = await createClient({
         email: data.email,
         companyName: data.companyName,
         subscriptionTierId: data.subscriptionTierId,
         addons: selectedAddons,
-        teamMembers: data.teamMembers
+        teamMembers: validTeamMembers
       });
       
       if (clientId) {

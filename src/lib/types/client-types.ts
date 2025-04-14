@@ -35,7 +35,7 @@ export interface ClientCreationResult {
   error?: string;
 }
 
-// Add ClientFormValues type from formSchema.ts
+// ClientFormValues type with required email in TeamMember
 export interface ClientFormValues {
   email: string;
   companyName?: string;
