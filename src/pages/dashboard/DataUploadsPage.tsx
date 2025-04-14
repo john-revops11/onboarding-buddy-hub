@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
@@ -14,14 +13,10 @@ import { Button } from "@/components/ui/button";
 import {
   FileUp,
   Calendar,
-  ArrowUpRight,
   Check,
   UploadCloud,
   File,
   X,
-  BarChart,
-  AlertTriangle,
-  ChevronRight,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { getClientFiles, getLatestFile, uploadFileToClientFolder } from "@/utils/googleDriveUtils";
@@ -50,14 +45,12 @@ const DataUploadsPage = () => {
   const isMobile = useMediaQuery("(max-width: 639px)");
 
   useEffect(() => {
-    // Fetch upload history
     const fetchUploadHistory = async () => {
       try {
         setLoading(true);
         const filesData = await getClientFiles("client123", "data");
         setUploadHistory(filesData);
         
-        // Fetch latest health check report
         const latestReport = await getLatestFile("client123", "resources");
         setHealthCheckReport(latestReport);
       } catch (error) {
@@ -78,7 +71,6 @@ const DataUploadsPage = () => {
     setUploadProgress(0);
     
     try {
-      // Simulate upload progress
       const interval = setInterval(() => {
         setUploadProgress((prevProgress) => {
           const newProgress = prevProgress + 10;
@@ -90,18 +82,13 @@ const DataUploadsPage = () => {
         });
       }, 300);
       
-      // In a real app, we would upload all files
-      // For demonstration, we'll upload just the first file
       const file = files[0];
       
-      // Upload file to Google Drive
       const uploadedFile = await uploadFileToClientFolder("client123", "data", file);
       
-      // Simulate completion
       setUploadProgress(100);
       clearInterval(interval);
       
-      // Add the new file to history
       setUploadHistory(prev => [
         {
           id: uploadedFile.id,
@@ -131,12 +118,10 @@ const DataUploadsPage = () => {
     else return (bytes / 1048576).toFixed(1) + " MB";
   };
 
-  // Determine the next upload due date
   const today = new Date();
   const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
   const nextUploadDate = `${nextMonth.toLocaleString('default', { month: 'long' })} 5, ${nextMonth.getFullYear()}`;
 
-  // Card view for mobile
   const renderMobileFileCard = (file: any) => (
     <Card key={file.id} className="mb-4">
       <CardHeader className="pb-3">
@@ -205,7 +190,6 @@ const DataUploadsPage = () => {
         </div>
         
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-          {/* Upload New Data Panel */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center text-lg md:text-xl">
@@ -233,27 +217,13 @@ const DataUploadsPage = () => {
                 <Calendar size={14} className="mr-1" />
                 <span>Next upload due: <strong>{nextUploadDate}</strong></span>
               </div>
-              <motion.div
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ y: 0, scale: 0.98 }}
-              >
-                <Button variant="ghost" size="sm" className="text-xs focus:ring-4 focus:ring-accentGreen-600/40" asChild>
-                  <a href="https://drive.google.com/drive/folders/client-specific-folder" target="_blank" rel="noopener noreferrer">
-                    <ArrowUpRight size={12} className="mr-1" />
-                    Go to Google Drive
-                  </a>
-                </Button>
-              </motion.div>
             </CardFooter>
           </Card>
           
-          {/* Data Health Check Section */}
           <DataHealthCheck report={healthCheckReport} />
           
-          {/* Upload Schedule Panel */}
           <UploadSchedule />
           
-          {/* Upload History Table */}
           <Card className="col-span-1 md:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg md:text-xl">Recent Upload History</CardTitle>
@@ -271,12 +241,10 @@ const DataUploadsPage = () => {
                   No upload history found
                 </div>
               ) : isMobile ? (
-                // Mobile card view
                 <div>
                   {uploadHistory.map(renderMobileFileCard)}
                 </div>
               ) : (
-                // Desktop table view
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>

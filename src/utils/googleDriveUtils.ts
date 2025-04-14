@@ -1,12 +1,10 @@
 
-// This is a mock implementation of the Google Drive utilities
-// that were removed, providing placeholder data and functionality
+// Simple mock implementation for client file operations without Google Drive integration
 
 export const getClientFiles = async (clientId: string, folderType: string) => {
-  // Simulate API delay
+  // Mock implementation
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Return mock files based on folder type
   return [
     {
       id: "file1",
@@ -37,7 +35,7 @@ export const getLatestFile = async (clientId: string, folderType: string) => {
 };
 
 export const uploadFileToClientFolder = async (clientId: string, folderType: string, file: File) => {
-  // Simulate API delay
+  // Mock upload delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   // Return a mock response

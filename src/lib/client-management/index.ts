@@ -5,14 +5,14 @@ export { getClients } from './client-query';
 export { sendClientInvitation } from './client-invitations';
 export { completeClientOnboarding } from './client-status';
 
-// Export new file management functions
+// Export file management functions
 export {
   uploadClientFile,
   getClientFiles,
   updateFileStatus
 } from './file-upload';
 
-// Export new onboarding progress management functions
+// Export onboarding progress management functions
 export {
   getOnboardingProgress,
   updateOnboardingStep,

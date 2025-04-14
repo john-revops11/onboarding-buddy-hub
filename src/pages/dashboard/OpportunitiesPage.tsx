@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
@@ -27,8 +26,6 @@ import {
   Search,
   Download,
   Info,
-  Clock,
-  Filter,
 } from "lucide-react";
 import {
   Select,
@@ -54,7 +51,6 @@ const OpportunitiesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [documentFilter, setDocumentFilter] = useState("all");
   
-  // Mock data - in a real app, this would come from an API
   const opportunities = [
     {
       id: 1,
@@ -88,7 +84,6 @@ const OpportunitiesPage = () => {
     },
   ];
 
-  // Mock presentations data
   const presentations = [
     {
       id: 1,
@@ -106,7 +101,6 @@ const OpportunitiesPage = () => {
     }
   ];
 
-  // Format currency for display
   const formatCurrency = (value) => {
     if (value >= 1) {
       return `$${value.toFixed(2)}M`;
@@ -115,12 +109,10 @@ const OpportunitiesPage = () => {
     }
   };
 
-  // Load diagnostic reviews
   useEffect(() => {
     const loadDocuments = async () => {
       setIsLoadingDocuments(true);
       try {
-        // In a real app, we would use client ID from auth context
         const clientId = "client123";
         const files = await getClientFiles(clientId, "diagnostics");
         setDiagnosticReviews(files);
@@ -136,7 +128,6 @@ const OpportunitiesPage = () => {
     }
   }, [activeTab]);
 
-  // Filter the documents based on search and type
   const filteredDocuments = diagnosticReviews.filter(doc => {
     const matchesSearch = 
       doc.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -192,7 +183,6 @@ const OpportunitiesPage = () => {
                   <TabsTrigger value="documents">Document Library</TabsTrigger>
                 </TabsList>
                 
-                {/* Opportunities Summary Tab */}
                 <TabsContent value="opportunities">
                   <div className="space-y-4">
                     <div>
@@ -282,7 +272,6 @@ const OpportunitiesPage = () => {
                   </div>
                 </TabsContent>
                 
-                {/* Document Library Tab */}
                 <TabsContent value="documents">
                   <div className="space-y-4">
                     <div>
