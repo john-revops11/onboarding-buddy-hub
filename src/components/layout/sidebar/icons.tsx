@@ -18,6 +18,11 @@ import {
   Upload,
   LayoutDashboard,
   FileUp,
+  PieChart,
+  TrendingUp,
+  Activity,
+  Award,
+  ArrowUpRight,
 } from "lucide-react";
 
 // Export a map of icon names to components
@@ -40,6 +45,11 @@ export const IconComponentMap = {
   Upload,
   LayoutDashboard,
   FileUp,
+  PieChart,
+  TrendingUp,
+  Activity,
+  Award,
+  ArrowUpRight,
 };
 
 // Export individual icons for direct imports
@@ -62,4 +72,9 @@ export {
   Upload,
   LayoutDashboard,
   FileUp,
+  PieChart,
+  TrendingUp,
+  Activity,
+  Award,
+  ArrowUpRight,
 };
