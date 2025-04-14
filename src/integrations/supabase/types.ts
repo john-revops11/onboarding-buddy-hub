@@ -142,8 +142,51 @@ export type Database = {
           },
         ]
       }
+      client_checklists: {
+        Row: {
+          assigned_at: string
+          checklist_id: string
+          client_id: string
+          completed: boolean
+          completed_at: string | null
+          id: string
+        }
+        Insert: {
+          assigned_at?: string
+          checklist_id: string
+          client_id: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+        }
+        Update: {
+          assigned_at?: string
+          checklist_id?: string
+          client_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_checklists_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_checklists_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          assigned_admin: string | null
           company_name: string | null
           created_at: string
           drive_id: string | null
@@ -151,12 +194,15 @@ export type Database = {
           email: string
           google_drive_id: string | null
           id: string
+          metadata: Json | null
+          notes: string | null
           onboarding_completed: boolean | null
           status: string
           subscription_id: string | null
           updated_at: string
         }
         Insert: {
+          assigned_admin?: string | null
           company_name?: string | null
           created_at?: string
           drive_id?: string | null
@@ -164,12 +210,15 @@ export type Database = {
           email: string
           google_drive_id?: string | null
           id?: string
+          metadata?: Json | null
+          notes?: string | null
           onboarding_completed?: boolean | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_admin?: string | null
           company_name?: string | null
           created_at?: string
           drive_id?: string | null
@@ -177,6 +226,8 @@ export type Database = {
           email?: string
           google_drive_id?: string | null
           id?: string
+          metadata?: Json | null
+          notes?: string | null
           onboarding_completed?: boolean | null
           status?: string
           subscription_id?: string | null
@@ -237,6 +288,59 @@ export type Database = {
         }
         Relationships: []
       }
+      files: {
+        Row: {
+          category: string | null
+          client_id: string
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          metadata: Json | null
+          status: string
+          uploaded_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          client_id: string
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          client_id?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       google_drive_logs: {
         Row: {
           company_name: string
@@ -266,6 +370,44 @@ export type Database = {
           user_email?: string
         }
         Relationships: []
+      }
+      onboarding_progress: {
+        Row: {
+          client_id: string
+          completed: boolean
+          completed_at: string | null
+          id: string
+          started_at: string
+          step_name: string
+          step_order: number
+        }
+        Insert: {
+          client_id: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          started_at?: string
+          step_name: string
+          step_order: number
+        }
+        Update: {
+          client_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          started_at?: string
+          step_name?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_progress_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -332,6 +474,7 @@ export type Database = {
           id: string
           invitation_status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           client_id: string
@@ -340,6 +483,7 @@ export type Database = {
           id?: string
           invitation_status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           client_id?: string
@@ -348,6 +492,7 @@ export type Database = {
           id?: string
           invitation_status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {

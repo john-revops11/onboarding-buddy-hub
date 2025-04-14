@@ -49,6 +49,29 @@ export async function createClient(data: ClientFormValues): Promise<string> {
     
     if (teamError) throw teamError;
     
+    // Step 4: Create initial onboarding progress records
+    const onboardingSteps = [
+      { step_name: "welcome", step_order: 1, completed: false },
+      { step_name: "contract", step_order: 2, completed: false },
+      { step_name: "questionnaire", step_order: 3, completed: false },
+      { step_name: "upload", step_order: 4, completed: false },
+      { step_name: "integration", step_order: 5, completed: false },
+      { step_name: "training", step_order: 6, completed: false }
+    ];
+    
+    const onboardingRecords = onboardingSteps.map(step => ({
+      client_id: clientId,
+      step_name: step.step_name,
+      step_order: step.step_order,
+      completed: step.completed
+    }));
+    
+    const { error: onboardingError } = await supabase
+      .from('onboarding_progress')
+      .insert(onboardingRecords);
+    
+    if (onboardingError) throw onboardingError;
+    
     return clientId;
   } catch (error: any) {
     toast({
