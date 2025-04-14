@@ -10,13 +10,18 @@ import { User } from "@/types/auth";
 export const Auth0ProviderWithNavigate = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  const domain = "YOUR_AUTH0_DOMAIN"; // Replace with your Auth0 domain
-  const clientId = "YOUR_AUTH0_CLIENT_ID"; // Replace with your Auth0 client ID
+  // Replace these values with your actual Auth0 credentials
+  const domain = import.meta.env.VITE_AUTH0_DOMAIN || "YOUR_AUTH0_DOMAIN"; 
+  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "YOUR_AUTH0_CLIENT_ID";
   const redirectUri = window.location.origin;
 
   const onRedirectCallback = (appState: any) => {
     navigate(appState?.returnTo || "/dashboard");
   };
+
+  if (!domain || domain === "YOUR_AUTH0_DOMAIN" || !clientId || clientId === "YOUR_AUTH0_CLIENT_ID") {
+    console.warn("Auth0 is not properly configured. Please set the VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID environment variables.");
+  }
 
   return (
     <Auth0Provider
@@ -82,52 +87,78 @@ export const Auth0BridgeProvider = ({ children }: { children: React.ReactNode })
   const syncUserWithSupabase = async (auth0User: any): Promise<User> => {
     if (!auth0User) throw new Error("No Auth0 user to sync");
     
-    // Check if user exists in profiles table
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', auth0User.email)
-      .maybeSingle();
-    
-    if (profile) {
-      // User exists, return existing profile
-      return {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name || auth0User.name,
-        role: profile.role as "admin" | "user",
-        avatar: profile.avatar_url || auth0User.picture,
-        status: profile.status as "pending" | "approved" | "rejected",
-        createdAt: profile.created_at,
-        onboardingStatus: profile.onboarding_status
-      };
-    } else {
-      // Create new profile
-      const { data: newProfile, error } = await supabase
+    try {
+      // Check if user exists in profiles table
+      const { data: profile } = await supabase
         .from('profiles')
-        .insert({
-          id: auth0User.sub, // Use Auth0 user ID as profile ID
-          email: auth0User.email,
-          name: auth0User.name,
-          role: 'user', // Default role
-          avatar_url: auth0User.picture,
-          status: 'pending' // New users need approval
-        })
         .select('*')
-        .single();
+        .eq('email', auth0User.email)
+        .maybeSingle();
       
-      if (error) throw error;
+      // Map Auth0 roles to our application roles
+      let appRole: "admin" | "user" = "user";
       
-      return {
-        id: newProfile.id,
-        email: newProfile.email,
-        name: newProfile.name,
-        role: newProfile.role as "admin" | "user",
-        avatar: newProfile.avatar_url,
-        status: newProfile.status as "pending" | "approved" | "rejected",
-        createdAt: newProfile.created_at,
-        onboardingStatus: newProfile.onboarding_status
-      };
+      // Check Auth0 roles and map to application roles
+      // This assumes you've set up the Auth0 roles as described below
+      if (auth0User[`${domain}/roles`] && 
+          Array.isArray(auth0User[`${domain}/roles`])) {
+        const auth0Roles = auth0User[`${domain}/roles`];
+        if (auth0Roles.includes('admin_account')) {
+          appRole = "admin";
+        } else if (auth0Roles.includes('client_account')) {
+          appRole = "user";
+        }
+      }
+      
+      if (profile) {
+        // User exists, update if needed and return existing profile
+        // You may want to update the profile with Auth0 information here
+        return {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name || auth0User.name,
+          role: profile.role as "admin" | "user",
+          avatar: profile.avatar_url || auth0User.picture,
+          status: profile.status as "pending" | "approved" | "rejected",
+          createdAt: profile.created_at,
+          onboardingStatus: profile.onboarding_status
+        };
+      } else {
+        // Create new profile
+        const { data: newProfile, error } = await supabase
+          .from('profiles')
+          .insert({
+            id: auth0User.sub, // Use Auth0 user ID as profile ID
+            email: auth0User.email,
+            name: auth0User.name,
+            role: appRole, // Assign mapped role from Auth0
+            avatar_url: auth0User.picture,
+            status: 'pending' // New users need approval
+          })
+          .select('*')
+          .single();
+        
+        if (error) throw error;
+        
+        return {
+          id: newProfile.id,
+          email: newProfile.email,
+          name: newProfile.name,
+          role: newProfile.role as "admin" | "user",
+          avatar: newProfile.avatar_url,
+          status: newProfile.status as "pending" | "approved" | "rejected",
+          createdAt: newProfile.created_at,
+          onboardingStatus: newProfile.onboarding_status
+        };
+      }
+    } catch (error) {
+      console.error("Error syncing user with Supabase:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sync user profile. Please contact support.",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
