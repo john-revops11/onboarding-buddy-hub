@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload } from "lucide-react";
+import { Upload, FileSearch, BarChart2 } from "lucide-react";
 import { FileUploader } from "@/components/dashboard/FileUploader";
 import { motion } from "framer-motion";
+import { DataHealthCheck } from "@/components/dashboard/DataHealthCheck";
 
 const DataUploadsPage = () => {
   const [uploading, setUploading] = useState(false);
@@ -76,6 +77,26 @@ const DataUploadsPage = () => {
               />
               <p className="text-xs text-muted-foreground">
                 Accepted formats: CSV, TXT, Excel (.xlsx)
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* Data Health Check Card */}
+          <DataHealthCheck 
+            report={null}
+          />
+          
+          {/* Recent Uploads Card */}
+          <Card className="col-span-1 md:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg md:text-xl">
+                <FileSearch className="mr-2" size={20} />
+                Recent Uploads
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Your recent uploads will appear here
               </p>
             </CardContent>
           </Card>

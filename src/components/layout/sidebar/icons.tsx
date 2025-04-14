@@ -17,6 +17,7 @@ import {
   CheckSquare,
   Upload,
   LayoutDashboard,
+  FileUp,
 } from "lucide-react";
 
 // Export a map of icon names to components
@@ -38,6 +39,7 @@ export const IconComponentMap = {
   CheckSquare,
   Upload,
   LayoutDashboard,
+  FileUp,
 };
 
 // Export individual icons for direct imports
@@ -59,4 +61,5 @@ export {
   CheckSquare,
   Upload,
   LayoutDashboard,
+  FileUp,
 };
