@@ -22,16 +22,12 @@ export async function getOnboardingClients() {
 
     return (data || []).map(client => {
       // Parse subscription data properly - ensure it's a valid Subscription object
-      const subscription: Subscription = client.subscriptions ? {
-        id: client.subscriptions.id || "",
-        name: client.subscriptions.name || "No Subscription",
-        price: client.subscriptions.price || 0,
-        description: client.subscriptions.description || ""
-      } : {
-        id: "",
-        name: "No Subscription",
-        price: 0,
-        description: ""
+      const subscriptionData = client.subscriptions || {};
+      const subscription: Subscription = {
+        id: subscriptionData.id || "",
+        name: subscriptionData.name || "No Subscription",
+        price: subscriptionData.price || 0,
+        description: subscriptionData.description || ""
       };
 
       // Parse addons data - ensure it's an array
