@@ -6,13 +6,13 @@ import { User, LoginCredentials, RegisterCredentials } from "@/types/auth";
 import { AuthAction } from "./types";
 
 export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
-  const login = useCallback(async (credentials: LoginCredentials) => {
+  const login = useCallback(async (email: string, password: string) => {
     dispatch({ type: "LOGIN_REQUEST" });
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
+        email,
+        password,
       });
       
       if (error) throw error;
@@ -33,16 +33,16 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
     }
   }, [dispatch]);
 
-  const register = useCallback(async (credentials: RegisterCredentials) => {
+  const register = useCallback(async (email: string, password: string, name: string) => {
     dispatch({ type: "REGISTER_REQUEST" });
     
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: credentials.email,
-        password: credentials.password,
+        email,
+        password,
         options: {
           data: {
-            name: credentials.name,
+            name,
           },
         },
       });
@@ -72,6 +72,51 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
       throw error;
     }
   }, [dispatch]);
+
+  const resetPassword = useCallback(async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Reset password email sent",
+        description: "Check your email for a link to reset your password",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }, []);
+
+  const updateProfile = useCallback(async (userData: Partial<User>) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(userData)
+        .eq('id', userData.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }, []);
 
   const approveUser = useCallback(async (userId: string) => {
     try {
@@ -132,7 +177,8 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
         role: profile.role as "admin" | "user",
         createdAt: profile.created_at,
         avatar: profile.avatar_url,
-        status: profile.status as "pending" | "approved" | "rejected"
+        status: profile.status as "pending" | "approved" | "rejected",
+        onboardingStatus: profile.onboarding_status
       }));
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -169,6 +215,8 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
     register,
     logout,
     clearError,
+    resetPassword,
+    updateProfile,
     approveUser,
     rejectUser,
     getAllUsers

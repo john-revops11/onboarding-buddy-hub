@@ -20,11 +20,12 @@ export async function getClients(): Promise<OnboardingClient[]> {
     
     return (data || []).map(client => {
       // Extract subscription data
-      const subscriptionTier: Subscription = client.subscriptions ? {
-        id: client.subscriptions.id,
-        name: client.subscriptions.name,
-        price: client.subscriptions.price,
-        description: client.subscriptions.description
+      const subscriptionData = client.subscriptions;
+      const subscriptionTier: Subscription = subscriptionData ? {
+        id: subscriptionData.id,
+        name: subscriptionData.name,
+        price: subscriptionData.price,
+        description: subscriptionData.description
       } : {
         id: "default",
         name: "Basic",
@@ -49,7 +50,7 @@ export async function getClients(): Promise<OnboardingClient[]> {
         companyName: client.company_name,
         status: client.status,
         createdAt: client.created_at,
-        subscriptionTier, // Ensure this property exists
+        subscriptionTier,
         addons
       };
     });

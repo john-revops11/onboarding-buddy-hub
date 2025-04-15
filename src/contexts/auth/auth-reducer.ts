@@ -6,7 +6,7 @@ export const initialState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true,
+  loading: false,
   error: null,
 };
 
@@ -17,7 +17,7 @@ export const authReducer = (state: AuthState, action: AuthAction): AuthState => 
     case "REGISTER_REQUEST":
       return {
         ...state,
-        isLoading: true,
+        loading: true,
         error: null,
       };
     case "LOGIN_SUCCESS":
@@ -27,7 +27,7 @@ export const authReducer = (state: AuthState, action: AuthAction): AuthState => 
         user: action.payload.user,
         token: action.payload.token,
         isAuthenticated: true,
-        isLoading: false,
+        loading: false,
         error: null,
       };
     case "LOGIN_FAILURE":
@@ -37,7 +37,7 @@ export const authReducer = (state: AuthState, action: AuthAction): AuthState => 
         user: null,
         token: null,
         isAuthenticated: false,
-        isLoading: false,
+        loading: false,
         error: action.payload,
       };
     case "LOGOUT":
@@ -46,7 +46,7 @@ export const authReducer = (state: AuthState, action: AuthAction): AuthState => 
         user: null,
         token: null,
         isAuthenticated: false,
-        isLoading: false,
+        loading: false,
       };
     case "CLEAR_ERROR":
       return {

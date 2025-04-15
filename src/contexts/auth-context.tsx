@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+
+import React, { createContext, useReducer, useEffect } from "react";
 import { AuthContextType, AuthState } from "./auth/types";
 import { authReducer, initialState } from "./auth/auth-reducer";
 import { useAuthService } from "./auth/auth-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
 
-// Create and EXPORT the Auth Context
+// Create the Auth Context
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 // Auth Provider component
@@ -105,13 +106,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Custom hook to use the auth context
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 };

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FileUpload } from "@/lib/types/client-types";
 
@@ -77,9 +76,10 @@ export async function getClientFiles(clientId: string): Promise<FileUpload[]> {
     
     return (data || []).map(file => {
       // Get the public URL
+      const filePath = file.file_path || '';
       const { data: { publicUrl } } = supabase.storage
         .from('client-files')
-        .getPublicUrl(file.file_path || '');
+        .getPublicUrl(filePath);
       
       return {
         id: file.id,

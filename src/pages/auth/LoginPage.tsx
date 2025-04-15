@@ -55,10 +55,7 @@ const LoginPage = () => {
 
     setIsLoading(true);
     try {
-      await login({
-        email: data.email,
-        password: data.password
-      });
+      await login(data.email, data.password);
 
       // Auth state changes will trigger the useEffect for redirect
     } catch (error: any) {

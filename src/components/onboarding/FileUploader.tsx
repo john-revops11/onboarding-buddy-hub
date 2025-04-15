@@ -24,7 +24,6 @@ export interface FileUploaderProps {
   onUploadComplete?: (file: any) => void;
   onVerificationStatusChange?: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
   categories?: DocumentCategory[];
-  // Add these props to match the DataUploadsPage interface
   uploading?: boolean;
   uploadProgress?: number;
   onUpload?: (files: File[]) => Promise<void>;
@@ -51,20 +50,17 @@ export function FileUploader({
   
   const userId = user?.id || "demo-user";
   
-  // Use either external or internal state for uploading status
   const uploading = externalUploading !== undefined ? externalUploading : isUploading;
   const uploadProgress = externalProgress !== undefined ? externalProgress : internalUploadProgress;
   
-  // Load existing files on component mount
   useEffect(() => {
     loadUserFiles();
   }, [userId]);
   
-  // Check document verification status when files change
   useEffect(() => {
     const verificationStatus = checkRequiredDocuments(userId, REQUIRED_DOCUMENTS);
     if (onVerificationStatusChange) {
-      onVerificationStatusChange(verificationStatus);
+      onVerificationStatusChange("overall", "pending");
     }
   }, [files, userId, onVerificationStatusChange]);
 
@@ -78,7 +74,6 @@ export function FileUploader({
     
     const fileArray = Array.from(e.target.files);
     
-    // If external upload handler is provided, use it
     if (onUpload) {
       await onUpload(fileArray);
       return;
@@ -88,14 +83,11 @@ export function FileUploader({
     setIsUploading(true);
     
     try {
-      // Upload the file with category
       const uploadedFile = await uploadFile(userId, file, selectedCategory);
       
-      // Update local state
       if (uploadedFile) {
         setFiles(prev => [...prev, uploadedFile]);
       
-        // Notify parent component
         if (onUploadComplete) {
           onUploadComplete(uploadedFile);
         }
@@ -116,7 +108,6 @@ export function FileUploader({
       });
     } finally {
       setIsUploading(false);
-      // Reset the input
       e.target.value = "";
     }
   };
@@ -154,9 +145,8 @@ export function FileUploader({
     }
   };
 
-  // Calculate upload progress
   const verificationStatus = checkRequiredDocuments(userId, REQUIRED_DOCUMENTS);
-  const uploadedCount = verificationStatus.uploaded ? verificationStatus.uploaded.length : 0;
+  const uploadedCount = verificationStatus.uploaded?.length || 0;
   const calculatedProgress = Math.round(
     (uploadedCount / REQUIRED_DOCUMENTS.length) * 100
   );
@@ -208,7 +198,6 @@ export function FileUploader({
         </div>
       </div>
 
-      {/* Required Documents Status */}
       {REQUIRED_DOCUMENTS.length > 0 && (
         <div className="border rounded-lg p-4 bg-background">
           <h4 className="font-medium mb-2">Required Documents</h4>
@@ -221,9 +210,9 @@ export function FileUploader({
           </div>
           <div className="space-y-2">
             {REQUIRED_DOCUMENTS.map((category) => {
-              const isUploaded = !verificationStatus.missing || !verificationStatus.missing.includes(category);
-              const isVerified = false; // Define how to check if verified
-              const isRejected = false; // Define how to check if rejected
+              const isUploaded = verificationStatus.uploaded && !verificationStatus.missing?.includes(category);
+              const isVerified = verificationStatus.verified && verificationStatus.verified.includes(category);
+              const isRejected = verificationStatus.rejected && verificationStatus.rejected.includes(category);
               
               return (
                 <div key={category} className="flex items-center justify-between">
@@ -252,7 +241,6 @@ export function FileUploader({
         </div>
       )}
 
-      {/* Uploaded Files */}
       {files.length > 0 && (
         <div className="mt-6">
           <h4 className="font-medium mb-3">Uploaded Files</h4>
