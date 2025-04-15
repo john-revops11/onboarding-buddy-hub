@@ -52,10 +52,8 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
                   <Checkbox
                     id={`addon-${addon.id}`}
                     checked={isSelected}
-                    // Using disabled instead of readOnly or tabIndex to prevent direct interaction
-                    disabled={true}
-                    // Using className to override the disabled visual style
-                    className="pointer-events-none data-[disabled]:opacity-100 data-[disabled]:cursor-default"
+                    readOnly={true}
+                    className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                   />
                 </div>
                 

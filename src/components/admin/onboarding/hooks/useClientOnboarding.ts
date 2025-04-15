@@ -83,29 +83,27 @@ export function useClientOnboarding() {
 
   // Improved toggle function with proper error handling and type safety
   const toggleAddon = useCallback((addonId: string) => {
-    // Get current form values
-    const formValues = form.getValues();
-    
-    // Ensure addons is always an array
-    const currentAddons = Array.isArray(formValues.addons) ? [...formValues.addons] : [];
+    const currentValues = form.getValues();
+    // Ensure currentAddons is an array
+    const currentAddons = Array.isArray(currentValues.addons) ? [...currentValues.addons] : [];
     
     // Check if addon is already selected
-    const addonIndex = currentAddons.indexOf(addonId);
+    const index = currentAddons.indexOf(addonId);
     
-    // Create a new array of addons (important for React state updates)
+    // Create a new array (to avoid reference issues)
     let newAddons: string[];
     
-    if (addonIndex === -1) {
-      // Add the addon if not already selected
+    if (index === -1) {
+      // Add addon if not selected
       newAddons = [...currentAddons, addonId];
     } else {
-      // Remove the addon if already selected
+      // Remove addon if already selected
       newAddons = [...currentAddons];
-      newAddons.splice(addonIndex, 1);
+      newAddons.splice(index, 1);
     }
     
-    // Update form state with the new array
-    form.setValue("addons", newAddons, { shouldValidate: true });
+    // Update form value
+    form.setValue("addons", newAddons, { shouldValidate: true, shouldDirty: true });
   }, [form]);
   
   const onSubmit = useCallback(async (data: ClientFormValues) => {
