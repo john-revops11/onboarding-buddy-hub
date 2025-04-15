@@ -8,6 +8,11 @@ export interface User {
   avatar?: string;
   status: "pending" | "approved" | "rejected";
   onboardingStatus?: number;
+  // Add these to appease TypeScript when converting from Supabase User
+  app_metadata?: Record<string, any>;
+  user_metadata?: Record<string, any>;
+  aud?: string;
+  created_at?: string;
 }
 
 export interface AuthState {

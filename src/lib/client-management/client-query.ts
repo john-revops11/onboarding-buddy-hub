@@ -35,12 +35,14 @@ export async function getOnboardingClients() {
       };
 
       // Parse addons data - ensure it's an array
-      const addons: Addon[] = Array.isArray(client.addons) ? client.addons.map(addon => ({
-        id: addon.id || "",
-        name: addon.name || "",
-        price: addon.price || 0,
-        description: addon.description || ""
-      })) : [];
+      const addons: Addon[] = Array.isArray(client.addons) 
+        ? client.addons.map((addon: any) => ({
+            id: addon.id || "",
+            name: addon.name || "",
+            price: addon.price || 0,
+            description: addon.description || ""
+          })) 
+        : [];
 
       return {
         id: client.id,

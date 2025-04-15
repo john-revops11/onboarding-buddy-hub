@@ -1,5 +1,5 @@
 
-import { User, Session } from '@supabase/supabase-js';
+import { User } from '@/types/auth';
 
 export interface LoginCredentials {
   email: string;
@@ -28,6 +28,11 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  clearError: () => void;
+  // Add missing methods used in AdminUsers.tsx
+  getAllUsers?: () => Promise<User[]>;
+  approveUser?: (userId: string) => Promise<void>;
+  rejectUser?: (userId: string) => Promise<void>;
 }
 
 export type AuthAction =

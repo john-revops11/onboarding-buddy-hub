@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RegisterCredentials } from './types';
+import { User } from '@/types/auth';
 
 export const useAuthActions = (dispatch: React.Dispatch<any>) => {
   const { toast } = useToast();
@@ -29,7 +30,7 @@ export const useAuthActions = (dispatch: React.Dispatch<any>) => {
       if (data?.user && data?.session) {
         dispatch({
           type: 'LOGIN_SUCCESS',
-          payload: { user: data.user, token: data.session.access_token },
+          payload: { user: data.user as unknown as User, token: data.session.access_token },
         });
       }
     } catch (error: any) {
@@ -84,7 +85,7 @@ export const useAuthActions = (dispatch: React.Dispatch<any>) => {
 
         dispatch({
           type: 'REGISTER_SUCCESS',
-          payload: { user: data.user, token: data.session.access_token },
+          payload: { user: data.user as unknown as User, token: data.session.access_token },
         });
 
         toast({
@@ -218,6 +219,100 @@ export const useAuthActions = (dispatch: React.Dispatch<any>) => {
     dispatch({ type: 'CLEAR_ERROR' });
   }, [dispatch]);
 
+  // Add the missing methods for AdminUsers.tsx
+  const getAllUsers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+        
+      if (error) {
+        toast({
+          title: 'Failed to fetch users',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return [];
+      }
+      
+      return data.map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        name: profile.name,
+        role: profile.role,
+        status: profile.status || 'pending',
+        avatar: profile.avatar_url,
+        createdAt: profile.created_at,
+        onboardingStatus: profile.onboarding_status
+      })) as User[];
+    } catch (error: any) {
+      toast({
+        title: 'Failed to fetch users',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return [];
+    }
+  }, [toast]);
+
+  const approveUser = useCallback(async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'approved' })
+        .eq('id', userId);
+      
+      if (error) {
+        toast({
+          title: 'Failed to approve user',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      toast({
+        title: 'User Approved',
+        description: 'The user has been approved successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to approve user',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
+  const rejectUser = useCallback(async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'rejected' })
+        .eq('id', userId);
+      
+      if (error) {
+        toast({
+          title: 'Failed to reject user',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      toast({
+        title: 'User Rejected',
+        description: 'The user has been rejected successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to reject user',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
   return {
     login,
     register,
@@ -226,6 +321,9 @@ export const useAuthActions = (dispatch: React.Dispatch<any>) => {
     updatePassword,
     updateProfile,
     clearError,
+    getAllUsers,
+    approveUser,
+    rejectUser
   };
 };
 

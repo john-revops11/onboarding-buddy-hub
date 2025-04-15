@@ -40,7 +40,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               avatar: profile?.avatar_url,
               status: profile?.status as "pending" | "approved" | "rejected",
               createdAt: profile?.created_at || session.user.created_at,
-              onboardingStatus: profile?.onboarding_status
+              onboardingStatus: profile?.onboarding_status,
+              // Add additional properties to satisfy type constraints
+              app_metadata: session.user.app_metadata,
+              user_metadata: session.user.user_metadata,
+              aud: session.user.aud,
+              created_at: session.user.created_at
             };
 
             dispatch({
@@ -81,7 +86,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar: profile?.avatar_url,
         status: profile?.status as "pending" | "approved" | "rejected",
         createdAt: profile?.created_at || session.user.created_at,
-        onboardingStatus: profile?.onboarding_status
+        onboardingStatus: profile?.onboarding_status,
+        // Add additional properties to satisfy type constraints
+        app_metadata: session.user.app_metadata,
+        user_metadata: session.user.user_metadata,
+        aud: session.user.aud,
+        created_at: session.user.created_at
       };
 
       dispatch({
