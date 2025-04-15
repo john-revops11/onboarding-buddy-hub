@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
@@ -7,6 +8,7 @@ import { LogoutButton } from "./LogoutButton";
 import { ToolsSection } from "./ToolsSection";
 import { CollapsibleSidebarNavGroup } from "./CollapsibleSidebarNavGroup";
 import { adminNavGroups, userNavGroups, IconComponentMap } from "./SidebarNavData";
+import { cn } from "@/lib/utils";
 
 interface DesktopSidebarProps {
   collapsed: boolean;
@@ -23,7 +25,14 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
   const navGroups = isAdmin ? adminNavGroups : userNavGroups;
 
   return (
-    <div className={`bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto ${collapsed ? 'w-[70px]' : 'min-w-[240px] max-w-[240px]'}`}>
+    <div 
+      className={cn(
+        "bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto",
+        collapsed 
+          ? "w-[70px]" 
+          : "min-w-[240px] max-w-[240px]"
+      )}
+    >
       <div className="p-4 relative">
         <div className="flex flex-col items-center mb-6">
           {collapsed ? (
@@ -43,13 +52,22 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
           )}
         </div>
         
-        {/* Toggle collapse button */}
+        {/* Toggle collapse button with improved styling */}
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute right-2 top-4 p-1.5 rounded-full hover:bg-sidebar-accent text-sidebar-foreground"
+          className={cn(
+            "absolute right-2 top-4 p-1.5 rounded-full transition-all duration-300",
+            collapsed 
+              ? "bg-primary-100 hover:bg-primary-200 text-primary-600" 
+              : "hover:bg-sidebar-accent text-sidebar-foreground"
+          )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {collapsed ? (
+            <ChevronRight size={18} className="text-primary-600" />
+          ) : (
+            <ChevronLeft size={18} />
+          )}
         </button>
         
         {!collapsed && <SearchBar />}

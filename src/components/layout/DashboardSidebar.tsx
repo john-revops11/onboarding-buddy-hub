@@ -7,6 +7,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { TopBar } from "./TopBar";
 import { DesktopSidebar } from "./sidebar/DesktopSidebar";
 import { MobileSidebar } from "./sidebar/MobileSidebar";
+import { cn } from "@/lib/utils";
 
 interface DashboardSidebarProps {
   children: React.ReactNode;
@@ -22,7 +23,10 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
       {/* Desktop Sidebar - Only visible on lg breakpoint */}
       {!isMobile && <DesktopSidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
       
-      <main className="flex-1 overflow-auto">
+      <main className={cn(
+        "flex-1 overflow-auto transition-all duration-300",
+        !isMobile && collapsed ? "ml-[70px]" : ""
+      )}>
         <TopBar 
           showMobileMenu={isMobile} 
           onMobileMenuClick={() => setDrawerOpen(true)} 
@@ -34,7 +38,7 @@ export function DashboardLayout({ children }: DashboardSidebarProps) {
             <DrawerContent className="fixed inset-y-0 left-0 z-50 h-full max-w-[80vw] w-[280px] rounded-r-lg rounded-l-none">
               <button 
                 onClick={() => setDrawerOpen(false)}
-                className="absolute right-4 top-4 text-muted-foreground"
+                className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-sidebar-accent/10 text-muted-foreground transition-colors"
                 aria-label="Close menu"
               >
                 <X size={20} />

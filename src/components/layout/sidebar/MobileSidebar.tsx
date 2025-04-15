@@ -7,6 +7,7 @@ import { LogoutButton } from "./LogoutButton";
 import { ToolsSection } from "./ToolsSection";
 import { SidebarNavGroup } from "./SidebarNavGroup";
 import { adminNavGroups, userNavGroups, IconComponentMap } from "./SidebarNavData";
+import { cn } from "@/lib/utils";
 
 export function MobileSidebar({ onNavItemClick }: { onNavItemClick: () => void }) {
   const { state } = useAuth();

@@ -34,6 +34,18 @@
     --info: 217 91% 60%;
     --error: 0 84% 60%;
     
+    /* Primary color scheme */
+    --primary-50: 92 75% 95%;
+    --primary-100: 92 65% 90%;
+    --primary-200: 92 60% 80%;
+    --primary-300: 92 55% 70%;
+    --primary-400: 92 50% 60%;
+    --primary-500: 92 45% 50%; /* #5caa44 equivalent */
+    --primary-600: 92 40% 40%;
+    --primary-700: 92 35% 35%;
+    --primary-800: 92 30% 25%;
+    --primary-900: 92 25% 20%;
+    
     /* Spacing system */
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
