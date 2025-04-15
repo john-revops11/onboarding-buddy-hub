@@ -81,20 +81,19 @@ export function useClientOnboarding() {
     }
   }, [activeTab]);
 
-  // Fixed toggleAddon function with proper TypeScript typing
+  // Properly typed toggleAddon function
   const toggleAddon = useCallback((addonId: string) => {
-    form.setValue("addons", (oldAddons = []) => {
-      // Ensure oldAddons is an array
-      const currentAddons = Array.isArray(oldAddons) ? oldAddons : [];
-      
-      if (currentAddons.includes(addonId)) {
-        // Remove addon if already selected
-        return currentAddons.filter(id => id !== addonId);
-      } else {
-        // Add addon if not already selected
-        return [...currentAddons, addonId];
-      }
-    });
+    const currentAddons = form.getValues("addons") || [];
+    // Ensure currentAddons is an array
+    const safeAddons = Array.isArray(currentAddons) ? currentAddons : [];
+    
+    if (safeAddons.includes(addonId)) {
+      // Remove addon if already selected
+      form.setValue("addons", safeAddons.filter(id => id !== addonId));
+    } else {
+      // Add addon if not already selected
+      form.setValue("addons", [...safeAddons, addonId]);
+    }
   }, [form]);
   
   const onSubmit = useCallback(async (data: ClientFormValues) => {
