@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
@@ -14,53 +14,81 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckSquare, Plus, Trash, ArrowLeft } from "lucide-react";
+import { CheckSquare, Plus, Trash, ArrowLeft, GripVertical, Loader2 } from "lucide-react";
+import { useChecklistManagement } from "@/hooks/useChecklistManagement";
+import { getChecklistWithItems } from "@/lib/checklist-management/checklist-query";
+import type { ChecklistItem } from "@/lib/checklist-management/checklist-query";
 
 const ChecklistEditor = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const duplicateFromId = searchParams.get('duplicate');
   const isEditing = !!id;
+  const isDuplicating = !!duplicateFromId;
 
   // State for checklist data
-  const [title, setTitle] = useState(isEditing ? "New Client Onboarding" : "");
-  const [description, setDescription] = useState(
-    isEditing ? "Standard onboarding process for new clients" : ""
-  );
-  const [items, setItems] = useState(
-    isEditing
-      ? [
-          {
-            id: "1",
-            text: "Collect client information",
-            description: "Gather basic contact and business details",
-            required: true,
-          },
-          {
-            id: "2",
-            text: "Set up initial meeting",
-            description: "Schedule kickoff call with the client",
-            required: true,
-          },
-          {
-            id: "3",
-            text: "Document requirements",
-            description: "Capture detailed project requirements",
-            required: false,
-          },
-        ]
-      : []
-  );
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(isEditing || isDuplicating);
+
+  const { createChecklist, updateChecklist, isSubmitting } = useChecklistManagement();
+
+  // Load existing checklist data for editing or duplicating
+  useEffect(() => {
+    const loadChecklistData = async () => {
+      setIsLoading(true);
+      try {
+        const sourceId = isEditing ? id : duplicateFromId;
+        if (sourceId) {
+          const checklistData = await getChecklistWithItems(sourceId);
+          if (checklistData) {
+            setTitle(isEditing ? checklistData.title : `Copy of ${checklistData.title}`);
+            setDescription(checklistData.description || "");
+            setItems(checklistData.items.map(item => ({
+              id: isEditing ? item.id : `temp-${Date.now()}-${Math.random()}`,
+              text: item.title,
+              description: item.description || "",
+              required: item.required,
+              order: item.order,
+              document_categories: item.document_categories || []
+            })));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading checklist data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load checklist data.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isEditing || isDuplicating) {
+      loadChecklistData();
+    }
+  }, [id, duplicateFromId, isEditing, isDuplicating, toast]);
 
   // Add a new checklist item
   const addChecklistItem = () => {
+    const newOrder = items.length > 0 
+      ? Math.max(...items.map(item => item.order)) + 1 
+      : 0;
+      
     setItems([
       ...items,
       {
-        id: `item-${items.length + 1}`,
+        id: `temp-${Date.now()}-${Math.random()}`,
         text: "",
         description: "",
         required: false,
+        order: newOrder,
+        document_categories: []
       },
     ]);
   };
@@ -80,14 +108,68 @@ const ChecklistEditor = () => {
   };
 
   // Handle save
-  const handleSave = () => {
-    // Here would be API calls to save the checklist
-    toast({
-      title: "Checklist saved",
-      description: `${isEditing ? "Updated" : "Created"} checklist "${title}"`,
-    });
-    navigate("/admin/checklists");
+  const handleSave = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Checklist title is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "At least one checklist item is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if all items have titles
+    const invalidItems = items.filter(item => !item.text.trim());
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: "All checklist items must have a title",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Prepare input data
+    const checklistData = {
+      title,
+      description: description || undefined,
+      items: items.map((item, index) => ({
+        title: item.text,
+        description: item.description || undefined,
+        order: item.order !== undefined ? item.order : index,
+        required: item.required,
+        document_categories: item.document_categories || []
+      }))
+    };
+
+    // Create or update the checklist
+    const result = isEditing
+      ? await updateChecklist(id!, checklistData)
+      : await createChecklist(checklistData);
+
+    if (result.success) {
+      navigate("/admin/checklists");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -172,9 +254,15 @@ const ChecklistEditor = () => {
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="cursor-move">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="font-medium">Item {index + 1}</div>
+                  </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium leading-none">
-                      Item {index + 1}
+                      Item Title
                     </label>
                     <Input
                       value={item.text}
@@ -238,10 +326,20 @@ const ChecklistEditor = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/admin/checklists")}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Checklist</Button>
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditing ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                isEditing ? "Update Checklist" : "Save Checklist"
+              )}
+            </Button>
           </CardFooter>
         </Card>
       </div>

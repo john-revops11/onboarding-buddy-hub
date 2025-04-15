@@ -76,24 +76,30 @@ export type Database = {
           checklist_id: string | null
           completed: boolean | null
           description: string | null
+          document_categories: string[] | null
           id: string
           order: number
+          required: boolean | null
           title: string
         }
         Insert: {
           checklist_id?: string | null
           completed?: boolean | null
           description?: string | null
+          document_categories?: string[] | null
           id?: string
           order: number
+          required?: boolean | null
           title: string
         }
         Update: {
           checklist_id?: string | null
           completed?: boolean | null
           description?: string | null
+          document_categories?: string[] | null
           id?: string
           order?: number
+          required?: boolean | null
           title?: string
         }
         Relationships: [
@@ -173,6 +179,48 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_checklist_items: {
+        Row: {
+          checklist_item_id: string
+          client_checklist_id: string
+          completed: boolean
+          completed_at: string | null
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          checklist_item_id: string
+          client_checklist_id: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          checklist_item_id?: string
+          client_checklist_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_checklist_items_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_checklist_items_client_checklist_id_fkey"
+            columns: ["client_checklist_id"]
+            isOneToOne: false
+            referencedRelation: "client_checklists"
             referencedColumns: ["id"]
           },
         ]
@@ -794,8 +842,20 @@ export type Database = {
           price: number
         }
       }
+      assign_checklist_to_client: {
+        Args: { p_checklist_id: string; p_client_id: string }
+        Returns: string
+      }
       check_table_exists: {
         Args: { table_name: string }
+        Returns: boolean
+      }
+      complete_checklist_item: {
+        Args: {
+          p_client_checklist_item_id: string
+          p_completed: boolean
+          p_notes?: string
+        }
         Returns: boolean
       }
       create_drive_audit_table: {
@@ -822,6 +882,48 @@ export type Database = {
         Returns: {
           tier_name: string
           addon_count: number
+        }[]
+      }
+      get_all_client_checklists: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          checklist_id: string
+          client_id: string
+          client_email: string
+          client_company: string
+          assigned_at: string
+          completed: boolean
+          completed_at: string
+          checklist_title: string
+          progress: number
+        }[]
+      }
+      get_checklist_with_items: {
+        Args: { checklist_id: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          created_at: string
+          created_by: string
+          items: Json
+        }[]
+      }
+      get_client_checklist_progress: {
+        Args: { client_checklist_id: string }
+        Returns: {
+          id: string
+          checklist_id: string
+          client_id: string
+          assigned_at: string
+          completed: boolean
+          completed_at: string
+          checklist_title: string
+          total_items: number
+          completed_items: number
+          progress: number
+          items: Json
         }[]
       }
       get_client_template_steps: {
