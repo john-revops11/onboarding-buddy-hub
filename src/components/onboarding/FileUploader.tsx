@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +42,6 @@ export function FileUploader({
     { value: 'contract_agreement', label: 'Contract Agreement' }
   ];
 
-  // Load user files when component mounts
   React.useEffect(() => {
     if (clientId) {
       fetchUserFiles();
@@ -116,7 +114,6 @@ export function FileUploader({
     setUploadProgress(10);
 
     try {
-      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           const newProgress = prev + Math.random() * 20;
@@ -135,14 +132,12 @@ export function FileUploader({
           description: "File uploaded successfully!",
         });
 
-        // Refresh the file list
         await fetchUserFiles();
 
         if (onUploadComplete) {
-          // Call the callback with a placeholder FileUpload object
-          // This would be replaced with the actual file data in a full implementation
+          const fileId = result.fileId || result.data?.id || '';
           onUploadComplete({
-            id: result.fileId || '',
+            id: fileId,
             fileName: file.name,
             fileType: file.type,
             fileSize: file.size,

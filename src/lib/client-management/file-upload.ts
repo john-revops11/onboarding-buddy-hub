@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { DocumentCategory } from "@/types/onboarding";
 import { ClientFile } from "@/lib/types/client-types";
@@ -7,6 +6,7 @@ export interface FileUploadResult {
   success: boolean;
   data?: any;
   error?: string;
+  fileId?: string;
 }
 
 // Upload client file
@@ -43,13 +43,11 @@ export async function uploadFile(
       };
     }
     
-    // Upload the file to storage
-    // Note: normally we would add a bucket for this, but we'll add that in a separate step
-    // as it requires SQL
-
+    // Return the file ID in the result so it can be accessed
     return {
       success: true,
-      data: fileRecord
+      data: fileRecord,
+      fileId: fileRecord.id
     };
   } catch (error: any) {
     console.error("File upload error:", error);
@@ -76,8 +74,8 @@ export async function getClientFiles(clientId: string): Promise<ClientFile[]> {
     
     return data.map((file: any) => ({
       ...file,
-      fileName: file.filename, // Ensure compatibility with both property names
-      url: file.file_path // This would normally be constructed with a storage URL
+      fileName: file.filename,
+      url: file.file_path
     }));
   } catch (error) {
     console.error("Error fetching client files:", error);
