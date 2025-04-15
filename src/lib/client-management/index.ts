@@ -9,7 +9,8 @@ export { completeClientOnboarding } from './client-status';
 export {
   uploadFile,
   getClientFiles,
-  updateFileStatus
+  updateFileStatus,
+  deleteFile
 } from './file-upload';
 
 // Export onboarding progress management functions
