@@ -7,7 +7,7 @@ import {
   updateFileStatus,
   deleteFile,
   uploadFile,
-  checkRequiredDocuments,
+  checkRequiredDocuments as checkRequiredDocsOriginal,
   getUserFiles,
   getUserFilesByCategory,
   checkRequiredDocumentsForUser
