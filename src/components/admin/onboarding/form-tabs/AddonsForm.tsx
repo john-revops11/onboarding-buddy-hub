@@ -33,12 +33,11 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
             onClick={() => toggleAddon(addon.id)}
           >
             <div className="flex items-start gap-3">
-              {/* The issue was here - the checkbox's onCheckedChange was calling a function 
-                  that was updating state, but we're already handling this in the div's onClick */}
               <Checkbox
                 checked={selectedAddons.includes(addon.id)}
                 id={`addon-${addon.id}`}
-                // Remove the onCheckedChange handler as it's redundant with the parent div onClick
+                // The onCheckedChange handler is intentionally removed to prevent infinite loops
+                // The parent div onClick handles the toggle
               />
               <div>
                 <p className="font-medium">{addon.name} - ${addon.price}</p>

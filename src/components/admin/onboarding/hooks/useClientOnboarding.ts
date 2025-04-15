@@ -16,7 +16,6 @@ export function useClientOnboarding() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>("client-info");
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(ClientFormSchema),
@@ -29,6 +28,9 @@ export function useClientOnboarding() {
       notes: "",
     },
   });
+  
+  // Derive selected addons from form values to ensure single source of truth
+  const selectedAddons = form.watch("addons") || [];
   
   useEffect(() => {
     const loadData = async () => {
@@ -78,21 +80,18 @@ export function useClientOnboarding() {
     }
   };
 
+  // Simplified toggle addon function that directly updates form state
   const toggleAddon = (addonId: string) => {
-    setSelectedAddons(prev => {
-      const isSelected = prev.includes(addonId);
-      const newSelectedAddons = isSelected
-        ? prev.filter(id => id !== addonId)
-        : [...prev, addonId];
-      
-      form.setValue(
-        "addons", 
-        newSelectedAddons,
-        { shouldValidate: true }
-      );
-      
-      return newSelectedAddons;
-    });
+    const currentAddons = form.getValues("addons") || [];
+    const isSelected = currentAddons.includes(addonId);
+    
+    // Create a new array to ensure React detects the change
+    const newAddons = isSelected
+      ? currentAddons.filter(id => id !== addonId)
+      : [...currentAddons, addonId];
+    
+    // Update form state in a single operation
+    form.setValue("addons", newAddons, { shouldValidate: true });
   };
   
   const onSubmit = async (data: ClientFormValues) => {
@@ -104,7 +103,6 @@ export function useClientOnboarding() {
       if (clientId) {
         form.reset();
         setActiveTab("client-info");
-        setSelectedAddons([]);
         
         toast({
           title: "Client created",
