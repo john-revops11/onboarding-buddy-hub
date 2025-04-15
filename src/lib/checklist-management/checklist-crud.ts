@@ -17,9 +17,11 @@ export interface ChecklistInput {
 // Create a new checklist template with items
 export async function createChecklist(checklistData: ChecklistInput): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
-    // Start a transaction by setting constraints
-    const { error: constraintError } = await supabase.rpc('begin_transaction');
-    if (constraintError) throw constraintError;
+    // First check if the user is an admin (optional but good practice)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: "Authentication required" };
+    }
 
     // Create the checklist
     const { data: checklist, error: checklistError } = await supabase
@@ -27,12 +29,15 @@ export async function createChecklist(checklistData: ChecklistInput): Promise<{ 
       .insert({
         title: checklistData.title,
         description: checklistData.description || null,
-        created_by: (await supabase.auth.getUser()).data.user?.id || null
+        created_by: user.id
       })
       .select()
       .single();
 
-    if (checklistError) throw checklistError;
+    if (checklistError) {
+      console.error("Error creating checklist:", checklistError);
+      return { success: false, error: checklistError.message };
+    }
 
     // Create the checklist items
     const itemsToInsert = checklistData.items.map((item, index) => ({
@@ -48,19 +53,16 @@ export async function createChecklist(checklistData: ChecklistInput): Promise<{ 
       .from('checklist_items')
       .insert(itemsToInsert);
 
-    if (itemsError) throw itemsError;
-
-    // Commit transaction
-    const { error: commitError } = await supabase.rpc('commit_transaction');
-    if (commitError) throw commitError;
+    if (itemsError) {
+      console.error("Error inserting checklist items:", itemsError);
+      // Since we already created the checklist, try to clean up
+      await supabase.from('checklists').delete().eq('id', checklist.id);
+      return { success: false, error: itemsError.message };
+    }
 
     return { success: true, id: checklist.id };
   } catch (error: any) {
-    console.error("Error creating checklist:", error);
-    
-    // Rollback transaction
-    await supabase.rpc('rollback_transaction');
-    
+    console.error("Unexpected error creating checklist:", error);
     return { 
       success: false, 
       error: error.message || "Failed to create checklist" 
@@ -71,9 +73,11 @@ export async function createChecklist(checklistData: ChecklistInput): Promise<{ 
 // Update an existing checklist template and its items
 export async function updateChecklist(id: string, checklistData: ChecklistInput): Promise<{ success: boolean; error?: string }> {
   try {
-    // Start a transaction by setting constraints
-    const { error: constraintError } = await supabase.rpc('begin_transaction');
-    if (constraintError) throw constraintError;
+    // First check if the user is an admin (optional but good practice)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: "Authentication required" };
+    }
 
     // Update checklist
     const { error: checklistError } = await supabase
@@ -81,18 +85,14 @@ export async function updateChecklist(id: string, checklistData: ChecklistInput)
       .update({
         title: checklistData.title,
         description: checklistData.description || null,
+        updated_at: new Date()
       })
       .eq('id', id);
 
-    if (checklistError) throw checklistError;
-
-    // Get existing items
-    const { data: existingItems, error: existingItemsError } = await supabase
-      .from('checklist_items')
-      .select('id')
-      .eq('checklist_id', id);
-
-    if (existingItemsError) throw existingItemsError;
+    if (checklistError) {
+      console.error("Error updating checklist:", checklistError);
+      return { success: false, error: checklistError.message };
+    }
 
     // Delete all existing items
     const { error: deleteError } = await supabase
@@ -100,7 +100,10 @@ export async function updateChecklist(id: string, checklistData: ChecklistInput)
       .delete()
       .eq('checklist_id', id);
 
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error("Error deleting existing checklist items:", deleteError);
+      return { success: false, error: deleteError.message };
+    }
 
     // Create new items
     const itemsToInsert = checklistData.items.map((item, index) => ({
@@ -116,19 +119,14 @@ export async function updateChecklist(id: string, checklistData: ChecklistInput)
       .from('checklist_items')
       .insert(itemsToInsert);
 
-    if (itemsError) throw itemsError;
-
-    // Commit transaction
-    const { error: commitError } = await supabase.rpc('commit_transaction');
-    if (commitError) throw commitError;
+    if (itemsError) {
+      console.error("Error inserting updated checklist items:", itemsError);
+      return { success: false, error: itemsError.message };
+    }
 
     return { success: true };
   } catch (error: any) {
-    console.error("Error updating checklist:", error);
-    
-    // Rollback transaction
-    await supabase.rpc('rollback_transaction');
-    
+    console.error("Unexpected error updating checklist:", error);
     return { 
       success: false, 
       error: error.message || "Failed to update checklist" 
@@ -139,13 +137,22 @@ export async function updateChecklist(id: string, checklistData: ChecklistInput)
 // Delete a checklist template and its items
 export async function deleteChecklist(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // First check if the user is an admin (optional but good practice)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: "Authentication required" };
+    }
+
     // Delete checklist (items will be deleted due to CASCADE)
     const { error } = await supabase
       .from('checklists')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error deleting checklist:", error);
+      return { success: false, error: error.message };
+    }
 
     return { success: true };
   } catch (error: any) {
