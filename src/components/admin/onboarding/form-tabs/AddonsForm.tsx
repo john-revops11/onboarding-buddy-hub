@@ -48,11 +48,12 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
             >
               <div className="flex items-start gap-3">
                 <Checkbox
-                  checked={isSelected}
                   id={`addon-${addon.id}`}
+                  checked={isSelected}
+                  // Don't use onChange here - we're controlling it via the parent div click
+                  onCheckedChange={() => {}} // Empty function to satisfy controlled component requirements
                   className="pointer-events-none" // Prevent direct interaction with checkbox
                   tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
-                  disabled // Use disabled instead of readOnly
                 />
                 
                 <div className="flex-1">
