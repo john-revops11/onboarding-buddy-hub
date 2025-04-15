@@ -3,11 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { ClientStatusHeader } from "./client-status/ClientStatusHeader";
 import { ClientsTable } from "./client-status/ClientsTable";
 import { useClientManagement } from "./client-status/useClientManagement";
-import { useState } from "react";
 
 export function ClientStatus() {
   const navigate = useNavigate();
-  const [isBackfilling, setIsBackfilling] = useState(false);
   
   const { 
     clients, 
