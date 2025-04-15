@@ -82,7 +82,7 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <motion.div 
-        className="space-y-6"
+        className="space-y-5"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
@@ -92,8 +92,8 @@ const DashboardPage = () => {
           userRole={user?.role || "Member"}
         />
         
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="md:col-span-2">
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="md:col-span-2 shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg md:text-xl font-semibold">Progress Overview</CardTitle>
               <Badge variant="success" className="ml-2">Active</Badge>
@@ -123,7 +123,7 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg md:text-xl font-semibold">Quick Actions</CardTitle>
             </CardHeader>

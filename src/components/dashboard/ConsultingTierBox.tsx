@@ -46,40 +46,40 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
   const [showDetails, setShowDetails] = useState(initialShowDetails);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Define tier colors
+  // Define tier colors - Using more subtle styling
   const getTierColors = () => {
     switch (tier.toLowerCase()) {
       case 'elite':
         return {
-          bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+          bgColor: 'bg-white dark:bg-neutral-900',
           textColor: 'text-purple-700 dark:text-purple-400',
-          iconBg: 'bg-purple-200 dark:bg-purple-800/30',
-          iconColor: 'text-purple-700 dark:text-purple-400',
-          badge: 'bg-purple-200 text-purple-800 border-purple-300'
+          iconBg: 'bg-purple-50 dark:bg-purple-900/20',
+          iconColor: 'text-purple-600 dark:text-purple-400',
+          badge: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800'
         };
       case 'premium':
         return {
-          bgColor: 'bg-amber-100 dark:bg-amber-900/20',
+          bgColor: 'bg-white dark:bg-neutral-900',
           textColor: 'text-amber-700 dark:text-amber-400',
-          iconBg: 'bg-amber-200 dark:bg-amber-800/30',
-          iconColor: 'text-amber-700 dark:text-amber-400',
-          badge: 'bg-amber-200 text-amber-800 border-amber-300'
+          iconBg: 'bg-amber-50 dark:bg-amber-900/20',
+          iconColor: 'text-amber-600 dark:text-amber-400',
+          badge: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800'
         };
       case 'standard':
         return {
-          bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+          bgColor: 'bg-white dark:bg-neutral-900',
           textColor: 'text-blue-700 dark:text-blue-400',
-          iconBg: 'bg-blue-200 dark:bg-blue-800/30',
-          iconColor: 'text-blue-700 dark:text-blue-400',
-          badge: 'bg-blue-200 text-blue-800 border-blue-300'
+          iconBg: 'bg-blue-50 dark:bg-blue-900/20',
+          iconColor: 'text-blue-600 dark:text-blue-400',
+          badge: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
         };
       default:
         return {
-          bgColor: 'bg-green-100 dark:bg-green-900/20',
+          bgColor: 'bg-white dark:bg-neutral-900',
           textColor: 'text-green-700 dark:text-green-400',
-          iconBg: 'bg-green-200 dark:bg-green-800/30',
-          iconColor: 'text-green-700 dark:text-green-400',
-          badge: 'bg-green-200 text-green-800 border-green-300'
+          iconBg: 'bg-green-50 dark:bg-green-900/20',
+          iconColor: 'text-green-600 dark:text-green-400',
+          badge: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:border-green-800'
         };
     }
   };
@@ -96,11 +96,11 @@ const ConsultingTierBox: React.FC<ConsultingTierBoxProps> = ({
   };
 
   return (
-    <Card className={`border overflow-hidden ${colors.bgColor}`}>
+    <Card className={`border-2 ${colors.bgColor} shadow-sm hover:shadow-md transition-shadow duration-200`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <div className={`h-8 w-8 rounded-full ${colors.iconBg} flex items-center justify-center`}>
+            <div className={`h-8 w-8 rounded-full ${colors.iconBg} flex items-center justify-center border ${tier.toLowerCase() === 'elite' ? 'border-purple-200 dark:border-purple-800' : 'border-transparent'}`}>
               <Award className={`h-4 w-4 ${colors.iconColor}`} />
             </div>
             Platform Tier

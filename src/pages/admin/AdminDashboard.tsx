@@ -8,8 +8,6 @@ import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
 import { BarChart } from "@/components/ui/charts/BarChart";
 import { LineChart } from "@/components/ui/charts/LineChart";
 
-// Removing the GoogleDriveIntegration component entirely
-
 const AdminDashboard = () => {
   const userActivityData = [
     { name: "Mon", value: 12 },
@@ -43,13 +41,13 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         <p className="text-muted-foreground">
           Overview of system statistics and user activities.
         </p>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           <ConsultingTierBox
             tier="Elite"
             description="Administrator access with all platform capabilities"
@@ -58,8 +56,8 @@ const AdminDashboard = () => {
             onChange={handleTierChange}
           />
 
-          <div className="col-span-2 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
+          <div className="col-span-2 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Users
@@ -78,7 +76,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   New Sign-ups
@@ -97,7 +95,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Completed Onboardings
@@ -118,30 +116,31 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Files Uploaded
-            </CardTitle>
-            <FileUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">862</div>
-            <p className="text-xs text-muted-foreground">
-              Total uploads this month
-            </p>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+        {/* Reduced space by placing this in the continuous layout flow */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <Card className="md:col-span-1 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Files Uploaded
+              </CardTitle>
+              <FileUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">862</div>
+              <p className="text-xs text-muted-foreground">
+                Total uploads this month
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <CardTitle>User Activity</CardTitle>
               <CardDescription>
                 Daily active users over the past week
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[300px]">
+            <CardContent className="h-[250px]">
               <BarChart
                 data={userActivityData}
                 categories={["value"]}
@@ -149,23 +148,23 @@ const AdminDashboard = () => {
               />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Onboarding Progress</CardTitle>
-              <CardDescription>
-                New and completed onboardings by week
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <LineChart
-                data={onboardingData}
-                categories={["completed", "new"]}
-                index="name"
-              />
-            </CardContent>
-          </Card>
         </div>
+
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardHeader>
+            <CardTitle>Onboarding Progress</CardTitle>
+            <CardDescription>
+              New and completed onboardings by week
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px]">
+            <LineChart
+              data={onboardingData}
+              categories={["completed", "new"]}
+              index="name"
+            />
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

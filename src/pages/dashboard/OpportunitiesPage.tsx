@@ -147,19 +147,19 @@ const OpportunitiesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <h1 className="text-3xl font-bold tracking-tight">Opportunities & Actions</h1>
         <p className="text-muted-foreground">
           Review key strategic opportunities identified by Revify and access related diagnostic reports and presentations.
         </p>
         
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="col-span-2">
+        <div className="grid gap-5">
+          <Card className="border shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <CardTitle>Consulting Tier</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
+              <div className="border border-primary/20 rounded-lg p-4 flex items-center justify-between bg-white">
                 <div>
                   <p className="font-medium">Elite Consulting Tier</p>
                   <p className="text-sm text-muted-foreground">Premium access to all Revify services and features</p>
@@ -169,7 +169,7 @@ const OpportunitiesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="col-span-2">
+          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <CardTitle>Top Opportunities</CardTitle>
               <CardDescription>
@@ -443,7 +443,7 @@ const OpportunitiesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="col-span-2">
+          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <CardTitle>Client Presentations</CardTitle>
               <CardDescription>Access your strategic recommendations and reports</CardDescription>
@@ -451,7 +451,7 @@ const OpportunitiesPage = () => {
             <CardContent>
               <div className="space-y-3">
                 {presentations.map((presentation) => (
-                  <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={presentation.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex items-center">
                       <div className="mr-3 p-2 bg-primary/10 rounded">
                         <FileText size={18} className="text-primary" />
