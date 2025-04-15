@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import { OnboardingClient } from "@/lib/types/client-types";
@@ -14,7 +15,8 @@ export function useClientManagement() {
     try {
       const clientsData = await getClients();
       console.log("Fetched clients:", clientsData);
-      const typedClientsData = clientsData.map(client => ({
+      // Ensure the data conforms to the OnboardingClient type with proper status values
+      const typedClientsData: OnboardingClient[] = clientsData.map(client => ({
         ...client,
         status: client.status as "pending" | "active"
       }));
