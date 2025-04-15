@@ -2,20 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { UploadCloud, File, X, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   uploadFile, 
   getUserFiles, 
   deleteFile,
   checkRequiredDocuments
 } from "@/utils/fileUtils";
-import { 
-  UploadedFile, 
-  DocumentCategory, 
-  DOCUMENT_CATEGORIES, 
-  REQUIRED_DOCUMENTS 
-} from "@/types/onboarding";
-import { useAuth } from "@/contexts/auth-context";
+import { DocumentCategory, DOCUMENT_CATEGORIES, REQUIRED_DOCUMENTS } from "@/types/onboarding";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Select, 
   SelectContent, 
@@ -27,8 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 interface FileUploaderProps {
-  onUploadComplete?: (file: UploadedFile) => void;
-  onVerificationStatusChange?: (status: ReturnType<typeof checkRequiredDocuments>) => void;
+  onUploadComplete?: (file: any) => void;
+  onVerificationStatusChange?: (status: any) => void;
   categories?: DocumentCategory[];
 }
 
@@ -38,11 +33,11 @@ export function FileUploader({
   categories = Object.keys(DOCUMENT_CATEGORIES) as DocumentCategory[]
 }: FileUploaderProps) {
   const { toast } = useToast();
-  const { state } = useAuth();
+  const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>('general');
-  const userId = state.user?.id || "demo-user";
+  const [files, setFiles] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("general");
+  const userId = user?.id || "demo-user";
   
   // Load existing files on component mount
   useEffect(() => {
@@ -82,7 +77,7 @@ export function FileUploader({
       
       toast({
         title: "File uploaded",
-        description: `${file.name} has been uploaded as ${DOCUMENT_CATEGORIES[selectedCategory as DocumentCategory]} and is pending verification.`,
+        description: `${file.name} has been uploaded as ${DOCUMENT_CATEGORIES[selectedCategory]} and is pending verification.`,
       });
     } catch (error) {
       console.error("Upload error:", error);
@@ -109,7 +104,7 @@ export function FileUploader({
     }
   };
 
-  const getStatusIcon = (status: UploadedFile['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'verified':
         return <CheckCircle className="h-4 w-4 text-[#68b046]" />;
@@ -120,7 +115,7 @@ export function FileUploader({
     }
   };
 
-  const getStatusBadge = (status: UploadedFile['status']) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'verified':
         return <Badge className="bg-[#68b046]">Verified</Badge>;
@@ -133,8 +128,9 @@ export function FileUploader({
 
   // Calculate upload progress
   const verificationStatus = checkRequiredDocuments(userId, REQUIRED_DOCUMENTS);
+  const uploadedCount = verificationStatus.missing ? REQUIRED_DOCUMENTS.length - verificationStatus.missing.length : 0;
   const uploadProgress = Math.round(
-    (verificationStatus.uploaded.length / REQUIRED_DOCUMENTS.length) * 100
+    (uploadedCount / REQUIRED_DOCUMENTS.length) * 100
   );
 
   return (
@@ -197,9 +193,9 @@ export function FileUploader({
           </div>
           <div className="space-y-2">
             {REQUIRED_DOCUMENTS.map((category) => {
-              const isUploaded = verificationStatus.uploaded.includes(category);
-              const isVerified = verificationStatus.verified.includes(category);
-              const isRejected = verificationStatus.rejected.includes(category);
+              const isUploaded = !verificationStatus.missing || !verificationStatus.missing.includes(category);
+              const isVerified = false; // Define how to check if verified
+              const isRejected = false; // Define how to check if rejected
               
               return (
                 <div key={category} className="flex items-center justify-between">

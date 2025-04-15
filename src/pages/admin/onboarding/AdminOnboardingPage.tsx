@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { ClientOnboardingForm } from "@/components/admin/onboarding/ClientOnboardingForm";
 import { BulkClientInvites } from "@/components/admin/onboarding/BulkClientInvites";
-import { OnboardingTemplateManager } from "@/components/admin/onboarding/OnboardingTemplateManager";
+import OnboardingTemplateManager from "@/components/admin/onboarding/OnboardingTemplateManager";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";

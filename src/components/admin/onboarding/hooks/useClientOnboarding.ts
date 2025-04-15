@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,7 +23,7 @@ export function useClientOnboarding() {
     defaultValues: {
       email: "",
       companyName: "",
-      subscriptionTierId: "",
+      subscriptionId: "",
       addons: [],
       teamMembers: [{ email: "" }],
       notes: "",
@@ -95,24 +96,19 @@ export function useClientOnboarding() {
     setIsSubmitting(true);
     
     try {
-      const clientData = {
-        ...data,
-        subscriptionTierId: data.subscriptionId
-      };
+      const clientId = await createClient(data);
       
-      const result = await createClient(clientData);
-      
-      if (result) {
+      if (clientId) {
         form.reset();
         setActiveTab("client-info");
         setSelectedAddons([]);
         
         toast({
           title: "Client created",
-          description: `${data.companyName} has been added. Invitation sent to ${data.email}`,
+          description: `${data.companyName || 'New client'} has been added. Invitation sent to ${data.email}`,
         });
         
-        return result;
+        return clientId;
       } else {
         throw new Error("Failed to create client");
       }

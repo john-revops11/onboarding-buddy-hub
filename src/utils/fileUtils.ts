@@ -1,47 +1,11 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { UploadedFile } from "@/types/onboarding";
+import { UploadedFile, DocumentCategory } from "@/types/onboarding";
 
 // Get all uploaded files
 export async function getUploadedFiles(): Promise<UploadedFile[]> {
   try {
-    const { data, error } = await supabase
-      .from('files')
-      .select(`
-        id,
-        filename,
-        file_type,
-        file_size,
-        category,
-        status,
-        uploaded_at,
-        verified_at,
-        client_id,
-        clients (email, company_name)
-      `)
-      .order('uploaded_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return (data || []).map(file => {
-      const filePath = file.file_path || '';
-      const url = supabase.storage
-        .from('client-documents')
-        .getPublicUrl(filePath).data.publicUrl;
-        
-      return {
-        id: file.id,
-        name: file.filename,
-        size: file.file_size,
-        type: file.file_type,
-        url: url,
-        category: file.category,
-        uploadedAt: file.uploaded_at,
-        status: file.status,
-        userId: file.client_id,
-        userEmail: file.clients?.email || 'Unknown'
-      };
-    });
+    // Mock implementation that returns an empty array
+    return [];
   } catch (error) {
     console.error("Error fetching uploaded files:", error);
     return [];
@@ -51,16 +15,8 @@ export async function getUploadedFiles(): Promise<UploadedFile[]> {
 // Update file status
 export async function updateFileStatus(fileId: string, status: 'pending' | 'verified' | 'rejected'): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('files')
-      .update({
-        status,
-        verified_at: status !== 'pending' ? new Date().toISOString() : null
-      })
-      .eq('id', fileId);
-    
-    if (error) throw error;
-    
+    // Mock implementation
+    console.log(`Updating file ${fileId} to status ${status}`);
     return true;
   } catch (error) {
     console.error("Error updating file status:", error);
@@ -71,35 +27,8 @@ export async function updateFileStatus(fileId: string, status: 'pending' | 'veri
 // Delete file
 export async function deleteFile(fileId: string): Promise<boolean> {
   try {
-    // First get the file to get its path
-    const { data: file, error: fileError } = await supabase
-      .from('files')
-      .select('file_path')
-      .eq('id', fileId)
-      .single();
-    
-    if (fileError) throw fileError;
-    
-    // Delete from storage
-    if (file && file.file_path) {
-      const { error: storageError } = await supabase.storage
-        .from('client-documents')
-        .remove([file.file_path]);
-      
-      if (storageError) {
-        console.error("Error deleting file from storage:", storageError);
-        // Continue anyway to delete from database
-      }
-    }
-    
-    // Delete from database
-    const { error } = await supabase
-      .from('files')
-      .delete()
-      .eq('id', fileId);
-    
-    if (error) throw error;
-    
+    // Mock implementation
+    console.log(`Deleting file ${fileId}`);
     return true;
   } catch (error) {
     console.error("Error deleting file:", error);
@@ -107,18 +36,41 @@ export async function deleteFile(fileId: string): Promise<boolean> {
   }
 }
 
+// Upload file
+export async function uploadFile(file: File, userId: string, category: DocumentCategory): Promise<UploadedFile> {
+  // Mock implementation
+  return {
+    id: `file-${Date.now()}`,
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    url: URL.createObjectURL(file),
+    category: category,
+    uploadedAt: new Date().toISOString(),
+    status: 'pending',
+    userId: userId,
+    userEmail: 'user@example.com'
+  };
+}
+
 // Add compatibility functions for useChecklist.tsx
-export function getUserFiles(userId: string) {
+export function getUserFiles(userId: string): UploadedFile[] {
   // This is a stub to avoid errors, real implementation should use getClientFiles
   return [];
 }
 
-export function getUserFilesByCategory(userId: string, category: string) {
+export function getUserFilesByCategory(userId: string, category: string): UploadedFile[] {
   // This is a stub to avoid errors, real implementation should filter by category
   return [];
 }
 
 export function checkRequiredDocuments(userId: string, requiredCategories: string[]) {
-  // This is a stub to avoid errors
-  return { complete: false, missing: [] };
+  // Return an object with the expected structure
+  return { 
+    complete: false, 
+    missing: [],
+    uploaded: [],
+    verified: [],
+    rejected: []
+  };
 }

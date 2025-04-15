@@ -1,3 +1,4 @@
+
 // Client and user types
 export interface Addon {
   id: string;
@@ -15,7 +16,7 @@ export interface Subscription {
   features?: string[];
 }
 
-// Alias for backward compatibility
+// We're using Subscription instead of SubscriptionTier now
 export type SubscriptionTier = Subscription;
 
 export interface OnboardingTemplateStep {
@@ -110,14 +111,15 @@ export interface FileUpload {
   status: 'pending' | 'verified' | 'rejected';
   uploadedAt: string;
   verifiedAt?: string;
-  filePath?: string;
+  url: string;
 }
 
 export interface ClientFormValues {
   email: string;
-  companyName: string;
+  companyName?: string;
   subscriptionId: string;
   addons: string[];
+  teamMembers: { email: string }[];
   notes?: string;
 }
 

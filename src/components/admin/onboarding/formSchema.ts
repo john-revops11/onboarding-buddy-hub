@@ -7,7 +7,7 @@ const emailSchema = z.string().email("Invalid email format");
 export const ClientFormSchema = z.object({
   email: emailSchema.min(1, "Client email is required"),
   companyName: z.string().optional(),
-  subscriptionId: z.string().min(1, "Subscription tier is required"), // Changed from subscriptionTierId to subscriptionId
+  subscriptionId: z.string().min(1, "Subscription tier is required"),
   addons: z.array(z.string()).default([]),
   teamMembers: z.array(
     z.object({

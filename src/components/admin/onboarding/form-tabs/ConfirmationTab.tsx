@@ -33,7 +33,7 @@ export default function ConfirmationTab({
         <h3 className="text-lg font-semibold mb-2">Subscription</h3>
         <div>
           {subscriptions.find(
-            (s) => s.id === form.getValues("subscriptionTierId")
+            (s) => s.id === form.getValues("subscriptionId")
           )?.name || "None selected"}
         </div>
       </div>

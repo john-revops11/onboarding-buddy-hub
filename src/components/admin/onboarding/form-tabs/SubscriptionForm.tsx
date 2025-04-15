@@ -28,12 +28,13 @@ export default function SubscriptionForm({ form, subscriptions }: SubscriptionFo
     <CardContent className="pt-6">
       <FormField
         control={form.control}
-        name="subscriptionTierId"
+        name="subscriptionId"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Subscription Tier *</FormLabel>
             <Select 
               onValueChange={field.onChange} 
+              value={field.value}
               defaultValue={field.value}
             >
               <FormControl>

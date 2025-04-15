@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -9,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -133,36 +133,29 @@ const OnboardingTemplateManager = () => {
     });
   };
   
-  // Drag start step handler
-  const handleDragStartStep = (e, stepData) => {
-    setDraggedStep(stepData);
+  // Handle drag start 
+  const handleDragStart = (e: React.DragEvent, step: OnboardingTemplateStep) => {
+    setDraggedStep(step);
   };
   
-  // Dragover step handler
-  const handleDragOverStep = (e, stepData) => {
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent, step: OnboardingTemplateStep) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
     
-    if (draggedStep && stepData.id !== draggedStep.id) {
+    if (draggedStep && step.id !== draggedStep.id) {
       // Make a copy of the steps array
       const stepsCopy = [...steps];
       
       // Find indices
       const fromIndex = stepsCopy.findIndex(s => s.id === draggedStep.id);
-      const toIndex = stepsCopy.findIndex(s => s.id === stepData.id);
+      const toIndex = stepsCopy.findIndex(s => s.id === step.id);
       
       if (fromIndex !== -1) {
         // Remove the dragged step
         const [removed] = stepsCopy.splice(fromIndex, 1);
         
-        // Ensure the removed step has a title
-        const step: OnboardingTemplateStep = {
-          ...removed,
-          title: removed.title || "Untitled Step" // Ensure title is provided
-        };
-        
         // Insert at the new position
-        stepsCopy.splice(toIndex, 0, step);
+        stepsCopy.splice(toIndex, 0, removed);
         
         // Update the order_index values
         const updatedSteps = stepsCopy.map((step, index) => ({
@@ -176,10 +169,10 @@ const OnboardingTemplateManager = () => {
     }
   };
   
-  // Drop step handler
-  const handleDropStep = (e, stepData) => {
+  // Handle drop
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    setDraggedStep(null);
   };
   
   return (
@@ -231,7 +224,12 @@ const OnboardingTemplateManager = () => {
             </TableHead>
             <TableBody>
               {steps.map((step) => (
-                <TableRow key={step.id}>
+                <TableRow key={step.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, step)}
+                  onDragOver={(e) => handleDragOver(e, step)}
+                  onDrop={handleDrop}
+                >
                   <TableCell>{step.title}</TableCell>
                   <TableCell>{step.description}</TableCell>
                   <TableCell className="text-right">
