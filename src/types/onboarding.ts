@@ -1,5 +1,5 @@
 
-// If this file doesn't exist, we'll create it
+// Onboarding types
 
 export type DocumentCategory = 
   | "id_verification" 
@@ -7,7 +7,8 @@ export type DocumentCategory =
   | "business_certificate" 
   | "company_logo" 
   | "tax_document" 
-  | "contract_agreement";
+  | "contract_agreement"
+  | "general";
 
 export interface ChecklistItem {
   id: string;
@@ -59,3 +60,32 @@ export interface OnboardingTemplateStep {
   orderIndex: number;
   requiredDocuments?: DocumentCategory[];
 }
+
+export interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  category?: DocumentCategory;
+  uploadedAt: string;
+  status: 'pending' | 'verified' | 'rejected';
+  notes?: string;
+}
+
+// Add constants for document categories and required documents
+export const DOCUMENT_CATEGORIES: Record<DocumentCategory, string> = {
+  id_verification: "ID Verification",
+  address_proof: "Address Proof",
+  business_certificate: "Business Certificate",
+  company_logo: "Company Logo",
+  tax_document: "Tax Document",
+  contract_agreement: "Contract Agreement",
+  general: "General Document"
+};
+
+export const REQUIRED_DOCUMENTS: DocumentCategory[] = [
+  "id_verification",
+  "address_proof",
+  "business_certificate"
+];

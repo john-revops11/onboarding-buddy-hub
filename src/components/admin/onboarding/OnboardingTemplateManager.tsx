@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,12 +58,12 @@ import {
   createOnboardingTemplate, 
   updateOnboardingTemplate, 
   deleteOnboardingTemplate,
-  linkTemplateToSubscription
+  linkTemplateToSubscription,
+  getSubscriptionTiers
 } from "@/lib/template-management";
 import { OnboardingTemplate, OnboardingTemplateStep } from "@/lib/types/client-types";
 import { getSubscriptions } from "@/lib/subscription-management";
 
-// Step schema
 const stepSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Step title is required"),
@@ -73,7 +72,6 @@ const stepSchema = z.object({
   required_document_categories: z.array(z.string()).optional(),
 });
 
-// Template schema
 const templateSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Template name is required"),
@@ -122,18 +120,16 @@ export function OnboardingTemplateManager() {
     },
   });
 
-  // Load templates and subscriptions on mount
   useEffect(() => {
     loadTemplatesAndSubscriptions();
   }, []);
 
-  // Load templates from database
   const loadTemplatesAndSubscriptions = async () => {
     setIsLoading(true);
     try {
       const [templatesData, subscriptionsData] = await Promise.all([
         getOnboardingTemplates(),
-        getSubscriptions()
+        getSubscriptionTiers()
       ]);
       
       setTemplates(templatesData);
@@ -150,7 +146,6 @@ export function OnboardingTemplateManager() {
     }
   };
 
-  // Open template form for creating a new template
   const handleAddTemplate = () => {
     form.reset({
       name: "",
@@ -163,7 +158,6 @@ export function OnboardingTemplateManager() {
     setShowTemplateDialog(true);
   };
 
-  // Open template form for editing an existing template
   const handleEditTemplate = async (templateId: string) => {
     try {
       setIsLoading(true);
@@ -193,7 +187,6 @@ export function OnboardingTemplateManager() {
     }
   };
 
-  // Duplicate an existing template
   const handleDuplicateTemplate = async (templateId: string) => {
     try {
       setIsLoading(true);
@@ -227,14 +220,12 @@ export function OnboardingTemplateManager() {
     }
   };
 
-  // Open dialog to link template to subscription
   const handleLinkTemplateToSubscription = (templateId: string) => {
     setSelectedTemplateId(templateId);
     setSelectedSubscriptionId(null);
     setShowLinkDialog(true);
   };
 
-  // Link template to subscription
   const handleSaveLinkToSubscription = async () => {
     if (!selectedTemplateId || !selectedSubscriptionId) {
       toast({
@@ -265,13 +256,11 @@ export function OnboardingTemplateManager() {
     }
   };
 
-  // Open delete confirmation dialog
   const handleConfirmDelete = (templateId: string) => {
     setTemplateToDelete(templateId);
     setShowDeleteDialog(true);
   };
 
-  // Delete template after confirmation
   const handleDeleteTemplate = async () => {
     if (templateToDelete) {
       try {
@@ -279,7 +268,6 @@ export function OnboardingTemplateManager() {
         const success = await deleteOnboardingTemplate(templateToDelete);
         
         if (success) {
-          // Refresh templates list
           loadTemplatesAndSubscriptions();
           
           toast({
@@ -304,7 +292,6 @@ export function OnboardingTemplateManager() {
     }
   };
 
-  // Open step dialog for adding a new step
   const handleAddStep = () => {
     stepForm.reset({
       title: "",
@@ -317,7 +304,6 @@ export function OnboardingTemplateManager() {
     setShowStepDialog(true);
   };
 
-  // Open step dialog for editing an existing step
   const handleEditStep = (step: OnboardingTemplateStep, index: number) => {
     stepForm.reset({
       id: step.id,
@@ -331,7 +317,6 @@ export function OnboardingTemplateManager() {
     setShowStepDialog(true);
   };
 
-  // Delete a step from the template
   const handleDeleteStep = (index: number) => {
     const currentSteps = form.getValues("steps");
     
@@ -349,7 +334,6 @@ export function OnboardingTemplateManager() {
     form.setValue("steps", newSteps);
   };
 
-  // Move a step up in the order
   const handleMoveStepUp = (index: number) => {
     if (index === 0) return;
     
@@ -369,7 +353,6 @@ export function OnboardingTemplateManager() {
     form.setValue("steps", newSteps);
   };
 
-  // Move a step down in the order
   const handleMoveStepDown = (index: number) => {
     const currentSteps = form.getValues("steps");
     
@@ -390,26 +373,25 @@ export function OnboardingTemplateManager() {
     form.setValue("steps", newSteps);
   };
 
-  // Save a step (add new or update existing)
   const onStepSubmit = (data: StepFormValues) => {
     const currentSteps = form.getValues("steps") || [];
+    
+    const stepData: OnboardingTemplateStep = {
+      ...data,
+      title: data.title || '',
+      id: stepToEdit?.id || `step-${Date.now()}`
+    };
     
     if (stepIndex !== null) {
       // Update existing step
       const newSteps = [...currentSteps];
-      newSteps[stepIndex] = {
-        ...data,
-        id: stepToEdit?.id || `step-${Date.now()}`
-      };
+      newSteps[stepIndex] = stepData;
       form.setValue("steps", newSteps);
     } else {
       // Add new step
       form.setValue("steps", [
         ...currentSteps,
-        {
-          ...data,
-          id: `step-${Date.now()}`
-        }
+        stepData
       ]);
     }
     
@@ -417,15 +399,15 @@ export function OnboardingTemplateManager() {
     stepForm.reset();
   };
 
-  // Save the template
   const onTemplateSubmit = async (data: TemplateFormValues) => {
     try {
       setIsLoading(true);
       
-      // Ensure steps have correct order indexes
-      const stepsWithCorrectOrder = data.steps.map((step, index) => ({
+      // Ensure steps have correct order indexes and required properties
+      const stepsWithCorrectOrder: OnboardingTemplateStep[] = data.steps.map((step, index) => ({
         ...step,
-        order_index: index + 1
+        order_index: index + 1,
+        title: step.title || '',
       }));
       
       let result;
@@ -600,7 +582,6 @@ export function OnboardingTemplateManager() {
         </div>
       )}
       
-      {/* Template Edit/Create Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -813,7 +794,6 @@ export function OnboardingTemplateManager() {
         </DialogContent>
       </Dialog>
       
-      {/* Step Edit/Create Dialog */}
       <Dialog open={showStepDialog} onOpenChange={setShowStepDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -911,7 +891,6 @@ export function OnboardingTemplateManager() {
         </DialogContent>
       </Dialog>
       
-      {/* Link Template to Subscription Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -956,7 +935,6 @@ export function OnboardingTemplateManager() {
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

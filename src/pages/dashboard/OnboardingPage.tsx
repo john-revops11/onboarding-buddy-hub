@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "@/hooks/use-toast";
 import { useChecklist } from "@/hooks/useChecklist";
 import { supabase } from "@/integrations/supabase/client";
+import { ChecklistItem } from "@/types/onboarding";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const OnboardingPage = () => {
   }, [navigate, userId]);
   
   const handleContinue = () => {
-    const currentStep = checklist[activeStepIndex];
+    const currentStep = checklist[activeStepIndex] as ChecklistItem;
     
     // Mark the current step as complete
     if (currentStep && !currentStep.completed) {
@@ -77,7 +78,7 @@ const OnboardingPage = () => {
   };
   
   // Get the current step
-  const currentStep = checklist[activeStepIndex] || {};
+  const currentStep = checklist[activeStepIndex] as ChecklistItem || {};
   const isLastStep = activeStepIndex === checklist.length - 1;
   
   // Check if current step is completed
@@ -85,7 +86,7 @@ const OnboardingPage = () => {
   
   // Get progress percentage
   const progress = getProgress();
-  const completedCount = checklist.filter(item => item.completed).length;
+  const completedCount = checklist.filter(item => (item as ChecklistItem).completed).length;
   
   if (isLoading) {
     return (
@@ -131,47 +132,50 @@ const OnboardingPage = () => {
             <Progress value={progress} className="h-2 mb-6" />
             
             <div className="grid gap-4">
-              {checklist.map((step, index) => (
-                <button
-                  key={step.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                    activeStepIndex === index 
-                      ? "border-primary bg-primary/5" 
-                      : index < completedCount 
-                        ? "border-green-200 bg-green-50"
-                        : "border-muted-foreground/20"
-                  }`}
-                  onClick={() => setActiveStepIndex(index)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      step.completed 
-                        ? "bg-green-100 text-green-600" 
-                        : "bg-muted-foreground/10 text-muted-foreground"
-                    }`}>
-                      {step.completed ? (
-                        <CheckCircle className="h-5 w-5" />
-                      ) : (
-                        <span>{index + 1}</span>
-                      )}
+              {checklist.map((step, index) => {
+                const typedStep = step as ChecklistItem;
+                return (
+                  <button
+                    key={typedStep.id}
+                    className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                      activeStepIndex === index 
+                        ? "border-primary bg-primary/5" 
+                        : index < completedCount 
+                          ? "border-green-200 bg-green-50"
+                          : "border-muted-foreground/20"
+                    }`}
+                    onClick={() => setActiveStepIndex(index)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        typedStep.completed 
+                          ? "bg-green-100 text-green-600" 
+                          : "bg-muted-foreground/10 text-muted-foreground"
+                      }`}>
+                        {typedStep.completed ? (
+                          <CheckCircle className="h-5 w-5" />
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium">{typedStep.title}</div>
+                        <div className="text-sm text-muted-foreground">{typedStep.description}</div>
+                        {typedStep.isAddonStep && typedStep.addonName && (
+                          <div className="mt-1">
+                            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                              {typedStep.addonName} Add-on
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <div className="font-medium">{step.title}</div>
-                      <div className="text-sm text-muted-foreground">{step.description}</div>
-                      {step.isAddonStep && step.addonName && (
-                        <div className="mt-1">
-                          <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
-                            {step.addonName} Add-on
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {activeStepIndex === index && (
-                    <ChevronRight className="h-5 w-5 text-primary" />
-                  )}
-                </button>
-              ))}
+                    {activeStepIndex === index && (
+                      <ChevronRight className="h-5 w-5 text-primary" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
@@ -191,9 +195,9 @@ const OnboardingPage = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle>{currentStep.title || "Welcome"}</CardTitle>
+            <CardTitle>{(currentStep as ChecklistItem).title || "Welcome"}</CardTitle>
             <CardDescription>
-              {currentStep.description || "Complete the onboarding steps to get started."}
+              {(currentStep as ChecklistItem).description || "Complete the onboarding steps to get started."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -207,7 +211,7 @@ const OnboardingPage = () => {
               <TabsContent value="form" className="space-y-4">
                 {/* This would be replaced with actual form components for each step */}
                 <div className="min-h-[200px] border rounded-lg p-6">
-                  {currentStep.requiredDocuments && currentStep.requiredDocuments.length > 0 ? (
+                  {(currentStep as ChecklistItem).requiredDocuments && (currentStep as ChecklistItem).requiredDocuments.length > 0 ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-amber-600">
                         <AlertCircle className="h-5 w-5" />
@@ -217,7 +221,7 @@ const OnboardingPage = () => {
                       <div className="space-y-2">
                         <p className="font-medium">Required documents:</p>
                         <ul className="list-disc pl-5 space-y-1">
-                          {currentStep.requiredDocuments.map((doc, i) => (
+                          {(currentStep as ChecklistItem).requiredDocuments.map((doc, i) => (
                             <li key={i} className="text-muted-foreground">
                               {doc.replace(/_/g, ' ')}
                             </li>
@@ -235,15 +239,15 @@ const OnboardingPage = () => {
                   ) : (
                     <div className="h-full flex items-center justify-center">
                       <div className="text-center space-y-4 max-w-md">
-                        <h2 className="text-xl font-semibold">{currentStep.title || "Welcome to Revify"}</h2>
+                        <h2 className="text-xl font-semibold">{(currentStep as ChecklistItem).title || "Welcome to Revify"}</h2>
                         <p className="text-muted-foreground">
-                          {currentStep.description || "Complete this step to continue with your onboarding process."}
+                          {(currentStep as ChecklistItem).description || "Complete this step to continue with your onboarding process."}
                         </p>
                         
-                        {currentStep.isAddonStep && currentStep.addonName && (
+                        {(currentStep as ChecklistItem).isAddonStep && (currentStep as ChecklistItem).addonName && (
                           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                             <p className="text-blue-700">
-                              This step is required for the {currentStep.addonName} add-on you selected.
+                              This step is required for the {(currentStep as ChecklistItem).addonName} add-on you selected.
                             </p>
                           </div>
                         )}
@@ -252,7 +256,7 @@ const OnboardingPage = () => {
                           onClick={handleContinue}
                           className="mt-4"
                         >
-                          {currentStep.completed ? "Already Completed" : "Mark as Complete"}
+                          {(currentStep as ChecklistItem).completed ? "Already Completed" : "Mark as Complete"}
                         </Button>
                       </div>
                     </div>

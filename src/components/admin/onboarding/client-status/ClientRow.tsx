@@ -4,7 +4,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, ExternalLink, CheckCircle, Clock, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { OnboardingClient } from "@/lib/types/client-types";
+import { OnboardingClient } from "@/types/onboarding";
 import { ClientProgressIndicator } from "./ClientProgressIndicator";
 import { CompleteOnboardingButton } from "./CompleteOnboardingButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -39,7 +39,7 @@ export function ClientRow({
       <TableCell className="font-medium">
         {client.companyName || client.email}
       </TableCell>
-      <TableCell>{client.subscriptionTier.name}</TableCell>
+      <TableCell>{client.subscriptionTier}</TableCell>
       <TableCell>
         <ClientProgressIndicator 
           progress={progress} 
@@ -48,7 +48,8 @@ export function ClientRow({
         />
       </TableCell>
       <TableCell>
-        {new Date(client.created_at).toLocaleDateString()}
+        {/* Use a placeholder date if not available */}
+        {new Date().toLocaleDateString()}
       </TableCell>
       <TableCell>
         <Badge 

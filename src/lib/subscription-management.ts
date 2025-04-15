@@ -1,14 +1,13 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionTier } from "@/lib/types/client-types";
+import { Subscription, SubscriptionTier } from "@/lib/types/client-types";
 
-// Fetch available subscription tiers
+// Get all subscription tiers
 export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
-    console.log("Fetching subscription tiers...");
     const { data, error } = await supabase
       .from('subscriptions')
-      .select('id, name, description, price, features')
+      .select('*')
       .order('price', { ascending: true });
     
     if (error) {
@@ -16,7 +15,6 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
       throw error;
     }
     
-    console.log("Successfully fetched subscription tiers:", data);
     return data || [];
   } catch (error) {
     console.error("Error fetching subscription tiers:", error);
@@ -24,110 +22,89 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   }
 }
 
+// Alias for backward compatibility
+export const getSubscriptions = getSubscriptionTiers;
+
+// Get a single subscription tier by ID
+export async function getSubscriptionTier(id: string): Promise<SubscriptionTier | null> {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching subscription tier:", error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching subscription tier:", error);
+    return null;
+  }
+}
+
+// Create a new subscription tier
+export async function createSubscriptionTier(subscription: Omit<SubscriptionTier, 'id'>): Promise<SubscriptionTier | null> {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .insert(subscription)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error creating subscription tier:", error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error creating subscription tier:", error);
+    return null;
+  }
+}
+
+// Update an existing subscription tier
+export async function updateSubscriptionTier(id: string, subscription: Partial<SubscriptionTier>): Promise<SubscriptionTier | null> {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .update(subscription)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating subscription tier:", error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error updating subscription tier:", error);
+    return null;
+  }
+}
+
 // Delete a subscription tier
 export async function deleteSubscriptionTier(id: string): Promise<boolean> {
   try {
-    console.log("Deleting subscription tier with ID:", id);
-    // Use RPC to call a server-side function with higher privileges
-    const { data, error } = await supabase
-      .rpc('admin_delete_subscription', {
-        id_param: id
-      });
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('id', id);
     
     if (error) {
       console.error("Error deleting subscription tier:", error);
       throw error;
     }
     
-    console.log("Successfully deleted subscription tier:", data);
-    return data || false;
+    return true;
   } catch (error) {
     console.error("Error deleting subscription tier:", error);
     return false;
-  }
-}
-
-// Create a new subscription tier
-export async function createSubscriptionTier(
-  subscription: Omit<SubscriptionTier, 'id'> | { name: string; description: string; price: number; features?: string[] }
-): Promise<SubscriptionTier | null> {
-  try {
-    // Ensure price is a number before sending to API
-    const subscriptionData = {
-      name: subscription.name,
-      description: subscription.description,
-      price: typeof subscription.price === 'string' ? parseFloat(subscription.price) : subscription.price,
-      features: subscription.features || []
-    };
-
-    console.log("Creating subscription tier with data:", subscriptionData);
-    
-    // Use rpc to call a server-side function that will handle this with higher privileges
-    const { data: newSubscription, error: insertError } = await supabase
-      .rpc('admin_create_subscription_with_features', {
-        name_param: subscriptionData.name,
-        description_param: subscriptionData.description,
-        price_param: subscriptionData.price,
-        features_param: subscriptionData.features
-      });
-    
-    if (insertError) {
-      console.error("Error creating subscription tier:", insertError);
-      throw insertError;
-    }
-    
-    console.log("Successfully created subscription tier:", newSubscription);
-    return newSubscription;
-  } catch (error) {
-    console.error("Error creating subscription tier:", error);
-    throw error; // Rethrow the error for better error handling in UI
-  }
-}
-
-// Update an existing subscription tier
-export async function updateSubscriptionTier(
-  id: string, 
-  subscription: Partial<SubscriptionTier> | { name?: string; description?: string; price?: number | string; features?: string[] }
-): Promise<SubscriptionTier | null> {
-  try {
-    console.log("Updating subscription with ID:", id);
-    console.log("Update data before processing:", subscription);
-    
-    // Ensure price is a number before sending to API
-    const subscriptionData = {
-      name: subscription.name,
-      description: subscription.description,
-      price: typeof subscription.price === 'string' ? parseFloat(subscription.price as string) : subscription.price,
-      features: subscription.features || []
-    };
-    
-    console.log("Formatted subscription data for update:", subscriptionData);
-    
-    // Use rpc to call a server-side function that will handle this with higher privileges
-    const { data: updatedSubscription, error: updateError } = await supabase
-      .rpc('admin_update_subscription_with_features', {
-        id_param: id,
-        name_param: subscriptionData.name,
-        description_param: subscriptionData.description,
-        price_param: subscriptionData.price,
-        features_param: subscriptionData.features
-      });
-    
-    console.log("Update response:", { updatedSubscription, updateError });
-    
-    if (updateError) {
-      console.error("Error updating subscription tier:", updateError);
-      throw updateError;
-    }
-    
-    if (!updatedSubscription) {
-      throw new Error("Failed to update subscription - no data returned");
-    }
-    
-    console.log("Successfully updated subscription tier:", updatedSubscription);
-    return updatedSubscription;
-  } catch (error) {
-    console.error("Error updating subscription tier:", error);
-    throw error; // Rethrow the error for better error handling in UI
   }
 }

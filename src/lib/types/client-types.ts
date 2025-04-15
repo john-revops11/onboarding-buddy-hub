@@ -1,6 +1,5 @@
 
-// If this file doesn't exist, we'll create it
-
+// Client and user types
 export interface Addon {
   id: string;
   name: string;
@@ -16,6 +15,9 @@ export interface Subscription {
   price: number;
   features?: string[];
 }
+
+// Alias for backward compatibility
+export type SubscriptionTier = Subscription;
 
 export interface OnboardingTemplateStep {
   id?: string;
@@ -72,4 +74,55 @@ export interface ClientOnboardingStep {
   is_addon_step: boolean;
   addon_id?: string;
   addon_name?: string;
+}
+
+export interface OnboardingClient {
+  id: string;
+  email: string;
+  companyName?: string;
+  subscriptionTier: Subscription;
+  addons?: Addon[];
+  status: 'pending' | 'active';
+  teamMembers?: TeamMember[];
+  onboardingProgress?: OnboardingProgressItem[];
+  created_at?: string;
+}
+
+export interface TeamMember {
+  id: string;
+  email: string;
+  invitationStatus: 'pending' | 'accepted';
+}
+
+export interface OnboardingProgressItem {
+  stepId: string;
+  completed: boolean;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface FileUpload {
+  id: string;
+  clientId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  category: string;
+  status: 'pending' | 'verified' | 'rejected';
+  uploadedAt: string;
+  verifiedAt?: string;
+}
+
+export interface ClientFormValues {
+  email: string;
+  companyName: string;
+  subscriptionId: string;
+  addons: string[];
+  notes?: string;
+}
+
+export interface ClientCreationResult {
+  success: boolean;
+  client?: OnboardingClient;
+  error?: string;
 }

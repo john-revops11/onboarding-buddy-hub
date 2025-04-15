@@ -288,13 +288,14 @@ export async function saveAddonTemplateSteps(
       throw deleteError;
     }
     
-    // Insert new steps if there are any
+    // Only insert if there are steps
     if (steps.length > 0) {
-      const stepsToInsert = steps.map(step => ({
+      // Insert new steps
+      const stepsToInsert = steps.map((step, index) => ({
         addon_id: addonId,
         title: step.title,
         description: step.description,
-        order_index: step.order_index,
+        order_index: step.order_index || index + 1,
         required_document_categories: step.required_document_categories
       }));
       
@@ -303,7 +304,7 @@ export async function saveAddonTemplateSteps(
         .insert(stepsToInsert);
       
       if (insertError) {
-        console.error("Error inserting addon steps:", insertError);
+        console.error("Error adding addon steps:", insertError);
         throw insertError;
       }
     }

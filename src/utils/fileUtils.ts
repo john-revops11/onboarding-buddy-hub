@@ -1,176 +1,213 @@
-import { UploadedFile } from "@/types/onboarding";
 
-/**
- * Upload file to the server
- * @param file File to upload
- * @param userId User ID who uploaded the file
- * @param category File category/type for verification purposes
- * @returns Promise with uploaded file metadata
- */
+import { UploadedFile, DocumentCategory } from "@/types/onboarding";
+
+// Mock data storage
+const FILES_STORAGE_KEY = "user_files";
+
+// Upload a file to storage (simulated)
 export const uploadFile = async (
-  file: File, 
-  userId: string, 
-  category?: string
+  file: File,
+  userId: string,
+  category: DocumentCategory = "general"
 ): Promise<UploadedFile> => {
-  // In a real app, you would upload to a server/cloud storage
-  // This is a mock implementation
-  
   return new Promise((resolve) => {
+    // Simulate API delay
     setTimeout(() => {
-      const fileId = `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      // Generate a unique ID
+      const id = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Create a file record
-      const uploadedFile: UploadedFile = {
-        id: fileId,
+      // Create a URL (in a real app, this would be the storage URL)
+      const url = URL.createObjectURL(file);
+      
+      // Create file record
+      const newFile: UploadedFile = {
+        id,
         name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type,
         size: file.size,
-        userId: userId,
-        category: category || 'general',
-        status: 'pending',
+        type: file.type,
+        url,
+        category,
         uploadedAt: new Date().toISOString(),
-        verifiedAt: null,
+        status: "pending",
       };
       
-      // Store in localStorage for demo purposes
-      const existingFiles = getUploadedFiles();
-      localStorage.setItem('uploadedFiles', JSON.stringify([...existingFiles, uploadedFile]));
+      // Get existing files
+      const files = getUserFiles(userId);
       
-      resolve(uploadedFile);
+      // Add new file
+      const updatedFiles = [...files, newFile];
+      
+      // Save to storage
+      localStorage.setItem(
+        `${FILES_STORAGE_KEY}_${userId}`,
+        JSON.stringify(updatedFiles)
+      );
+      
+      resolve(newFile);
     }, 1000);
   });
 };
 
-/**
- * Get all uploaded files
- * @returns Array of uploaded files
- */
-export const getUploadedFiles = (): UploadedFile[] => {
-  const filesJson = localStorage.getItem('uploadedFiles');
+// Get all user files
+export const getUserFiles = (userId: string): UploadedFile[] => {
+  const filesJson = localStorage.getItem(`${FILES_STORAGE_KEY}_${userId}`);
   return filesJson ? JSON.parse(filesJson) : [];
 };
 
-/**
- * Get uploaded files for a specific user
- * @param userId User ID
- * @returns Array of uploaded files for the user
- */
-export const getUserFiles = (userId: string): UploadedFile[] => {
-  const allFiles = getUploadedFiles();
-  return allFiles.filter(file => file.userId === userId);
+// Get user files by category
+export const getUserFilesByCategory = (
+  userId: string,
+  category: DocumentCategory
+): UploadedFile[] => {
+  const files = getUserFiles(userId);
+  return files.filter((file) => file.category === category);
 };
 
-/**
- * Get uploaded files by category for a specific user
- * @param userId User ID
- * @param category File category
- * @returns Array of uploaded files for the user in the specified category
- */
-export const getUserFilesByCategory = (userId: string, category: string): UploadedFile[] => {
-  const userFiles = getUserFiles(userId);
-  return userFiles.filter(file => file.category === category);
-};
-
-/**
- * Check if a user has uploaded a file in a specific category
- * @param userId User ID
- * @param category File category
- * @returns Boolean indicating if the file exists
- */
-export const hasUserUploadedFileInCategory = (userId: string, category: string): boolean => {
-  const files = getUserFilesByCategory(userId, category);
-  return files.length > 0;
-};
-
-/**
- * Delete a file by ID
- * @param fileId File ID to delete
- * @returns Boolean indicating success
- */
+// Delete a file
 export const deleteFile = (fileId: string): boolean => {
-  const allFiles = getUploadedFiles();
-  const updatedFiles = allFiles.filter(file => file.id !== fileId);
-  
-  if (updatedFiles.length < allFiles.length) {
-    localStorage.setItem('uploadedFiles', JSON.stringify(updatedFiles));
-    return true;
+  try {
+    // Get all user data from localStorage
+    const allKeys = Object.keys(localStorage);
+    const fileStorageKeys = allKeys.filter((key) =>
+      key.startsWith(FILES_STORAGE_KEY)
+    );
+    
+    let fileDeleted = false;
+    
+    // Check each user's files
+    fileStorageKeys.forEach((key) => {
+      const filesJson = localStorage.getItem(key);
+      if (filesJson) {
+        const files: UploadedFile[] = JSON.parse(filesJson);
+        const fileIndex = files.findIndex((file) => file.id === fileId);
+        
+        if (fileIndex !== -1) {
+          // If URL is an object URL, revoke it
+          if (files[fileIndex].url.startsWith("blob:")) {
+            URL.revokeObjectURL(files[fileIndex].url);
+          }
+          
+          // Remove the file
+          files.splice(fileIndex, 1);
+          
+          // Update storage
+          localStorage.setItem(key, JSON.stringify(files));
+          fileDeleted = true;
+        }
+      }
+    });
+    
+    return fileDeleted;
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return false;
   }
-  
-  return false;
 };
 
-/**
- * Update file verification status
- * @param fileId File ID
- * @param status New status ('pending', 'verified', 'rejected')
- * @returns Boolean indicating success
- */
-export const updateFileStatus = (
-  fileId: string, 
-  status: 'pending' | 'verified' | 'rejected'
+// Verify a file (simulated admin action)
+export const verifyFile = (
+  fileId: string,
+  status: "verified" | "rejected" = "verified"
 ): boolean => {
-  const allFiles = getUploadedFiles();
-  const fileIndex = allFiles.findIndex(file => file.id === fileId);
-  
-  if (fileIndex === -1) return false;
-  
-  allFiles[fileIndex] = {
-    ...allFiles[fileIndex],
-    status,
-    verifiedAt: status === 'pending' ? null : new Date().toISOString(),
-  };
-  
-  localStorage.setItem('uploadedFiles', JSON.stringify(allFiles));
-  return true;
+  try {
+    // Get all user data from localStorage
+    const allKeys = Object.keys(localStorage);
+    const fileStorageKeys = allKeys.filter((key) =>
+      key.startsWith(FILES_STORAGE_KEY)
+    );
+    
+    let fileUpdated = false;
+    
+    // Check each user's files
+    fileStorageKeys.forEach((key) => {
+      const filesJson = localStorage.getItem(key);
+      if (filesJson) {
+        const files: UploadedFile[] = JSON.parse(filesJson);
+        const fileIndex = files.findIndex((file) => file.id === fileId);
+        
+        if (fileIndex !== -1) {
+          // Update the file status
+          files[fileIndex] = {
+            ...files[fileIndex],
+            status,
+          };
+          
+          // Update storage
+          localStorage.setItem(key, JSON.stringify(files));
+          fileUpdated = true;
+        }
+      }
+    });
+    
+    return fileUpdated;
+  } catch (error) {
+    console.error("Error updating file status:", error);
+    return false;
+  }
 };
 
-/**
- * Check if the required documents are uploaded and verified
- * @param userId User ID
- * @param requiredCategories Array of required document categories
- * @returns Object with verification status
- */
+// Check if required documents are uploaded and verified
 export const checkRequiredDocuments = (
   userId: string,
-  requiredCategories: string[]
-): { 
-  complete: boolean; 
-  uploaded: string[]; 
-  missing: string[];
-  verified: string[];
-  pending: string[];
-  rejected: string[];
-} => {
-  const userFiles = getUserFiles(userId);
+  requiredCategories: DocumentCategory[]
+) => {
+  const files = getUserFiles(userId);
   
-  // Group files by category keeping only the latest one for each category
-  const categoryFiles: Record<string, UploadedFile> = {};
-  userFiles.forEach(file => {
-    if (!categoryFiles[file.category] || 
-        new Date(file.uploadedAt) > new Date(categoryFiles[file.category].uploadedAt)) {
-      categoryFiles[file.category] = file;
+  // Track categories
+  const uploaded: DocumentCategory[] = [];
+  const verified: DocumentCategory[] = [];
+  const rejected: DocumentCategory[] = [];
+  
+  // Check each required category
+  requiredCategories.forEach((category) => {
+    const categoryFiles = files.filter((file) => file.category === category);
+    
+    if (categoryFiles.length > 0) {
+      uploaded.push(category);
+      
+      // Check if any file in this category is verified or rejected
+      const verifiedFile = categoryFiles.find((file) => file.status === "verified");
+      const rejectedFile = categoryFiles.find((file) => file.status === "rejected");
+      
+      if (verifiedFile) {
+        verified.push(category);
+      }
+      
+      if (rejectedFile) {
+        rejected.push(category);
+      }
     }
   });
   
-  const uploaded = Object.keys(categoryFiles);
-  const missing = requiredCategories.filter(cat => !uploaded.includes(cat));
-  const verified = Object.values(categoryFiles)
-    .filter(file => file.status === 'verified')
-    .map(file => file.category);
-  const pending = Object.values(categoryFiles)
-    .filter(file => file.status === 'pending')
-    .map(file => file.category);
-  const rejected = Object.values(categoryFiles)
-    .filter(file => file.status === 'rejected')
-    .map(file => file.category);
+  // Check if all required categories are verified
+  const complete = verified.length === requiredCategories.length;
   
   return {
-    complete: missing.length === 0 && rejected.length === 0,
     uploaded,
-    missing,
     verified,
-    pending,
-    rejected
+    rejected,
+    complete,
   };
+};
+
+// Get all files from all users (for admin)
+export const getAllFiles = (): { userId: string; files: UploadedFile[] }[] => {
+  try {
+    // Get all user data from localStorage
+    const allKeys = Object.keys(localStorage);
+    const fileStorageKeys = allKeys.filter((key) =>
+      key.startsWith(FILES_STORAGE_KEY)
+    );
+    
+    return fileStorageKeys.map((key) => {
+      const userId = key.replace(`${FILES_STORAGE_KEY}_`, "");
+      const filesJson = localStorage.getItem(key);
+      const files: UploadedFile[] = filesJson ? JSON.parse(filesJson) : [];
+      
+      return { userId, files };
+    });
+  } catch (error) {
+    console.error("Error getting all files:", error);
+    return [];
+  }
 };
