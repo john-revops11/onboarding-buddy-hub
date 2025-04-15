@@ -112,6 +112,16 @@ const DataUploadsPage = () => {
     }
   };
 
+  const handleUploadComplete = (file: any) => {
+    console.log("File upload completed:", file);
+    // In a real implementation, this would process the uploaded file
+  };
+
+  const handleVerificationStatusChange = (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
+    console.log(`File ${fileId} status changed to: ${status}`);
+    // In a real implementation, this would update the file status
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + " B";
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
@@ -207,6 +217,8 @@ const DataUploadsPage = () => {
                 onUpload={handleUpload}
                 acceptedFileTypes=".csv,.txt,.xlsx"
                 helpText="Drag and drop files here (CSV, TXT, XLSX) or click to browse"
+                onUploadComplete={handleUploadComplete}
+                onVerificationStatusChange={handleVerificationStatusChange}
               />
               <p className="text-xs text-muted-foreground">
                 Accepted formats: CSV, TXT, Excel (.xlsx)

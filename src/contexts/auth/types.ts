@@ -30,9 +30,9 @@ export interface AuthContextType {
   updateProfile: (data: Partial<User>) => Promise<void>;
   clearError: () => void;
   // Add missing methods used in AdminUsers.tsx
-  getAllUsers?: () => Promise<User[]>;
-  approveUser?: (userId: string) => Promise<void>;
-  rejectUser?: (userId: string) => Promise<void>;
+  getAllUsers: () => Promise<User[]>;
+  approveUser: (userId: string) => Promise<void>;
+  rejectUser: (userId: string) => Promise<void>;
 }
 
 export type AuthAction =
