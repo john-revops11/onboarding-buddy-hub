@@ -4,7 +4,7 @@ import { User } from "@/types/auth";
 export interface AuthState {
   user: User | null;
   token: string | null;
-  isAuthenticated: boolean;  // Added this property
+  isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
 }

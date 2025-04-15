@@ -36,6 +36,9 @@ export const FileUploader = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
 
+  const isUploading = externalUploading !== undefined ? externalUploading : uploading;
+  const progress = externalProgress !== undefined ? externalProgress : uploadProgress;
+
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value as DocumentCategory);
   };
@@ -62,46 +65,46 @@ export const FileUploader = ({
 
   const handleUpload = async () => {
     if (files.length > 0) {
-      setUploading(true);
-      
-      // Simulate progress for UX
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          const newProgress = prev + 10;
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return newProgress;
-        });
-      }, 300);
-      
-      try {
-        // Call the onUploadComplete prop
-        onUploadComplete({
-          name: files[0].name,
-          size: files[0].size,
-          type: files[0].type,
-          category: selectedCategory
-        });
+      if (onUpload) {
+        await onUpload(files);
+      } else {
+        setUploading(true);
         
-        // Reset after successful upload
-        setTimeout(() => {
+        const interval = setInterval(() => {
+          setUploadProgress(prev => {
+            const newProgress = prev + 10;
+            if (newProgress >= 100) {
+              clearInterval(interval);
+              return 100;
+            }
+            return newProgress;
+          });
+        }, 300);
+        
+        try {
+          onUploadComplete({
+            name: files[0].name,
+            size: files[0].size,
+            type: files[0].type,
+            category: selectedCategory
+          });
+          
+          setTimeout(() => {
+            setUploading(false);
+            setUploadProgress(0);
+            setFiles([]);
+          }, 1000);
+        } catch (error) {
+          console.error("Upload error:", error);
           setUploading(false);
           setUploadProgress(0);
-          setFiles([]);
-        }, 1000);
-      } catch (error) {
-        console.error("Upload error:", error);
-        setUploading(false);
-        setUploadProgress(0);
+        }
       }
     }
   };
 
   return (
     <div className="space-y-4">
-      {/* Category selector */}
       <div className="space-y-2">
         <Label htmlFor="document-category">Document Category</Label>
         <Select value={selectedCategory} onValueChange={handleCategoryChange}>
@@ -118,11 +121,10 @@ export const FileUploader = ({
         </Select>
       </div>
 
-      {/* File upload area */}
-      {uploading ? (
+      {isUploading ? (
         <div className="space-y-4">
-          <Progress value={uploadProgress} className="h-2" />
-          <p className="text-sm text-center">{uploadProgress}% complete</p>
+          <Progress value={progress} className="h-2" />
+          <p className="text-sm text-center">{progress}% complete</p>
         </div>
       ) : (
         <div
@@ -144,7 +146,10 @@ export const FileUploader = ({
               </ul>
             </div>
           ) : (
-            <p className="font-medium mb-1">Drag and drop files here or click to browse</p>
+            <>
+              <p className="font-medium mb-1">Drag and drop files here or click to browse</p>
+              {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+            </>
           )}
           
           <input
@@ -152,6 +157,7 @@ export const FileUploader = ({
             type="file"
             multiple
             className="hidden"
+            accept={acceptedFileTypes}
             onChange={handleFileChange}
           />
           

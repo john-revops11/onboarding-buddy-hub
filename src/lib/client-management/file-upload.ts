@@ -1,71 +1,56 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { FileUpload } from "@/lib/types/client-types";
+import { ClientFile } from "@/lib/types/client-types";
 
 // Upload a file
 export async function uploadFile(
-  clientId: string, 
-  file: File, 
+  file: File,
+  clientId: string,
   category: string
-): Promise<FileUpload | null> {
+): Promise<{ success: boolean; fileId?: string; error?: string }> {
   try {
-    // Create a unique file path
-    const filePath = `${clientId}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+    const timestamp = Date.now();
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${clientId}/${timestamp}-${file.name}`;
     
-    // Upload the file to storage
-    const { data, error } = await supabase.storage
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
       .from('client-files')
       .upload(filePath, file);
     
-    if (error) throw error;
+    if (uploadError) throw uploadError;
     
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('client-files')
-      .getPublicUrl(data.path);
-    
-    // Create a record in the files table
-    const { data: fileRecord, error: recordError } = await supabase
-      .from('files')
+    // Create record in database
+    const { data, error: dbError } = await supabase
+      .from('client_files')
       .insert({
         client_id: clientId,
         filename: file.name,
-        file_path: data.path,
-        file_size: file.size,
+        file_path: filePath,
         file_type: file.type,
-        category: category,
-        status: 'pending',
-        uploaded_by: clientId,
+        file_size: file.size,
+        category,
+        status: 'pending'
       })
       .select()
       .single();
     
-    if (recordError) throw recordError;
+    if (dbError) throw dbError;
     
-    return {
-      id: fileRecord.id,
-      clientId: fileRecord.client_id,
-      fileName: fileRecord.filename,
-      fileType: fileRecord.file_type,
-      fileSize: fileRecord.file_size,
-      category: fileRecord.category,
-      status: fileRecord.status,
-      uploadedAt: fileRecord.uploaded_at,
-      verifiedAt: fileRecord.verified_at,
-      url: publicUrl
-    };
-  } catch (error) {
+    return { success: true, fileId: data.id };
+  } catch (error: any) {
     console.error("Error uploading file:", error);
-    return null;
+    return { success: false, error: error.message };
   }
 }
 
-// Get files for a client
-export async function getClientFiles(clientId: string): Promise<FileUpload[]> {
+// Get all files for a client
+export async function getClientFiles(clientId: string): Promise<ClientFile[]> {
   try {
     const { data, error } = await supabase
-      .from('files')
+      .from('client_files')
       .select(`
-        id, filename, file_type, file_size, category, status, 
+        id, filename, file_path, file_type, file_size, category, status, 
         uploaded_at, verified_at, client_id,
         clients (email, company_name)
       `)
@@ -74,26 +59,20 @@ export async function getClientFiles(clientId: string): Promise<FileUpload[]> {
     
     if (error) throw error;
     
-    return (data || []).map(file => {
-      // Get the public URL
-      const filePath = file.file_path || '';
-      const { data: { publicUrl } } = supabase.storage
-        .from('client-files')
-        .getPublicUrl(filePath);
-      
-      return {
-        id: file.id,
-        clientId: file.client_id,
-        fileName: file.filename,
-        fileType: file.file_type,
-        fileSize: file.file_size,
-        category: file.category,
-        status: file.status,
-        uploadedAt: file.uploaded_at,
-        verifiedAt: file.verified_at,
-        url: publicUrl
-      };
-    });
+    return (data || []).map(file => ({
+      id: file.id,
+      filename: file.filename,
+      filePath: file.file_path, // Access the correct property
+      fileType: file.file_type,
+      fileSize: file.file_size,
+      category: file.category,
+      status: file.status,
+      uploadedAt: file.uploaded_at,
+      verifiedAt: file.verified_at,
+      clientId: file.client_id,
+      clientEmail: file.clients?.[0]?.email,
+      clientCompany: file.clients?.[0]?.company_name
+    }));
   } catch (error) {
     console.error("Error fetching client files:", error);
     return [];
@@ -102,16 +81,19 @@ export async function getClientFiles(clientId: string): Promise<FileUpload[]> {
 
 // Update file status
 export async function updateFileStatus(
-  fileId: string, 
+  fileId: string,
   status: 'pending' | 'verified' | 'rejected'
 ): Promise<boolean> {
   try {
+    const updates: any = { status };
+    
+    if (status === 'verified') {
+      updates.verified_at = new Date().toISOString();
+    }
+    
     const { error } = await supabase
-      .from('files')
-      .update({
-        status,
-        verified_at: status === 'verified' ? new Date().toISOString() : null
-      })
+      .from('client_files')
+      .update(updates)
       .eq('id', fileId);
     
     if (error) throw error;

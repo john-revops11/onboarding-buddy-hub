@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { User, LoginCredentials, RegisterCredentials } from "@/types/auth";
+import { User } from "@/types/auth";
 import { AuthAction } from "./types";
 
 export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
@@ -19,7 +19,6 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
       
       // Return data but don't update state directly - 
       // the onAuthStateChange handler will update the user state
-      return data;
       
     } catch (error: any) {
       console.error("Login error:", error);
@@ -214,7 +213,6 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
     login,
     register,
     logout,
-    clearError,
     resetPassword,
     updateProfile,
     approveUser,
