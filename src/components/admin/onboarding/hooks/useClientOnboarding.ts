@@ -81,18 +81,18 @@ export function useClientOnboarding() {
     }
   }, [activeTab]);
 
-  // Simplified toggleAddon function
+  // Fixed toggleAddon function with proper TypeScript typing
   const toggleAddon = useCallback((addonId: string) => {
-    form.setValue("addons", oldAddons => {
-      const addons = Array.isArray(oldAddons) ? oldAddons : [];
-      const addonIndex = addons.indexOf(addonId);
+    form.setValue("addons", (oldAddons = []) => {
+      // Ensure oldAddons is an array
+      const currentAddons = Array.isArray(oldAddons) ? oldAddons : [];
       
-      if (addonIndex === -1) {
-        // Add addon if not already selected
-        return [...addons, addonId];
-      } else {
+      if (currentAddons.includes(addonId)) {
         // Remove addon if already selected
-        return addons.filter(id => id !== addonId);
+        return currentAddons.filter(id => id !== addonId);
+      } else {
+        // Add addon if not already selected
+        return [...currentAddons, addonId];
       }
     });
   }, [form]);

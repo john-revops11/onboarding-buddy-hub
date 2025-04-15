@@ -15,6 +15,9 @@ interface AddonsFormProps {
 }
 
 function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
+  // Ensure selectedAddons is always an array
+  const safeSelectedAddons = Array.isArray(selectedAddons) ? selectedAddons : [];
+  
   return (
     <CardContent className="pt-6">
       <FormLabel>Available Add-ons</FormLabel>
@@ -24,8 +27,6 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
 
       <div className="space-y-2">
         {addons.map((addon) => {
-          // Ensure selectedAddons is always treated as an array
-          const safeSelectedAddons = Array.isArray(selectedAddons) ? selectedAddons : [];
           const isSelected = safeSelectedAddons.includes(addon.id);
           
           return (
@@ -42,7 +43,7 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
                 className="mt-1"
               />
               
-              <div>
+              <div className="flex-1">
                 <label 
                   htmlFor={`addon-${addon.id}`}
                   className="font-medium cursor-pointer flex items-center"
