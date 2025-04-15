@@ -83,33 +83,26 @@ export function useClientOnboarding() {
 
   // Improved toggle function with proper error handling and type safety
   const toggleAddon = useCallback((addonId: string) => {
-    try {
-      // Get current addons array, ensuring it's always an array
-      const currentAddons = form.getValues("addons") || [];
-      
-      // Ensure we're working with an array
-      if (!Array.isArray(currentAddons)) {
-        console.warn("Expected addons to be an array, got:", currentAddons);
-        // Reset to empty array if it's not an array
-        form.setValue("addons", [], { shouldValidate: true });
-        // Add the addon since we're starting fresh
-        form.setValue("addons", [addonId], { shouldValidate: true });
-        return;
-      }
-      
-      // Regular toggle logic
-      const isSelected = currentAddons.includes(addonId);
-      const newAddons = isSelected
-        ? currentAddons.filter(id => id !== addonId) 
-        : [...currentAddons, addonId];
-      
-      // Update form state with the new array
-      form.setValue("addons", newAddons, { shouldValidate: true });
-    } catch (error) {
-      console.error("Error toggling addon:", error);
-      // Recover from error by resetting addons to empty array
-      form.setValue("addons", [], { shouldValidate: true });
+    // Get current addons array, ensuring it's always an array
+    const currentAddons = form.getValues("addons") || [];
+    
+    // Create a new array - this is important to avoid reference issues
+    const newAddons = Array.isArray(currentAddons) 
+      ? [...currentAddons] // Create a copy if it's an array
+      : []; // Create a new array if it's not
+    
+    // Regular toggle logic
+    const addonIndex = newAddons.indexOf(addonId);
+    if (addonIndex === -1) {
+      // Add the addon if not selected
+      newAddons.push(addonId);
+    } else {
+      // Remove the addon if already selected
+      newAddons.splice(addonIndex, 1);
     }
+    
+    // Update form state with the new array
+    form.setValue("addons", newAddons, { shouldValidate: true });
   }, [form]);
   
   const onSubmit = useCallback(async (data: ClientFormValues) => {

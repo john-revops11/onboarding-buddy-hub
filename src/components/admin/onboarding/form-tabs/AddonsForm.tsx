@@ -45,16 +45,17 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
                   : "hover:border-muted-foreground"
               }`}
               onClick={handleAddonClick(addon.id)}
+              aria-label={`Select ${addon.name} addon`}
             >
               <div className="flex items-start gap-3">
-                <Checkbox
-                  id={`addon-${addon.id}`}
-                  checked={isSelected}
-                  // Don't use onChange here - we're controlling it via the parent div click
-                  onCheckedChange={() => {}} // Empty function to satisfy controlled component requirements
-                  className="pointer-events-none" // Prevent direct interaction with checkbox
-                  tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
-                />
+                <div className="relative">
+                  <Checkbox
+                    id={`addon-${addon.id}`}
+                    checked={isSelected}
+                    className="pointer-events-none"
+                    tabIndex={-1}
+                  />
+                </div>
                 
                 <div className="flex-1">
                   <p className="font-medium">{addon.name} - ${addon.price}</p>
