@@ -25,7 +25,7 @@ const TierFeaturesList: React.FC<TierFeaturesListProps> = ({
         {features.map((feature, index) => (
           <li key={index} className="flex items-center gap-2">
             <ChevronRight className={`h-3 w-3 flex-shrink-0 ${colorScheme.iconColor || colorScheme.textColor}`} />
-            <span>{feature}</span>
+            <span className={colorScheme.textColor}>{feature}</span>
           </li>
         ))}
       </ul>

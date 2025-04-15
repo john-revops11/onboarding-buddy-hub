@@ -484,6 +484,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          features: string[] | null
           id: string
           name: string
           price: number
@@ -491,6 +492,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          features?: string[] | null
           id?: string
           name: string
           price: number
@@ -498,6 +500,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          features?: string[] | null
           id?: string
           name?: string
           price?: number
@@ -572,6 +575,23 @@ export type Database = {
         Returns: {
           created_at: string
           description: string | null
+          features: string[] | null
+          id: string
+          name: string
+          price: number
+        }
+      }
+      admin_create_subscription_with_features: {
+        Args: {
+          name_param: string
+          description_param: string
+          price_param: number
+          features_param: string[]
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          features: string[] | null
           id: string
           name: string
           price: number
@@ -612,6 +632,24 @@ export type Database = {
         Returns: {
           created_at: string
           description: string | null
+          features: string[] | null
+          id: string
+          name: string
+          price: number
+        }
+      }
+      admin_update_subscription_with_features: {
+        Args: {
+          id_param: string
+          name_param: string
+          description_param: string
+          price_param: number
+          features_param: string[]
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          features: string[] | null
           id: string
           name: string
           price: number

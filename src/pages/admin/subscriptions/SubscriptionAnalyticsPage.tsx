@@ -7,7 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Download } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { getAddons } from "@/lib/addon-management";
 
@@ -107,7 +106,7 @@ export default function SubscriptionAnalyticsPage() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
-                  mode="month"
+                  mode="single"
                   defaultMonth={date}
                   onSelect={(newDate) => newDate && setDate(newDate)}
                   initialFocus

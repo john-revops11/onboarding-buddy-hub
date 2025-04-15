@@ -82,6 +82,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
         name: data.name,
         description: data.description,
         price: numericPrice,
+        features: data.features
       };
       
       let result;
