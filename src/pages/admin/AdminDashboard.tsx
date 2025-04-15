@@ -5,27 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight } from "lucide-react";
 import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
-import { BarChart } from "@/components/ui/charts/BarChart";
-import { LineChart } from "@/components/ui/charts/LineChart";
 
 const AdminDashboard = () => {
-  const userActivityData = [
-    { name: "Mon", value: 12 },
-    { name: "Tue", value: 18 },
-    { name: "Wed", value: 15 },
-    { name: "Thu", value: 22 },
-    { name: "Fri", value: 30 },
-    { name: "Sat", value: 10 },
-    { name: "Sun", value: 5 },
-  ];
-
-  const onboardingData = [
-    { name: "Week 1", completed: 12, new: 21 },
-    { name: "Week 2", completed: 18, new: 15 },
-    { name: "Week 3", completed: 24, new: 19 },
-    { name: "Week 4", completed: 32, new: 22 },
-  ];
-
   const tierBenefits = [
     "Priority access to support",
     "Custom reporting dashboards",
@@ -57,7 +38,7 @@ const AdminDashboard = () => {
           />
 
           <div className="col-span-2 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Card className="standard-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Users
@@ -76,7 +57,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Card className="standard-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   New Sign-ups
@@ -95,7 +76,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Card className="standard-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Completed Onboardings
@@ -116,53 +97,58 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Reduced space by placing this in the continuous layout flow */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          <Card className="md:col-span-1 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Files Uploaded
-              </CardTitle>
-              <FileUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">862</div>
-              <p className="text-xs text-muted-foreground">
-                Total uploads this month
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="md:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle>User Activity</CardTitle>
-              <CardDescription>
-                Daily active users over the past week
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[250px]">
-              <BarChart
-                data={userActivityData}
-                categories={["value"]}
-                index="name"
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="standard-card">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Files Uploaded
+            </CardTitle>
+            <FileUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">862</div>
+            <p className="text-xs text-muted-foreground">
+              Total uploads this month
+            </p>
+            <div className="mt-4">
+              <Button variant="outline" size="sm">View All Files</Button>
+            </div>
+          </CardContent>
+        </Card>
 
-        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+        <Card className="standard-card">
           <CardHeader>
-            <CardTitle>Onboarding Progress</CardTitle>
+            <CardTitle>Recent Activities</CardTitle>
             <CardDescription>
-              New and completed onboardings by week
+              Latest activities across the platform
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[250px]">
-            <LineChart
-              data={onboardingData}
-              categories={["completed", "new"]}
-              index="name"
-            />
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-2 border-b">
+                <div>
+                  <p className="font-medium">New client onboarded</p>
+                  <p className="text-sm text-muted-foreground">Acme Inc.</p>
+                </div>
+                <p className="text-sm text-muted-foreground">2 hours ago</p>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b">
+                <div>
+                  <p className="font-medium">Subscription updated</p>
+                  <p className="text-sm text-muted-foreground">TechSolutions LLC</p>
+                </div>
+                <p className="text-sm text-muted-foreground">Yesterday</p>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b">
+                <div>
+                  <p className="font-medium">File uploaded</p>
+                  <p className="text-sm text-muted-foreground">Global Partners Co.</p>
+                </div>
+                <p className="text-sm text-muted-foreground">Yesterday</p>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <Button variant="link" className="p-0">View all activities</Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
