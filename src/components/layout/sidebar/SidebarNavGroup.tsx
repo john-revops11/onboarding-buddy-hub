@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export interface NavItemProps {
   name: string;
@@ -31,7 +30,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
         className={cn(
           "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider transition-colors",
           isGroupActive 
-            ? "text-primary-600 dark:text-primary-400" 
+            ? "text-[#9b87f5] dark:text-[#7E69AB]" 
             : "text-muted-foreground hover:text-primary-500/80"
         )}
       >
@@ -46,7 +45,6 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
       {isOpen && (
         <div className="mt-1 space-y-1 pl-2">
           {items.map((item) => {
-            // Check if item.icon is defined before rendering
             const IconComponent = item.icon;
             const isActive = currentPath === item.path;
             
@@ -57,7 +55,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
                   isActive 
-                    ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold border-l-4 border-primary-500" 
+                    ? "bg-[#9b87f5]/10 text-[#9b87f5] font-semibold border-l-4 border-[#9b87f5]" 
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground border-l-4 border-transparent"
                 )}
               >
@@ -67,7 +65,7 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                     className={cn(
                       "transition-colors",
                       isActive 
-                        ? "text-primary-600 dark:text-primary-400" 
+                        ? "text-[#9b87f5]" 
                         : "text-muted-foreground group-hover:text-sidebar-accent"
                     )}
                   />
