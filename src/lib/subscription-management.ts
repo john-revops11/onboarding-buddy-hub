@@ -7,7 +7,7 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
     const { data, error } = await supabase
       .from('subscriptions')
-      .select('id, name, description, price')
+      .select('id, name, description, price, features')
       .order('price', { ascending: true });
     
     if (error) {
@@ -43,22 +43,17 @@ export async function deleteSubscriptionTier(id: string): Promise<boolean> {
 }
 
 // Create a new subscription tier
-export async function createSubscriptionTier(subscription: Omit<SubscriptionTier, 'id'>): Promise<SubscriptionTier | null> {
+export async function createSubscriptionTier(
+  subscription: Omit<SubscriptionTier, 'id'>
+): Promise<SubscriptionTier | null> {
   try {
-    // Use the service role to bypass RLS
-    const { data, error } = await supabase.auth.getSession();
-    
-    if (error) {
-      console.error("Error getting session:", error);
-      throw error;
-    }
-    
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: newSubscription, error: insertError } = await supabase
-      .rpc('admin_create_subscription', {
+      .rpc('admin_create_subscription_with_features', {
         name_param: subscription.name,
         description_param: subscription.description,
-        price_param: subscription.price
+        price_param: subscription.price,
+        features_param: subscription.features || []
       });
     
     if (insertError) {
@@ -74,15 +69,19 @@ export async function createSubscriptionTier(subscription: Omit<SubscriptionTier
 }
 
 // Update an existing subscription tier
-export async function updateSubscriptionTier(id: string, subscription: Partial<SubscriptionTier>): Promise<SubscriptionTier | null> {
+export async function updateSubscriptionTier(
+  id: string, 
+  subscription: Partial<SubscriptionTier>
+): Promise<SubscriptionTier | null> {
   try {
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: updatedSubscription, error: updateError } = await supabase
-      .rpc('admin_update_subscription', {
+      .rpc('admin_update_subscription_with_features', {
         id_param: id,
         name_param: subscription.name,
         description_param: subscription.description,
-        price_param: subscription.price
+        price_param: subscription.price,
+        features_param: subscription.features || []
       });
     
     if (updateError) {

@@ -1,8 +1,10 @@
+
 export interface SubscriptionTier {
   id: string;
   name: string;
   description?: string;
   price: number;
+  features?: string[]; // Add features array to the interface
 }
 
 export interface Addon {
