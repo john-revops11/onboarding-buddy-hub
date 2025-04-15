@@ -1,109 +1,149 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingClient, SubscriptionTier, Addon } from "@/lib/types/client-types";
+import { toast } from "@/hooks/use-toast";
+import { OnboardingClient, Subscription, Addon } from "@/lib/types/client-types";
 
-// Fix the type definition to match SubscriptionTier
-type TierOption = SubscriptionTier;
-
-// Get all clients with their subscription info
+// Get a list of all clients
 export async function getClients(): Promise<OnboardingClient[]> {
   try {
     const { data, error } = await supabase
       .from('clients')
       .select(`
-        id, 
-        email, 
-        company_name, 
-        status, 
+        id,
+        email,
+        company_name,
+        status,
         created_at,
-        subscriptions:subscription_id (id, name, price)
+        subscription_id,
+        onboarding_completed
       `)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    // Get team members for each client
-    const clientIds = data.map(client => client.id);
+    return (data || []).map(client => ({
+      id: client.id,
+      email: client.email,
+      companyName: client.company_name,
+      status: client.status,
+      created_at: client.created_at,
+      onboardingProgress: [],
+      subscriptionTier: { id: '', name: '', description: '', price: 0 } // Will be populated later
+    }));
+  } catch (error: any) {
+    console.error("Error fetching clients:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to fetch clients",
+      variant: "destructive",
+    });
+    return [];
+  }
+}
+
+// Get client with subscription, addons, and team members
+export async function getClientDetails(clientId: string): Promise<OnboardingClient | null> {
+  try {
+    // Get client data
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
+      .select(`
+        id,
+        email,
+        company_name,
+        status,
+        created_at,
+        subscription_id
+      `)
+      .eq('id', clientId)
+      .single();
     
-    const { data: teamMembersData, error: teamError } = await supabase
-      .from('team_members')
-      .select('client_id, email, invitation_status')
-      .in('client_id', clientIds);
+    if (clientError) throw clientError;
     
-    if (teamError) throw teamError;
+    // Get subscription data
+    const { data: subscription, error: subscriptionError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', client.subscription_id)
+      .single();
     
-    // Get addons for each client
-    const { data: addonsData, error: addonsError } = await supabase
+    if (subscriptionError && subscriptionError.code !== 'PGRST116') throw subscriptionError;
+    
+    // Get addons data
+    const { data: clientAddons, error: addonsError } = await supabase
       .from('client_addons')
       .select(`
-        client_id,
-        addons:addon_id (id, name, price)
+        addon_id,
+        addons (id, name, price, description)
       `)
-      .in('client_id', clientIds);
+      .eq('client_id', client.id);
     
     if (addonsError) throw addonsError;
     
-    // Organize team members and addons by client
-    const teamMembersByClient: Record<string, any[]> = {};
-    const addonsByClient: Record<string, Addon[]> = {};
+    const addons: Addon[] = clientAddons?.map(item => ({
+      id: item.addons.id,
+      name: item.addons.name,
+      price: item.addons.price,
+      description: item.addons.description || ''
+    })) || [];
     
-    teamMembersData?.forEach(member => {
-      if (!teamMembersByClient[member.client_id]) {
-        teamMembersByClient[member.client_id] = [];
-      }
-      teamMembersByClient[member.client_id].push({
-        email: member.email,
-        invitationStatus: member.invitation_status
-      });
-    });
+    // Get team members
+    const { data: teamMembers, error: teamError } = await supabase
+      .from('team_members')
+      .select('id, email, invitation_status')
+      .eq('client_id', client.id);
     
-    addonsData?.forEach(item => {
-      if (!addonsByClient[item.client_id]) {
-        addonsByClient[item.client_id] = [];
-      }
-      
-      // Fix: Correctly handle the addons property by checking its type
-      if (item.addons) {
-        // Ensure we're treating item.addons as an object, not an array
-        const addonData = item.addons as any; // Type assertion to handle the shape
-        const addon: Addon = {
-          id: String(addonData.id || ''),
-          name: String(addonData.name || ''),
-          price: Number(addonData.price || 0)
-        };
-        addonsByClient[item.client_id].push(addon);
-      }
-    });
+    if (teamError) throw teamError;
     
-    // Format the response
-    return data.map(client => {
-      // Handle subscriptions object type
-      let subscriptionTier: SubscriptionTier = { id: '', name: 'None', price: 0 };
-      
-      // Fix: Correctly handle the subscriptions property by checking its type
-      if (client.subscriptions && typeof client.subscriptions === 'object' && client.subscriptions !== null) {
-        // Ensure we're treating client.subscriptions as an object, not an array
-        const subscriptionData = client.subscriptions as any; // Type assertion to handle the shape
-        subscriptionTier = {
-          id: String(subscriptionData.id || ''),
-          name: String(subscriptionData.name || 'None'),
-          price: Number(subscriptionData.price || 0)
-        };
-      }
-        
-      return {
-        id: client.id,
-        email: client.email,
-        companyName: client.company_name,
-        subscriptionTier: subscriptionTier,
-        addons: addonsByClient[client.id] || [],
-        teamMembers: teamMembersByClient[client.id] || [],
-        status: client.status,
-        created_at: client.created_at
-      };
-    });
+    // Get onboarding progress
+    const { data: progress, error: progressError } = await supabase
+      .from('onboarding_progress')
+      .select('*')
+      .eq('client_id', client.id)
+      .order('step_order', { ascending: true });
+    
+    if (progressError) throw progressError;
+    
+    const subscriptionData: Subscription = subscription ? {
+      id: subscription.id,
+      name: subscription.name,
+      price: subscription.price,
+      description: subscription.description || '',
+      features: subscription.features || []
+    } : {
+      id: '',
+      name: 'Unknown Subscription',
+      price: 0,
+      description: ''
+    };
+    
+    return {
+      id: client.id,
+      email: client.email,
+      companyName: client.company_name,
+      status: client.status,
+      created_at: client.created_at,
+      subscriptionTier: subscriptionData,
+      addons: addons,
+      teamMembers: teamMembers?.map(tm => ({
+        id: tm.id,
+        email: tm.email,
+        invitationStatus: tm.invitation_status
+      })) || [],
+      onboardingProgress: progress?.map(p => ({
+        stepId: p.step_name,
+        completed: p.completed,
+        startedAt: p.started_at,
+        completedAt: p.completed_at
+      })) || []
+    };
   } catch (error: any) {
-    console.error("Error fetching clients:", error);
-    return [];
+    console.error("Error fetching client details:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to fetch client details",
+      variant: "destructive",
+    });
+    return null;
   }
 }

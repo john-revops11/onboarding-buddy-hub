@@ -1,167 +1,171 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { FileUpload } from "@/lib/types/client-types";
 
-/**
- * Upload a file for a client
- * @param file The file to upload
- * @param clientId The client ID
- * @param category Optional category for the file
- * @param userId Optional user ID of the uploader
- * @returns Promise with the uploaded file details
- */
-export async function uploadClientFile(
-  file: File, 
-  clientId: string, 
-  category?: string,
-  userId?: string
-): Promise<FileUpload> {
+// Upload a file for a client
+export async function uploadFile(
+  clientId: string,
+  file: File,
+  category: string
+): Promise<FileUpload | null> {
   try {
     // Generate a unique file path
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `${clientId}/${fileName}`;
+    const filePath = `${clientId}/${Date.now()}.${fileExt}`;
     
-    // Upload the file to Supabase Storage
-    const { data: storageData, error: storageError } = await supabase
-      .storage
-      .from('client-files')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    // Upload to storage
+    const { error: uploadError } = await supabase.storage
+      .from('client-documents')
+      .upload(filePath, file);
     
-    if (storageError) throw storageError;
+    if (uploadError) throw uploadError;
     
-    // Create a record in the files table
-    const { data: fileRecord, error: fileError } = await supabase
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from('client-documents')
+      .getPublicUrl(filePath);
+    
+    // Insert file record
+    const { data: fileData, error: fileError } = await supabase
       .from('files')
       .insert({
         client_id: clientId,
         filename: file.name,
-        file_path: filePath,
-        file_size: file.size,
         file_type: file.type,
-        category: category || 'general',
+        file_size: file.size,
+        category,
         status: 'pending',
-        uploaded_by: userId || null
+        file_path: filePath
       })
       .select()
       .single();
     
     if (fileError) throw fileError;
     
-    // Get the public URL for the file
-    const { data: publicURL } = supabase
-      .storage
-      .from('client-files')
-      .getPublicUrl(filePath);
-    
     return {
-      id: fileRecord.id,
-      clientId: fileRecord.client_id,
-      fileName: fileRecord.filename,
-      filePath: fileRecord.file_path,
-      fileSize: fileRecord.file_size,
-      fileType: fileRecord.file_type,
-      category: fileRecord.category,
-      status: fileRecord.status,
-      uploadedBy: fileRecord.uploaded_by,
-      uploadedAt: fileRecord.uploaded_at,
-      verifiedAt: fileRecord.verified_at,
-      metadata: {
-        publicUrl: publicURL.publicUrl
-      }
+      id: fileData.id,
+      clientId: fileData.client_id,
+      fileName: fileData.filename,
+      fileType: fileData.file_type,
+      fileSize: fileData.file_size,
+      category: fileData.category,
+      status: fileData.status,
+      uploadedAt: fileData.uploaded_at,
+      verifiedAt: fileData.verified_at
     };
   } catch (error: any) {
-    console.error('Error uploading file:', error);
-    throw error;
+    console.error("Error uploading file:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to upload file",
+      variant: "destructive",
+    });
+    return null;
   }
 }
 
-/**
- * Get files for a client
- * @param clientId The client ID
- * @param category Optional category to filter by
- * @returns Promise with the client's files
- */
-export async function getClientFiles(
-  clientId: string,
-  category?: string
-): Promise<FileUpload[]> {
+// Get all files for a client
+export async function getClientFiles(clientId: string): Promise<FileUpload[]> {
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from('files')
       .select('*')
-      .eq('client_id', clientId);
-    
-    if (category) {
-      query = query.eq('category', category);
-    }
-    
-    const { data, error } = await query.order('uploaded_at', { ascending: false });
+      .eq('client_id', clientId)
+      .order('uploaded_at', { ascending: false });
     
     if (error) throw error;
     
-    return data.map(record => ({
-      id: record.id,
-      clientId: record.client_id,
-      fileName: record.filename,
-      filePath: record.file_path,
-      fileSize: record.file_size,
-      fileType: record.file_type,
-      category: record.category,
-      status: record.status,
-      uploadedBy: record.uploaded_by,
-      uploadedAt: record.uploaded_at,
-      verifiedAt: record.verified_at,
-      metadata: record.metadata
+    return (data || []).map(file => ({
+      id: file.id,
+      clientId: file.client_id,
+      fileName: file.filename,
+      fileType: file.file_type,
+      fileSize: file.file_size,
+      category: file.category,
+      status: file.status,
+      uploadedAt: file.uploaded_at,
+      verifiedAt: file.verified_at
     }));
   } catch (error: any) {
-    console.error('Error getting client files:', error);
-    throw error;
+    console.error("Error fetching client files:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to fetch files",
+      variant: "destructive",
+    });
+    return [];
   }
 }
 
-/**
- * Update file status
- * @param fileId The file ID
- * @param status The new status
- * @returns Promise with the updated file
- */
+// Update file verification status
 export async function updateFileStatus(
   fileId: string,
   status: 'pending' | 'verified' | 'rejected'
-): Promise<FileUpload> {
+): Promise<boolean> {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('files')
       .update({
         status,
         verified_at: status !== 'pending' ? new Date().toISOString() : null
       })
-      .eq('id', fileId)
-      .select()
-      .single();
+      .eq('id', fileId);
     
     if (error) throw error;
     
-    return {
-      id: data.id,
-      clientId: data.client_id,
-      fileName: data.filename,
-      filePath: data.file_path,
-      fileSize: data.file_size,
-      fileType: data.file_type,
-      category: data.category,
-      status: data.status,
-      uploadedBy: data.uploaded_by,
-      uploadedAt: data.uploaded_at,
-      verifiedAt: data.verified_at,
-      metadata: data.metadata
-    };
+    return true;
   } catch (error: any) {
-    console.error('Error updating file status:', error);
-    throw error;
+    console.error("Error updating file status:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to update file status",
+      variant: "destructive",
+    });
+    return false;
+  }
+}
+
+// Delete a file
+export async function deleteFile(fileId: string): Promise<boolean> {
+  try {
+    // First get the file to get its path
+    const { data: file, error: fileError } = await supabase
+      .from('files')
+      .select('file_path')
+      .eq('id', fileId)
+      .single();
+    
+    if (fileError) throw fileError;
+    
+    // Delete from storage
+    if (file.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from('client-documents')
+        .remove([file.file_path]);
+      
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError);
+        // Continue anyway to delete from database
+      }
+    }
+    
+    // Delete from database
+    const { error } = await supabase
+      .from('files')
+      .delete()
+      .eq('id', fileId);
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error: any) {
+    console.error("Error deleting file:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to delete file",
+      variant: "destructive",
+    });
+    return false;
   }
 }

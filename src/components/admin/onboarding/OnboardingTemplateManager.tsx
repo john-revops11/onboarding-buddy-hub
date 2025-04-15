@@ -377,9 +377,11 @@ export function OnboardingTemplateManager() {
     const currentSteps = form.getValues("steps") || [];
     
     const stepData: OnboardingTemplateStep = {
-      ...data,
-      title: data.title || '',
-      id: stepToEdit?.id || `step-${Date.now()}`
+      id: stepToEdit?.id || `step-${Date.now()}`,
+      title: data.title,
+      description: data.description || '',
+      order_index: data.order_index,
+      required_document_categories: data.required_document_categories || []
     };
     
     if (stepIndex !== null) {
@@ -403,11 +405,13 @@ export function OnboardingTemplateManager() {
     try {
       setIsLoading(true);
       
-      // Ensure steps have correct order indexes and required properties
-      const stepsWithCorrectOrder: OnboardingTemplateStep[] = data.steps.map((step, index) => ({
-        ...step,
-        order_index: index + 1,
-        title: step.title || '',
+      // Ensure all steps have required properties
+      const validSteps: OnboardingTemplateStep[] = data.steps.map((step, index) => ({
+        id: step.id || `step-${Date.now()}-${index}`,
+        title: step.title,
+        description: step.description || '',
+        order_index: step.order_index || index + 1,
+        required_document_categories: step.required_document_categories || []
       }));
       
       let result;
@@ -415,14 +419,18 @@ export function OnboardingTemplateManager() {
       if (isEditing && currentTemplate) {
         // Update existing template
         result = await updateOnboardingTemplate(currentTemplate.id, {
-          ...data,
-          steps: stepsWithCorrectOrder
+          name: data.name,
+          description: data.description,
+          is_default: data.is_default,
+          steps: validSteps
         });
       } else {
         // Create new template
         result = await createOnboardingTemplate({
-          ...data,
-          steps: stepsWithCorrectOrder
+          name: data.name,
+          description: data.description,
+          is_default: data.is_default,
+          steps: validSteps
         });
       }
       

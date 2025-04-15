@@ -14,6 +14,7 @@ export const ClientFormSchema = z.object({
       email: emailSchema.min(1, "Team member email is required"),
     })
   ).default([{ email: "" }]),
+  notes: z.string().optional(),
 });
 
 export type ClientFormValues = z.infer<typeof ClientFormSchema>;

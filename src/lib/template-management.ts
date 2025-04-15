@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingTemplate, OnboardingTemplateStep, SubscriptionTemplate, AddonTemplateStep } from "@/lib/types/client-types";
 
@@ -59,9 +58,46 @@ export async function getTemplateWithSteps(templateId: string): Promise<Onboardi
   }
 }
 
-// Create a new onboarding template
-export async function createOnboardingTemplate(template: Omit<OnboardingTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<OnboardingTemplate | null> {
+// Add getSubscriptionTiers function
+export async function getSubscriptionTiers() {
   try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .order('price', { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching subscription tiers:", error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching subscription tiers:", error);
+    return [];
+  }
+}
+
+// Ensure correct typing for OnboardingTemplateStep creation
+const ensureRequiredFields = (step: Partial<OnboardingTemplateStep>): OnboardingTemplateStep => {
+  return {
+    id: step.id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    title: step.title || 'Untitled Step',
+    description: step.description || '',
+    order_index: step.order_index || 1,
+    required_document_categories: step.required_document_categories || [],
+  };
+};
+
+// Create a new onboarding template
+export async function createOnboardingTemplate(
+  template: Partial<Omit<OnboardingTemplate, 'id' | 'created_at' | 'updated_at'>>
+): Promise<OnboardingTemplate | null> {
+  try {
+    if (!template.name) {
+      throw new Error("Template name is required");
+    }
+    
     const { data: newTemplate, error: templateError } = await supabase
       .from('onboarding_templates')
       .insert({
@@ -79,13 +115,16 @@ export async function createOnboardingTemplate(template: Omit<OnboardingTemplate
     
     // If there are steps to add
     if (template.steps && template.steps.length > 0) {
-      const stepsToInsert = template.steps.map((step, index) => ({
-        template_id: newTemplate.id,
-        title: step.title,
-        description: step.description,
-        order_index: step.order_index || index + 1,
-        required_document_categories: step.required_document_categories
-      }));
+      const stepsToInsert = template.steps.map((step, index) => {
+        const validStep = ensureRequiredFields(step);
+        return {
+          template_id: newTemplate.id,
+          title: validStep.title,
+          description: validStep.description,
+          order_index: validStep.order_index || index + 1,
+          required_document_categories: validStep.required_document_categories
+        };
+      });
       
       const { error: stepsError } = await supabase
         .from('onboarding_template_steps')
@@ -142,13 +181,16 @@ export async function updateOnboardingTemplate(
       }
       
       // Insert new steps
-      const stepsToInsert = template.steps.map((step, index) => ({
-        template_id: templateId,
-        title: step.title,
-        description: step.description,
-        order_index: step.order_index || index + 1,
-        required_document_categories: step.required_document_categories
-      }));
+      const stepsToInsert = template.steps.map((step, index) => {
+        const validStep = ensureRequiredFields(step);
+        return {
+          template_id: templateId,
+          title: validStep.title,
+          description: validStep.description,
+          order_index: validStep.order_index || index + 1,
+          required_document_categories: validStep.required_document_categories
+        };
+      });
       
       const { error: stepsError } = await supabase
         .from('onboarding_template_steps')

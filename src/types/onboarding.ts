@@ -70,6 +70,8 @@ export interface UploadedFile {
   category?: DocumentCategory;
   uploadedAt: string;
   status: 'pending' | 'verified' | 'rejected';
+  userId: string;  // Added for AdminFiles.tsx
+  userEmail?: string;
   notes?: string;
 }
 

@@ -1,4 +1,3 @@
-
 // Client and user types
 export interface Addon {
   id: string;
@@ -111,6 +110,7 @@ export interface FileUpload {
   status: 'pending' | 'verified' | 'rejected';
   uploadedAt: string;
   verifiedAt?: string;
+  filePath?: string;
 }
 
 export interface ClientFormValues {

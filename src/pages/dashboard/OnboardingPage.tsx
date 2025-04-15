@@ -1,299 +1,287 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Main } from "@/components/ui/main";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, ChevronRight, Save, AlertCircle, Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
-import { toast } from "@/hooks/use-toast";
-import { useChecklist } from "@/hooks/useChecklist";
-import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft } from "lucide-react";
+import { ChecklistSection } from "@/components/dashboard/ChecklistSection";
+import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
+import { assignTemplateToClient, getClientOnboardingSteps, updateClientProgress } from "@/lib/client-management/onboarding-templates";
+import { getClientProgress } from "@/lib/client-management/client-query";
 import { ChecklistItem } from "@/types/onboarding";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadFile, getClientFiles, updateFileStatus } from "@/lib/client-management/file-upload";
+import { FileUpload } from "@/lib/types/client-types";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
-  const { state } = useAuth();
-  const userId = state?.user?.id || "demo-user";
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const clientId = user?.id;
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+  const [loadingSteps, setLoadingSteps] = useState(true);
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
-  const {
-    checklist,
-    updateTaskCompletion,
-    areRequiredDocumentsUploaded,
-    getProgress,
-    isLoading
-  } = useChecklist(userId);
-  
-  // Redirect if onboarding is complete and client is active
+  // Load client steps and files on mount
   useEffect(() => {
-    const checkClientStatus = async () => {
-      if (userId && userId !== "demo-user") {
-        const { data, error } = await supabase
-          .from('clients')
-          .select('onboarding_completed, status')
-          .eq('id', userId)
-          .single();
-        
-        if (!error && data && data.onboarding_completed && data.status === 'active') {
-          toast({
-            title: "Onboarding Complete",
-            description: "You've completed onboarding and your account is now active."
-          });
-          navigate("/dashboard");
-        }
-      }
-    };
-    
-    checkClientStatus();
-  }, [navigate, userId]);
-  
-  const handleContinue = () => {
-    const currentStep = checklist[activeStepIndex] as ChecklistItem;
-    
-    // Mark the current step as complete
-    if (currentStep && !currentStep.completed) {
-      updateTaskCompletion(currentStep.id, true);
+    if (clientId) {
+      loadClientSteps();
+      loadClientFiles();
     }
-    
-    // Move to next step if not at the end
-    if (activeStepIndex < checklist.length - 1) {
-      setActiveStepIndex(activeStepIndex + 1);
-    } else {
+  }, [clientId]);
+  
+  // Assign template to client if not already assigned
+  useEffect(() => {
+    if (clientId) {
+      assignTemplate();
+    }
+  }, [clientId]);
+  
+  // Load client steps
+  const assignTemplate = async () => {
+    try {
+      const assigned = await assignTemplateToClient(clientId);
+      if (assigned) {
+        toast({
+          title: "Template assigned",
+          description: "Onboarding template assigned to your account.",
+        });
+        loadClientSteps();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to assign onboarding template.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error assigning template:", error);
       toast({
-        title: "Onboarding Steps Completed",
-        description: "Your administrator will review and activate your account soon."
+        title: "Error",
+        description: "Failed to assign onboarding template.",
+        variant: "destructive",
       });
     }
   };
   
-  const handleFinishLater = () => {
-    toast({
-      title: "Progress Saved",
-      description: "Your onboarding progress has been saved. You can continue later."
-    });
-    navigate("/dashboard");
+  // Load client files
+  const loadClientFiles = async () => {
+    try {
+      const files = await getClientFiles(clientId);
+      setUploadedFiles(files);
+    } catch (error) {
+      console.error("Error loading client files:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your uploaded files.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Update the problematic section where we're trying to access properties on empty objects
+  const loadClientSteps = async () => {
+    try {
+      setLoadingSteps(true);
+      // Fetch the client's onboarding steps from the API
+      const steps = await getClientOnboardingSteps(clientId);
+      console.log("Loaded steps:", steps);
+      
+      // Create checklist items from the steps
+      const checklist = steps.map(step => ({
+        id: step.step_id || `step-${Math.random().toString(36).substring(2, 9)}`,
+        title: step.title || 'Untitled Step',
+        description: step.description || '',
+        order: step.order_index,
+        completed: false, // We'll update this from progress data
+        requiredDocuments: step.required_document_categories || [],
+        isAddonStep: step.is_addon_step || false,
+        addonId: step.addon_id,
+        addonName: step.addon_name
+      }));
+      
+      setChecklistItems(checklist);
+      
+      // Load progress data
+      const progress = await getClientProgress(clientId);
+      
+      // Update checklist item completion status
+      if (progress && progress.length > 0) {
+        const updatedChecklist = checklist.map((item, index) => {
+          const stepProgress = progress.find(p => p.step_order === item.order);
+          if (stepProgress) {
+            return {
+              ...item,
+              completed: stepProgress.completed || false
+            };
+          }
+          return item;
+        });
+        
+        setChecklistItems(updatedChecklist);
+      }
+    } catch (error) {
+      console.error("Error loading client checklist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your onboarding checklist.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSteps(false);
+    }
   };
   
-  // Get the current step
-  const currentStep = checklist[activeStepIndex] as ChecklistItem || {};
-  const isLastStep = activeStepIndex === checklist.length - 1;
+  // Handle task completion
+  const handleCompleteTask = async (id: string, isCompleted: boolean = true) => {
+    try {
+      // Find the checklist item by ID
+      const task = checklistItems.find((item) => item.id === id);
+      
+      if (!task) {
+        console.error(`Task with ID ${id} not found`);
+        return;
+      }
+      
+      // Optimistically update the checklist item
+      const updatedChecklist = checklistItems.map((item) =>
+        item.id === id ? { ...item, completed: isCompleted } : item
+      );
+      setChecklistItems(updatedChecklist);
+      
+      // Call the API to update the task completion status
+      const success = await updateClientProgress(clientId, task.order, isCompleted);
+      
+      if (!success) {
+        toast({
+          title: "Error",
+          description: "Failed to update task status. Please try again.",
+          variant: "destructive",
+        });
+        
+        // Revert the optimistic update if the API call fails
+        setChecklistItems(checklistItems);
+      }
+    } catch (error) {
+      console.error("Error completing task:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update task status. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Revert the optimistic update if an error occurs
+      setChecklistItems(checklistItems);
+    }
+  };
   
-  // Check if current step is completed
-  const isCurrentStepCompleted = currentStep?.completed || false;
+  // Handle file upload
+  const handleFileUpload = useCallback(async (files: File[], category: string) => {
+    if (!clientId) {
+      toast({
+        title: "Error",
+        description: "Client ID not found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (files && files.length > 0) {
+      setUploading(true);
+      setUploadProgress(0);
+      
+      try {
+        const uploadedFile = await uploadFile(clientId, files[0], category);
+        
+        if (uploadedFile) {
+          toast({
+            title: "File uploaded",
+            description: `${files[0].name} has been uploaded successfully.`,
+          });
+          
+          // Refresh file list
+          await loadClientFiles();
+        } else {
+          throw new Error("Failed to upload file");
+        }
+      } catch (error: any) {
+        console.error("File upload error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to upload file. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    }
+  }, [clientId, toast, loadClientFiles]);
   
-  // Get progress percentage
-  const progress = getProgress();
-  const completedCount = checklist.filter(item => (item as ChecklistItem).completed).length;
+  // Handle file verification status change
+  const handleVerificationStatusChange = async (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
+    try {
+      const success = await updateFileStatus(fileId, status);
+      
+      if (success) {
+        toast({
+          title: `File ${status}`,
+          description: `File status updated to ${status}.`,
+        });
+        
+        // Refresh file list
+        await loadClientFiles();
+      } else {
+        throw new Error("Failed to update file status");
+      }
+    } catch (error: any) {
+      console.error("Error updating file status:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update file status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="container max-w-5xl py-6 flex justify-center items-center min-h-[70vh]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-lg font-medium">Loading your onboarding checklist...</p>
-          </div>
-        </div>
-      </DashboardLayout>
+  // Check if required documents are uploaded for a task
+  const areRequiredDocumentsUploaded = (task: ChecklistItem) => {
+    if (!task.requiredDocuments || task.requiredDocuments.length === 0) {
+      return true; // No required documents, so consider it uploaded
+    }
+    
+    return task.requiredDocuments.every(category =>
+      uploadedFiles.some(file => file.category === category)
     );
-  }
+  };
   
   return (
-    <DashboardLayout>
-      <div className="container max-w-5xl py-6 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome to Revify</h1>
-          <p className="text-muted-foreground mt-2">
-            Complete the following steps to set up your account and get started with Revify.
-          </p>
+    <Main>
+      <div className="container mx-auto py-10">
+        <div className="mb-8 flex items-center">
+          <Button variant="outline" onClick={() => navigate('/dashboard')} className="mr-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+          <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
         </div>
         
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Onboarding Progress</CardTitle>
-                <CardDescription>
-                  Complete these steps to get started with Revify.
-                </CardDescription>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold">{progress}%</div>
-                <div className="text-sm text-muted-foreground">
-                  {completedCount} of {checklist.length} steps completed
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Progress value={progress} className="h-2 mb-6" />
-            
-            <div className="grid gap-4">
-              {checklist.map((step, index) => {
-                const typedStep = step as ChecklistItem;
-                return (
-                  <button
-                    key={typedStep.id}
-                    className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                      activeStepIndex === index 
-                        ? "border-primary bg-primary/5" 
-                        : index < completedCount 
-                          ? "border-green-200 bg-green-50"
-                          : "border-muted-foreground/20"
-                    }`}
-                    onClick={() => setActiveStepIndex(index)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        typedStep.completed 
-                          ? "bg-green-100 text-green-600" 
-                          : "bg-muted-foreground/10 text-muted-foreground"
-                      }`}>
-                        {typedStep.completed ? (
-                          <CheckCircle className="h-5 w-5" />
-                        ) : (
-                          <span>{index + 1}</span>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">{typedStep.title}</div>
-                        <div className="text-sm text-muted-foreground">{typedStep.description}</div>
-                        {typedStep.isAddonStep && typedStep.addonName && (
-                          <div className="mt-1">
-                            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
-                              {typedStep.addonName} Add-on
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {activeStepIndex === index && (
-                      <ChevronRight className="h-5 w-5 text-primary" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={handleFinishLater}>
-              <Save className="mr-2 h-4 w-4" />
-              Finish Later
-            </Button>
-            <Button 
-              onClick={handleContinue} 
-              disabled={isLastStep && isCurrentStepCompleted}
-            >
-              {isLastStep ? "Complete Onboarding" : "Continue"}
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>{(currentStep as ChecklistItem).title || "Welcome"}</CardTitle>
-            <CardDescription>
-              {(currentStep as ChecklistItem).description || "Complete the onboarding steps to get started."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="form">
-              <TabsList className="mb-4">
-                <TabsTrigger value="form">Form</TabsTrigger>
-                <TabsTrigger value="resources">Resources</TabsTrigger>
-                <TabsTrigger value="help">Help</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="form" className="space-y-4">
-                {/* This would be replaced with actual form components for each step */}
-                <div className="min-h-[200px] border rounded-lg p-6">
-                  {(currentStep as ChecklistItem).requiredDocuments && (currentStep as ChecklistItem).requiredDocuments.length > 0 ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-amber-600">
-                        <AlertCircle className="h-5 w-5" />
-                        <p className="font-medium">This step requires document uploads</p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <p className="font-medium">Required documents:</p>
-                        <ul className="list-disc pl-5 space-y-1">
-                          {(currentStep as ChecklistItem).requiredDocuments.map((doc, i) => (
-                            <li key={i} className="text-muted-foreground">
-                              {doc.replace(/_/g, ' ')}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <Button
-                        onClick={() => navigate("/dashboard/documents")}
-                        className="mt-4"
-                      >
-                        Upload Documents
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center space-y-4 max-w-md">
-                        <h2 className="text-xl font-semibold">{(currentStep as ChecklistItem).title || "Welcome to Revify"}</h2>
-                        <p className="text-muted-foreground">
-                          {(currentStep as ChecklistItem).description || "Complete this step to continue with your onboarding process."}
-                        </p>
-                        
-                        {(currentStep as ChecklistItem).isAddonStep && (currentStep as ChecklistItem).addonName && (
-                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                            <p className="text-blue-700">
-                              This step is required for the {(currentStep as ChecklistItem).addonName} add-on you selected.
-                            </p>
-                          </div>
-                        )}
-                        
-                        <Button
-                          onClick={handleContinue}
-                          className="mt-4"
-                        >
-                          {(currentStep as ChecklistItem).completed ? "Already Completed" : "Mark as Complete"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="resources">
-                <div className="bg-muted p-4 rounded-lg">
-                  <h3 className="font-medium mb-2">Helpful Resources</h3>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Documentation for this step</li>
-                    <li>Video tutorials</li>
-                    <li>FAQ about this process</li>
-                    <li>Best practices guide</li>
-                  </ul>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="help">
-                <div className="bg-muted p-4 rounded-lg">
-                  <h3 className="font-medium mb-2">Need Help?</h3>
-                  <p className="text-sm mb-4">
-                    If you're having trouble with this step, you can:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Contact your account manager</li>
-                    <li>Schedule a call with our support team</li>
-                    <li>Email support@revify.com</li>
-                  </ul>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ChecklistSection
+            checklist={checklistItems}
+            onCompleteTask={handleCompleteTask}
+            areRequiredDocumentsUploaded={areRequiredDocumentsUploaded}
+            isLoading={loadingSteps}
+          />
+          <FileUploadSection
+            onFileUploadComplete={(file: any) => console.log("File upload complete:", file)}
+            onVerificationStatusChange={handleVerificationStatusChange}
+          />
+        </div>
       </div>
-    </DashboardLayout>
+    </Main>
   );
 };
 

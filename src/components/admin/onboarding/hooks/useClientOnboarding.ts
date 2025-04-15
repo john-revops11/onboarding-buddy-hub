@@ -7,32 +7,26 @@ import { useToast } from "@/hooks/use-toast";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { createClient } from "@/lib/client-management/client-create";
 import { getAddons } from "@/lib/addon-management";
-
-// Form schema
-const formSchema = z.object({
-  email: z.string().email("Invalid email address").min(1, "Email is required"),
-  companyName: z.string().min(1, "Company name is required"),
-  subscriptionId: z.string().min(1, "Subscription tier is required"),
-  addons: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-});
-
-export type ClientFormValues = z.infer<typeof formSchema>;
+import { ClientFormSchema, ClientFormValues } from "@/components/admin/onboarding/formSchema";
 
 export function useClientOnboarding() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("client-info");
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   
   // Initialize form
   const form = useForm<ClientFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(ClientFormSchema),
     defaultValues: {
       email: "",
       companyName: "",
-      subscriptionId: "",
+      subscriptionTierId: "",
       addons: [],
+      teamMembers: [{ email: "" }],
       notes: "",
     },
   });
@@ -60,25 +54,70 @@ export function useClientOnboarding() {
     
     loadData();
   }, [toast]);
+
+  // Handle tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  // Navigation between tabs
+  const nextTab = () => {
+    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
+    const currentIndex = tabOrder.indexOf(activeTab);
+    
+    if (currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  };
+
+  const prevTab = () => {
+    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
+    const currentIndex = tabOrder.indexOf(activeTab);
+    
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  };
+
+  // Toggle addon selection
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons(prev => {
+      if (prev.includes(addonId)) {
+        return prev.filter(id => id !== addonId);
+      } else {
+        return [...prev, addonId];
+      }
+    });
+
+    // Update form value
+    const currentAddons = form.getValues("addons") || [];
+    if (currentAddons.includes(addonId)) {
+      form.setValue("addons", currentAddons.filter(id => id !== addonId));
+    } else {
+      form.setValue("addons", [...currentAddons, addonId]);
+    }
+  };
   
   // Handle form submission
   const onSubmit = async (data: ClientFormValues) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
       const result = await createClient(data);
       
-      if (result.success && result.client) {
+      if (result) {
         form.reset();
+        setActiveTab("client-info");
+        setSelectedAddons([]);
         
         toast({
           title: "Client created",
           description: `${data.companyName} has been added. Invitation sent to ${data.email}`,
         });
         
-        return result.client;
+        return result;
       } else {
-        throw new Error(result.error || "Failed to create client");
+        throw new Error("Failed to create client");
       }
     } catch (error: any) {
       console.error("Error creating client:", error);
@@ -91,7 +130,7 @@ export function useClientOnboarding() {
       
       return null;
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
   
@@ -100,6 +139,13 @@ export function useClientOnboarding() {
     subscriptions,
     addons,
     isLoading,
-    onSubmit,
+    isSubmitting,
+    activeTab,
+    selectedAddons,
+    handleTabChange,
+    nextTab,
+    prevTab,
+    toggleAddon,
+    onSubmit
   };
 }
