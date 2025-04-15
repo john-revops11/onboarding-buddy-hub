@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -55,11 +54,9 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
     defaultValues,
   });
 
-  // Track form changes
   useEffect(() => {
     const subscription = form.watch();
     
-    // Check if there are any changes compared to initialData
     if (initialData) {
       const changed = 
         subscription.name !== initialData.name ||
@@ -70,7 +67,6 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
       setHasChanges(changed);
     }
     
-    // For new subscriptions, check if required fields are filled
     if (!initialData) {
       const filled = 
         subscription.name.trim() !== "" &&
@@ -102,24 +98,20 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
   const onSubmit = async (data: SubscriptionFormValues) => {
     setIsSubmitting(true);
     try {
-      // Convert price string to number
       const numericPrice = parseFloat(data.price);
       
-      // Prepare data for insertion/update
       const subscriptionData = {
         name: data.name,
         description: data.description,
         price: numericPrice,
-        features: data.features.filter(f => f.trim() !== "") // Filter out empty features
+        features: data.features.filter(f => f.trim() !== "")
       };
       
       let result;
       
       if (isEditing && initialData?.id) {
-        // Update existing subscription using the updated function
         result = await updateSubscriptionTier(initialData.id, subscriptionData);
       } else {
-        // Insert new subscription using the updated function
         result = await createSubscriptionTier(subscriptionData);
       }
       
@@ -134,7 +126,6 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
         description: `${data.name} subscription has been ${isEditing ? "updated" : "created"}.`,
       });
       
-      // Navigate back to subscriptions list
       navigate("/admin/subscriptions");
     } catch (error) {
       console.error("Error submitting subscription:", error);
@@ -150,7 +141,10 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className="space-y-6 bg-soft-purple p-6 rounded-lg shadow-md"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -247,19 +241,27 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
           ))}
         </div>
 
-        <div className="flex justify-end gap-4 pt-4 border-t">
+        <div className="flex justify-end gap-4 pt-4 border-t border-neutral-200">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/admin/subscriptions")}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-primary-700 hover:bg-primary-50"
           >
             <ArrowLeft size={16} /> Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitting || !hasChanges} 
-            className={`bg-primary-700 text-white hover:bg-primary-600 ${!hasChanges ? 'opacity-50' : ''}`}
+            className={`
+              bg-primary-700 
+              text-white 
+              hover:bg-primary-600 
+              focus:ring-2 
+              focus:ring-primary-500 
+              focus:ring-offset-2
+              ${!hasChanges ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
           >
             {isSubmitting ? (
               "Saving..."
