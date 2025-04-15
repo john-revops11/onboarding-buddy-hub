@@ -11,6 +11,7 @@ export function ClientStatus() {
   
   const { 
     clients, 
+    allClients,
     isLoading, 
     searchQuery, 
     setSearchQuery, 
@@ -30,7 +31,8 @@ export function ClientStatus() {
       <ClientStatusHeader 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
-        refreshClients={fetchClients} 
+        refreshClients={fetchClients}
+        totalClients={allClients.length}
       />
       
       <ClientsTable 

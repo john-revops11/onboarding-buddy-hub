@@ -14,6 +14,7 @@ export function useClientManagement() {
     setIsLoading(true);
     try {
       const clientsData = await getClients();
+      console.log("Fetched clients:", clientsData);
       setClients(clientsData);
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -68,11 +69,23 @@ export function useClientManagement() {
 
   const getClientProgress = (client: OnboardingClient): {progress: number, steps_completed: number, total_steps: number} => {
     // Calculate progress based on completion of team invitations and onboarding steps
-    // This would ideally come from a more complex calculation based on checklist completion
     const total_steps = 6;
     let steps_completed = 0;
     
-    // Basic progress calculation
+    // If we have actual onboarding progress data, use that
+    if (client.onboardingProgress && client.onboardingProgress.length > 0) {
+      const completedSteps = client.onboardingProgress.filter(step => step.completed).length;
+      const totalSteps = client.onboardingProgress.length;
+      const progressPercent = Math.round((completedSteps / totalSteps) * 100);
+      
+      return {
+        progress: progressPercent,
+        steps_completed: completedSteps,
+        total_steps: totalSteps
+      };
+    }
+    
+    // Fallback progress calculation
     if (client.email) steps_completed++;
     if (client.companyName) steps_completed++;
     if (client.subscriptionTier.id) steps_completed++;
@@ -85,14 +98,20 @@ export function useClientManagement() {
     return { progress, steps_completed, total_steps };
   };
 
-  const filteredClients = clients.filter(client => 
-    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (client.companyName && client.companyName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    client.subscriptionTier.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredClients = clients.filter(client => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    return (
+      client.email.toLowerCase().includes(searchLower) ||
+      (client.companyName && client.companyName.toLowerCase().includes(searchLower)) ||
+      client.subscriptionTier.name.toLowerCase().includes(searchLower) ||
+      client.addons.some(addon => addon.name.toLowerCase().includes(searchLower))
+    );
+  });
 
   return {
     clients: filteredClients,
+    allClients: clients,
     isLoading,
     searchQuery,
     setSearchQuery,
