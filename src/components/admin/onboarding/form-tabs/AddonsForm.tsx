@@ -22,41 +22,49 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
       </FormDescription>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {addons.map((addon) => (
-          <div
-            key={addon.id}
-            className={`border rounded-md p-4 cursor-pointer transition-colors ${
-              selectedAddons.includes(addon.id)
-                ? "border-primary bg-primary/10"
-                : "hover:border-muted-foreground"
-            }`}
-            onClick={() => toggleAddon(addon.id)}
-          >
-            <div className="flex items-start gap-3">
-              <Checkbox
-                checked={selectedAddons.includes(addon.id)}
-                id={`addon-${addon.id}`}
-                // The onCheckedChange handler is intentionally removed to prevent infinite loops
-                // The parent div onClick handles the toggle
-              />
-              <div>
-                <p className="font-medium">{addon.name} - ${addon.price}</p>
-                <p className="text-sm text-muted-foreground">
-                  {addon.description}
-                </p>
-                {addon.tags && addon.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {addon.tags.map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+        {addons.map((addon) => {
+          const isSelected = selectedAddons.includes(addon.id);
+          
+          return (
+            <div
+              key={addon.id}
+              className={`border rounded-md p-4 cursor-pointer transition-colors ${
+                isSelected
+                  ? "border-primary bg-primary/10"
+                  : "hover:border-muted-foreground"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                {/* Separate the checkbox from the onClick to prevent infinite loops */}
+                <div onClick={() => toggleAddon(addon.id)}>
+                  <Checkbox
+                    checked={isSelected}
+                    id={`addon-${addon.id}`}
+                    // Important: No onCheckedChange handler here to avoid loops
+                    className="pointer-events-none" // Prevent direct interaction with checkbox
+                    tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
+                  />
+                </div>
+                
+                <div className="flex-1" onClick={() => toggleAddon(addon.id)}>
+                  <p className="font-medium">{addon.name} - ${addon.price}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {addon.description}
+                  </p>
+                  {addon.tags && addon.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {addon.tags.map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </CardContent>
   );

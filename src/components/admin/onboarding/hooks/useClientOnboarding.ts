@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,8 +80,8 @@ export function useClientOnboarding() {
     }
   };
 
-  // Simplified toggle addon function that directly updates form state
-  const toggleAddon = (addonId: string) => {
+  // Memoized toggle function to prevent recreating on each render
+  const toggleAddon = useCallback((addonId: string) => {
     const currentAddons = form.getValues("addons") || [];
     const isSelected = currentAddons.includes(addonId);
     
@@ -92,7 +92,7 @@ export function useClientOnboarding() {
     
     // Update form state in a single operation
     form.setValue("addons", newAddons, { shouldValidate: true });
-  };
+  }, [form]);
   
   const onSubmit = async (data: ClientFormValues) => {
     setIsSubmitting(true);
