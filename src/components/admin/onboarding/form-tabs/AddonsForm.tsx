@@ -15,14 +15,6 @@ interface AddonsFormProps {
 }
 
 function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
-  // Function to handle addon selection via click
-  const handleAddonClick = (addonId: string) => (e: React.MouseEvent) => {
-    // Prevent default behavior to avoid any unintended actions
-    e.preventDefault();
-    // Call the toggleAddon function from props
-    toggleAddon(addonId);
-  };
-
   return (
     <CardContent className="pt-6">
       <FormLabel>Available Add-ons</FormLabel>
@@ -30,7 +22,7 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
         Select any additional services for this client
       </FormDescription>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
         {addons.map((addon) => {
           // Ensure selectedAddons is always treated as an array
           const safeSelectedAddons = Array.isArray(selectedAddons) ? selectedAddons : [];
@@ -39,39 +31,36 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
           return (
             <div
               key={addon.id}
-              className={`border rounded-md p-4 cursor-pointer transition-colors ${
-                isSelected
-                  ? "border-primary bg-primary/10"
-                  : "hover:border-muted-foreground"
+              className={`flex items-start space-x-3 p-4 border rounded-md ${
+                isSelected ? "border-primary bg-primary/5" : "border-gray-200"
               }`}
-              onClick={handleAddonClick(addon.id)}
-              aria-label={`Select ${addon.name} addon`}
             >
-              <div className="flex items-start gap-3">
-                <div className="relative">
-                  <Checkbox
-                    id={`addon-${addon.id}`}
-                    checked={isSelected}
-                    readOnly={true}
-                    className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                  />
-                </div>
-                
-                <div className="flex-1">
-                  <p className="font-medium">{addon.name} - ${addon.price}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {addon.description}
-                  </p>
-                  {addon.tags && addon.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {addon.tags.map((tag: string) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <Checkbox
+                id={`addon-${addon.id}`}
+                checked={isSelected}
+                onCheckedChange={() => toggleAddon(addon.id)}
+                className="mt-1"
+              />
+              
+              <div>
+                <label 
+                  htmlFor={`addon-${addon.id}`}
+                  className="font-medium cursor-pointer flex items-center"
+                >
+                  {addon.name} - ${addon.price}
+                </label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {addon.description}
+                </p>
+                {addon.tags && addon.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {addon.tags.map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );

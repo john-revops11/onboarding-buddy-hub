@@ -81,29 +81,20 @@ export function useClientOnboarding() {
     }
   }, [activeTab]);
 
-  // Improved toggle function with proper error handling and type safety
+  // Simplified toggleAddon function
   const toggleAddon = useCallback((addonId: string) => {
-    const currentValues = form.getValues();
-    // Ensure currentAddons is an array
-    const currentAddons = Array.isArray(currentValues.addons) ? [...currentValues.addons] : [];
-    
-    // Check if addon is already selected
-    const index = currentAddons.indexOf(addonId);
-    
-    // Create a new array (to avoid reference issues)
-    let newAddons: string[];
-    
-    if (index === -1) {
-      // Add addon if not selected
-      newAddons = [...currentAddons, addonId];
-    } else {
-      // Remove addon if already selected
-      newAddons = [...currentAddons];
-      newAddons.splice(index, 1);
-    }
-    
-    // Update form value
-    form.setValue("addons", newAddons, { shouldValidate: true, shouldDirty: true });
+    form.setValue("addons", oldAddons => {
+      const addons = Array.isArray(oldAddons) ? oldAddons : [];
+      const addonIndex = addons.indexOf(addonId);
+      
+      if (addonIndex === -1) {
+        // Add addon if not already selected
+        return [...addons, addonId];
+      } else {
+        // Remove addon if already selected
+        return addons.filter(id => id !== addonId);
+      }
+    });
   }, [form]);
   
   const onSubmit = useCallback(async (data: ClientFormValues) => {
