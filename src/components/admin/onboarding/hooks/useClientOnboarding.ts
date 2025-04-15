@@ -82,15 +82,16 @@ export function useClientOnboarding() {
 
   // Memoized toggle function with stable implementation
   const toggleAddon = useCallback((addonId: string) => {
-    form.setValue("addons", (current = []) => {
-      // Make a copy of the current array to ensure immutability
-      const isSelected = current.includes(addonId);
-      
-      // Return a new array based on whether the addon is already selected
-      return isSelected
-        ? current.filter(id => id !== addonId)
-        : [...current, addonId];
-    }, { shouldValidate: true });
+    const currentAddons = form.getValues("addons") || [];
+    const isSelected = currentAddons.includes(addonId);
+    
+    // Create a new array based on whether the addon is already selected
+    const newAddons = isSelected
+      ? currentAddons.filter(id => id !== addonId) 
+      : [...currentAddons, addonId];
+    
+    // Update form state with the new array
+    form.setValue("addons", newAddons, { shouldValidate: true });
   }, [form]);
   
   const onSubmit = async (data: ClientFormValues) => {

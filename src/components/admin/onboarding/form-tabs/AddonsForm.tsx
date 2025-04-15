@@ -31,7 +31,8 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {addons.map((addon) => {
-          const isSelected = selectedAddons.includes(addon.id);
+          // Make sure selectedAddons is an array before using includes
+          const isSelected = Array.isArray(selectedAddons) && selectedAddons.includes(addon.id);
           
           return (
             <div
