@@ -114,6 +114,21 @@ export interface FileUpload {
   url: string;
 }
 
+export interface ClientFile {
+  id: string;
+  filename: string;
+  filePath: string; 
+  fileType: string;
+  fileSize: number;
+  category: string;
+  status: 'pending' | 'verified' | 'rejected';
+  uploadedAt: string;
+  verifiedAt?: string;
+  clientId: string;
+  clientEmail?: string;
+  clientCompany?: string;
+}
+
 export interface ClientFormValues {
   email: string;
   companyName?: string;

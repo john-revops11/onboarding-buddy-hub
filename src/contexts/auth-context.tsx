@@ -5,9 +5,13 @@ import { authReducer, initialState } from "./auth/auth-reducer";
 import { useAuthService } from "./auth/auth-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 // Create the Auth Context
 export const AuthContext = createContext<AuthContextType | null>(null);
+
+// Re-export the useAuth hook for easier access
+export { useAuth };
 
 // Auth Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

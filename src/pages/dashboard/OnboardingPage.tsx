@@ -238,6 +238,15 @@ const OnboardingPage = () => {
     );
   };
   
+  const convertFileToDocCategory = (file: File): DocumentCategory => {
+    const fileType = file.type.split('/')[0];
+    
+    if (fileType === 'image') return 'general';
+    if (fileType === 'application' && file.type.includes('pdf')) return 'financial';
+    
+    return 'general';
+  };
+
   return (
     <Main>
       <div className="container mx-auto py-10">

@@ -62,7 +62,7 @@ export async function getClientFiles(clientId: string): Promise<ClientFile[]> {
     return (data || []).map(file => ({
       id: file.id,
       filename: file.filename,
-      filePath: file.file_path, // Access the correct property
+      filePath: file.file_path, // Map file_path to filePath
       fileType: file.file_type,
       fileSize: file.file_size,
       category: file.category,
