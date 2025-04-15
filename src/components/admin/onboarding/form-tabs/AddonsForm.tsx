@@ -52,8 +52,7 @@ function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormPro
                   id={`addon-${addon.id}`}
                   className="pointer-events-none" // Prevent direct interaction with checkbox
                   tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
-                  // No onChange handler to prevent potential loops
-                  readOnly
+                  disabled // Use disabled instead of readOnly
                 />
                 
                 <div className="flex-1">
