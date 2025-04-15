@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,7 +17,6 @@ export function useClientOnboarding() {
   const [activeTab, setActiveTab] = useState<string>("client-info");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   
-  // Initialize form
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(ClientFormSchema),
     defaultValues: {
@@ -31,7 +29,6 @@ export function useClientOnboarding() {
     },
   });
   
-  // Load subscription tiers and addons on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -55,12 +52,10 @@ export function useClientOnboarding() {
     loadData();
   }, [toast]);
 
-  // Handle tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
-  // Navigation between tabs
   const nextTab = () => {
     const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
     const currentIndex = tabOrder.indexOf(activeTab);
@@ -79,7 +74,6 @@ export function useClientOnboarding() {
     }
   };
 
-  // Toggle addon selection
   const toggleAddon = (addonId: string) => {
     setSelectedAddons(prev => {
       if (prev.includes(addonId)) {
@@ -89,7 +83,6 @@ export function useClientOnboarding() {
       }
     });
 
-    // Update form value
     const currentAddons = form.getValues("addons") || [];
     if (currentAddons.includes(addonId)) {
       form.setValue("addons", currentAddons.filter(id => id !== addonId));
@@ -98,12 +91,16 @@ export function useClientOnboarding() {
     }
   };
   
-  // Handle form submission
   const onSubmit = async (data: ClientFormValues) => {
     setIsSubmitting(true);
     
     try {
-      const result = await createClient(data);
+      const clientData = {
+        ...data,
+        subscriptionTierId: data.subscriptionId
+      };
+      
+      const result = await createClient(clientData);
       
       if (result) {
         form.reset();

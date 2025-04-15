@@ -1,284 +1,234 @@
-
 import React, { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Main } from "@/components/ui/main";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableHead,
-  TableRow,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { Search, FileDown, Trash2, CheckCircle, XCircle, Clock } from "lucide-react";
-import { getUploadedFiles, deleteFile, updateFileStatus } from "@/utils/fileUtils";
-import { UploadedFile } from "@/types/onboarding";
-import { useToast } from "@/components/ui/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MoreVertical, Edit, CheckCircle, XCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getUploadedFiles, updateFileStatus } from "@/utils/fileUtils";
+
+interface File {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  category?: string;
+  uploadedAt: string;
+  status: 'pending' | 'verified' | 'rejected';
+  userId: string;
+  userEmail?: string;
+  notes?: string;
+}
 
 const AdminFiles = () => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [filteredFiles, setFilteredFiles] = useState<UploadedFile[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Load all files on component mount
+  const [open, setOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<'pending' | 'verified' | 'rejected'>('pending');
+
   useEffect(() => {
-    const loadFiles = () => {
-      const allFiles = getUploadedFiles();
-      setFiles(allFiles);
-      setFilteredFiles(allFiles);
-    };
-    
-    loadFiles();
-    
-    // Refresh data every 5 seconds (for demo purposes)
-    const interval = setInterval(loadFiles, 5000);
-    return () => clearInterval(interval);
+    fetchFiles();
   }, []);
 
-  // Handle search
   useEffect(() => {
-    if (searchTerm.trim() === "") {
+    const filtered = files.filter(file =>
+      file.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      file.userEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredFiles(filtered);
+  }, [searchQuery, files]);
+
+  const fetchFiles = async () => {
+    setLoading(true);
+    try {
+      const files = await getUploadedFiles();
+      setFiles(files);
       setFilteredFiles(files);
-    } else {
-      const filtered = files.filter((file) => 
-        file.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        file.userId.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredFiles(filtered);
-    }
-  }, [searchTerm, files]);
-
-  const handleDeleteFile = (fileId: string) => {
-    const success = deleteFile(fileId);
-    if (success) {
-      setFiles((prev) => prev.filter((file) => file.id !== fileId));
-      toast({
-        title: "File deleted",
-        description: "The file has been deleted successfully.",
-      });
-    } else {
+    } catch (error) {
+      console.error("Error fetching files:", error);
       toast({
         title: "Error",
-        description: "Failed to delete the file.",
+        description: "Failed to load files",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleVerifyFile = (fileId: string) => {
-    const success = updateFileStatus(fileId, "verified");
-    if (success) {
-      setFiles((prev) => prev.map((file) => 
-        file.id === fileId ? { ...file, status: 'verified', verifiedAt: new Date().toISOString() } : file
+  const handleStatusChange = async (fileId: string, newStatus: 'pending' | 'verified' | 'rejected') => {
+    try {
+      await updateFileStatus(fileId, newStatus);
+      setFiles(files.map(file =>
+        file.id === fileId ? { ...file, status: newStatus } : file
+      ));
+      setFilteredFiles(filteredFiles.map(file =>
+        file.id === fileId ? { ...file, status: newStatus } : file
       ));
       toast({
-        title: "File verified",
-        description: "The file has been verified successfully.",
+        title: "Success",
+        description: "File status updated successfully.",
       });
-    } else {
+    } catch (error) {
+      console.error("Error updating file status:", error);
       toast({
         title: "Error",
-        description: "Failed to verify the file.",
+        description: "Failed to update file status",
         variant: "destructive",
       });
+    } finally {
+      setOpen(false);
     }
   };
 
-  const handleRejectFile = (fileId: string) => {
-    const success = updateFileStatus(fileId, "rejected");
-    if (success) {
-      setFiles((prev) => prev.map((file) => 
-        file.id === fileId ? { ...file, status: 'rejected', verifiedAt: new Date().toISOString() } : file
-      ));
-      toast({
-        title: "File rejected",
-        description: "The file has been rejected.",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to reject the file.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getFileTypeColor = (type: string) => {
-    if (type.startsWith("image/")) return "bg-green-100 text-green-800";
-    if (type.includes("pdf")) return "bg-red-100 text-red-800";
-    if (type.includes("word") || type.includes("doc")) return "bg-blue-100 text-blue-800";
-    return "bg-gray-100 text-gray-800";
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const getStatusBadge = (status: UploadedFile['status']) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-[#68b046]">Verified</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
-    }
+  const handleEdit = (file: File) => {
+    setSelectedFile(file);
+    setNotes(file.notes || "");
+    setStatus(file.status);
+    setOpen(true);
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">File Management</h1>
-        <p className="text-muted-foreground">
-          View and manage all uploaded files from users.
-        </p>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 w-full max-w-sm">
-            <Input 
-              placeholder="Search files or users..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Button variant="outline" size="icon">
-              <Search className="h-4 w-4" />
-            </Button>
-          </div>
+    <Main>
+      <div className="container mx-auto py-10">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Uploaded Files</h1>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Uploaded Files</CardTitle>
-            <CardDescription>
-              {files.length} files uploaded by {new Set(files.map(f => f.userId)).size} users
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
+        <div className="mb-4">
+          <Input
+            type="search"
+            placeholder="Search files..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <ScrollArea>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">Filename</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Uploaded At</TableHead>
+                <TableHead>User Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
                 <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Upload Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableCell colSpan={6} className="text-center">Loading...</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredFiles.length > 0 ? (
-                  filteredFiles.map((file) => (
-                    <TableRow key={file.id}>
-                      <TableCell className="font-medium">{file.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getFileTypeColor(file.type)}>
-                          {file.type.split('/').pop()?.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatFileSize(file.size)}</TableCell>
-                      <TableCell>{file.userId}</TableCell>
-                      <TableCell>{getStatusBadge(file.status)}</TableCell>
-                      <TableCell>
-                        {new Date(file.uploadedAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            asChild
-                          >
-                            <a href={file.url} target="_blank" rel="noopener noreferrer">
-                              <FileDown className="h-4 w-4" />
-                            </a>
+              ) : filteredFiles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">No files found.</TableCell>
+                </TableRow>
+              ) : (
+                filteredFiles.map(file => (
+                  <TableRow key={file.id}>
+                    <TableCell className="font-medium">{file.name}</TableCell>
+                    <TableCell>{file.category || 'N/A'}</TableCell>
+                    <TableCell>{new Date(file.uploadedAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{file.userEmail}</TableCell>
+                    <TableCell>
+                      {file.status === 'pending' && <Badge variant="secondary">Pending</Badge>}
+                      {file.status === 'verified' && <Badge className="bg-green-500 text-white">Verified</Badge>}
+                      {file.status === 'rejected' && <Badge variant="destructive">Rejected</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                          
-                          {file.status === 'pending' && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="icon"
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={() => handleVerifyFile(file.id)}
-                                title="Verify File"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="icon"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleRejectFile(file.id)}
-                                title="Reject File"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-
-                          {file.status === 'verified' && (
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                              className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                              onClick={() => updateFileStatus(file.id, 'pending')}
-                              title="Mark as Pending"
-                            >
-                              <Clock className="h-4 w-4" />
-                            </Button>
-                          )}
-
-                          {file.status === 'rejected' && (
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                              className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                              onClick={() => updateFileStatus(file.id, 'pending')}
-                              title="Mark as Pending"
-                            >
-                              <Clock className="h-4 w-4" />
-                            </Button>
-                          )}
-                          
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => handleDeleteFile(file.id)}
-                            className="text-red-500"
-                            title="Delete File"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6">
-                      No files found matching your search.
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(file)}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </div>
-    </DashboardLayout>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit File Details</DialogTitle>
+            <DialogDescription>
+              Make changes to the file details here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Status
+              </Label>
+              <Select defaultValue={status} onValueChange={(value) => setStatus(value as 'pending' | 'verified' | 'rejected')}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="notes" className="text-right">
+                Notes
+              </Label>
+              <Textarea id="notes" className="col-span-3" value={notes} onChange={e => setNotes(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => selectedFile && handleStatusChange(selectedFile.id, status)}>Save changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Main>
   );
 };
 

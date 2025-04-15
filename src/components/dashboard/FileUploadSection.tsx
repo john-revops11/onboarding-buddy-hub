@@ -8,11 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FileUp } from "lucide-react";
-import { FileUploader } from "@/components/onboarding/FileUploader";
+import { FileUploader } from "@/components/dashboard/FileUploader";
 
 interface FileUploadSectionProps {
   onFileUploadComplete: (file: any) => void;
-  onVerificationStatusChange: (status: any) => void;
+  onVerificationStatusChange: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
 }
 
 export const FileUploadSection = ({

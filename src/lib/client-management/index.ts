@@ -1,13 +1,13 @@
 
 // Export all client management functionality from a single entry point
-export { createClient } from './create-client';
-export { getClients } from './client-query';
+export { createClient } from './client-create';
+export { getClients, getClientProgress } from './client-query';
 export { sendClientInvitation } from './client-invitations';
 export { completeClientOnboarding } from './client-status';
 
 // Export file management functions
 export {
-  uploadClientFile,
+  uploadFile,
   getClientFiles,
   updateFileStatus
 } from './file-upload';

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { OnboardingClient, Subscription, Addon } from "@/lib/types/client-types";
@@ -145,5 +144,28 @@ export async function getClientDetails(clientId: string): Promise<OnboardingClie
       variant: "destructive",
     });
     return null;
+  }
+}
+
+// Add the missing getClientProgress function
+export async function getClientProgress(clientId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('onboarding_progress')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('step_order', { ascending: true });
+    
+    if (error) throw error;
+    
+    return data.map(item => ({
+      step_order: item.step_order,
+      completed: item.completed,
+      started_at: item.started_at,
+      completed_at: item.completed_at
+    }));
+  } catch (error: any) {
+    console.error("Error fetching client progress:", error);
+    return [];
   }
 }

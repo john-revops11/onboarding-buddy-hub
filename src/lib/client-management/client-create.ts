@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
@@ -12,7 +11,7 @@ export async function createClient(data: ClientFormValues) {
       .insert({
         email: data.email,
         company_name: data.companyName || null,
-        subscription_id: data.subscriptionTierId,
+        subscription_id: data.subscriptionId,
         status: 'pending'
       })
       .select('id')
@@ -36,19 +35,23 @@ export async function createClient(data: ClientFormValues) {
       if (addonError) throw addonError;
     }
     
-    // Step 3: Add team members if any
+    // Step 3: Add team members if any (optional now)
     if (data.teamMembers && data.teamMembers.length > 0) {
-      const teamMemberRecords = data.teamMembers.map(member => ({
-        client_id: clientId,
-        email: member.email,
-        invitation_status: 'pending'
-      }));
+      const validTeamMembers = data.teamMembers.filter(member => member.email.trim());
       
-      const { error: teamError } = await supabase
-        .from('team_members')
-        .insert(teamMemberRecords);
-      
-      if (teamError) throw teamError;
+      if (validTeamMembers.length > 0) {
+        const teamMemberRecords = validTeamMembers.map(member => ({
+          client_id: clientId,
+          email: member.email,
+          invitation_status: 'pending'
+        }));
+        
+        const { error: teamError } = await supabase
+          .from('team_members')
+          .insert(teamMemberRecords);
+        
+        if (teamError) throw teamError;
+      }
     }
     
     // Step 4: Create a Google Drive for the client

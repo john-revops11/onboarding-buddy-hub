@@ -54,8 +54,8 @@ export interface OnboardingTemplate {
 }
 
 export interface OnboardingTemplateStep {
-  id: string;
-  title: string;
+  id?: string;
+  title: string; // This is required
   description?: string;
   orderIndex: number;
   requiredDocuments?: DocumentCategory[];

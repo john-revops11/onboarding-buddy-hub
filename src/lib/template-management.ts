@@ -277,17 +277,15 @@ export async function linkTemplateToSubscription(
 // Get client onboarding steps based on subscription and add-ons
 export async function getClientOnboardingSteps(clientId: string) {
   try {
-    const { data, error } = await supabase
-      .rpc('get_client_template_steps', { client_id: clientId });
+    const { data, error } = await supabase.rpc('get_client_template_steps', {
+      client_id: clientId
+    });
     
-    if (error) {
-      console.error("Error fetching client onboarding steps:", error);
-      throw error;
-    }
+    if (error) throw error;
     
     return data || [];
   } catch (error) {
-    console.error("Error fetching client onboarding steps:", error);
+    console.error('Error getting client onboarding steps:', error);
     return [];
   }
 }
