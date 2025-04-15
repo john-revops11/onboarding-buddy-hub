@@ -22,13 +22,22 @@ export async function getOnboardingClients() {
 
     return (data || []).map(client => {
       // Parse subscription data properly - ensure it's a valid Subscription object
-      const subscriptionData = client.subscriptions || {};
-      const subscription: Subscription = {
-        id: subscriptionData.id || "",
-        name: subscriptionData.name || "No Subscription",
-        price: subscriptionData.price || 0,
-        description: subscriptionData.description || ""
+      let subscription: Subscription = {
+        id: "",
+        name: "No Subscription",
+        price: 0,
+        description: ""
       };
+
+      // Check if subscriptions exists and is not null before accessing its properties
+      if (client.subscriptions && typeof client.subscriptions === 'object') {
+        subscription = {
+          id: client.subscriptions.id || "",
+          name: client.subscriptions.name || "No Subscription",
+          price: client.subscriptions.price || 0,
+          description: client.subscriptions.description || ""
+        };
+      }
 
       // Parse addons data - ensure it's an array
       const addons: Addon[] = Array.isArray(client.addons) 
