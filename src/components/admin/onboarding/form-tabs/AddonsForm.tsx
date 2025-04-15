@@ -14,11 +14,6 @@ interface AddonsFormProps {
 }
 
 export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
-  // Create a handler to prevent direct binding to checked state
-  const handleToggle = (addonId: string) => {
-    toggleAddon(addonId);
-  };
-
   return (
     <CardContent className="pt-6">
       <FormLabel>Available Add-ons</FormLabel>
@@ -35,16 +30,15 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
                 ? "border-primary bg-primary/10"
                 : "hover:border-muted-foreground"
             }`}
-            onClick={() => handleToggle(addon.id)}
+            onClick={() => toggleAddon(addon.id)}
           >
             <div className="flex items-start gap-3">
+              {/* The issue was here - the checkbox's onCheckedChange was calling a function 
+                  that was updating state, but we're already handling this in the div's onClick */}
               <Checkbox
                 checked={selectedAddons.includes(addon.id)}
-                onCheckedChange={() => {
-                  // The checkbox's onChange handler should not directly set state
-                  // We're using this indirection to break the infinite loop
-                }}
                 id={`addon-${addon.id}`}
+                // Remove the onCheckedChange handler as it's redundant with the parent div onClick
               />
               <div>
                 <p className="font-medium">{addon.name} - ${addon.price}</p>

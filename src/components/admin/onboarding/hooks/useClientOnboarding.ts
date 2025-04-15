@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -78,25 +77,16 @@ export function useClientOnboarding() {
     }
   };
 
-  // Fixed toggleAddon function to prevent potential infinite loops
   const toggleAddon = (addonId: string) => {
-    // Use functional updates to ensure we're working with the latest state
     setSelectedAddons(prev => {
-      // Check if the addon is already selected
       const isSelected = prev.includes(addonId);
-      
-      // Create a new array based on the previous state
       const newSelectedAddons = isSelected
         ? prev.filter(id => id !== addonId)
         : [...prev, addonId];
       
-      // Update the form value separately from the state update
-      const currentAddons = form.getValues("addons") || [];
       form.setValue(
         "addons", 
-        isSelected
-          ? currentAddons.filter(id => id !== addonId)
-          : [...currentAddons, addonId],
+        newSelectedAddons,
         { shouldValidate: true }
       );
       
