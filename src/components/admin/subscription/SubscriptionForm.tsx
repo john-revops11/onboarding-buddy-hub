@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,7 @@ const subscriptionSchema = z.object({
 type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 
 interface SubscriptionFormProps {
-  initialData?: SubscriptionFormValues & { id?: string };  // Add optional id field
+  initialData?: SubscriptionFormValues & { id?: string };
   isEditing?: boolean;
 }
 
@@ -41,6 +41,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const defaultValues: SubscriptionFormValues = initialData || {
     name: "",
@@ -53,6 +54,33 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
     resolver: zodResolver(subscriptionSchema),
     defaultValues,
   });
+
+  // Track form changes
+  useEffect(() => {
+    const subscription = form.watch();
+    
+    // Check if there are any changes compared to initialData
+    if (initialData) {
+      const changed = 
+        subscription.name !== initialData.name ||
+        subscription.description !== initialData.description ||
+        subscription.price !== initialData.price ||
+        JSON.stringify(subscription.features) !== JSON.stringify(initialData.features);
+      
+      setHasChanges(changed);
+    }
+    
+    // For new subscriptions, check if required fields are filled
+    if (!initialData) {
+      const filled = 
+        subscription.name.trim() !== "" &&
+        subscription.description.trim() !== "" &&
+        subscription.price !== "" &&
+        subscription.features.some(f => f.trim() !== "");
+      
+      setHasChanges(filled);
+    }
+  }, [form.watch(), initialData]);
 
   const features = form.watch("features");
 
@@ -82,7 +110,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
         name: data.name,
         description: data.description,
         price: numericPrice,
-        features: data.features
+        features: data.features.filter(f => f.trim() !== "") // Filter out empty features
       };
       
       let result;
@@ -219,21 +247,26 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
           ))}
         </div>
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 pt-4 border-t">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/admin/subscriptions")}
+            className="flex items-center gap-1"
           >
-            Cancel
+            <ArrowLeft size={16} /> Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting} className="bg-primary-700 text-white hover:bg-primary-600">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !hasChanges} 
+            className={`bg-primary-700 text-white hover:bg-primary-600 ${!hasChanges ? 'opacity-50' : ''}`}
+          >
             {isSubmitting ? (
               "Saving..."
             ) : (
               <>
-                <Save size={18} className="mr-1" />
-                {isEditing ? "Update Subscription" : "Save Subscription"}
+                <Save size={16} className="mr-1" />
+                {isEditing ? "Save Changes" : "Create Subscription"}
               </>
             )}
           </Button>

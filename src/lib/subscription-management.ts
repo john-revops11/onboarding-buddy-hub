@@ -25,17 +25,18 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
 // Delete a subscription tier
 export async function deleteSubscriptionTier(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('subscriptions')
-      .delete()
-      .eq('id', id);
+    // Use RPC to call a server-side function with higher privileges
+    const { data, error } = await supabase
+      .rpc('admin_delete_subscription', {
+        id_param: id
+      });
     
     if (error) {
       console.error("Error deleting subscription tier:", error);
       throw error;
     }
     
-    return true;
+    return data || false;
   } catch (error) {
     console.error("Error deleting subscription tier:", error);
     return false;

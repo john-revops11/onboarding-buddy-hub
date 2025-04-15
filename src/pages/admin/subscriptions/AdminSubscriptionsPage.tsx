@@ -25,9 +25,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getSubscriptionTiers } from "@/lib/subscription-management";
+import { getSubscriptionTiers, deleteSubscriptionTier } from "@/lib/subscription-management";
 import { SubscriptionTier } from "@/lib/types/client-types";
-import { supabase } from "@/integrations/supabase/client";
 
 const AdminSubscriptionsPage = () => {
   const navigate = useNavigate();
@@ -35,6 +34,7 @@ const AdminSubscriptionsPage = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionTier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchSubscriptions();
@@ -59,12 +59,10 @@ const AdminSubscriptionsPage = () => {
 
   const handleDeleteSubscription = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('subscriptions')
-        .delete()
-        .eq('id', id);
+      setIsDeleting(true);
+      const success = await deleteSubscriptionTier(id);
       
-      if (error) throw error;
+      if (!success) throw new Error("Failed to delete subscription");
       
       // Update the local state
       setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
@@ -82,6 +80,8 @@ const AdminSubscriptionsPage = () => {
         description: "Failed to delete subscription. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -159,8 +159,9 @@ const AdminSubscriptionsPage = () => {
                                 <AlertDialogAction
                                   className="bg-destructive text-destructive-foreground"
                                   onClick={() => handleDeleteSubscription(subscription.id)}
+                                  disabled={isDeleting}
                                 >
-                                  Delete
+                                  {isDeleting ? "Deleting..." : "Delete"}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>

@@ -5,7 +5,7 @@ import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { SubscriptionForm } from "@/components/admin/subscription/SubscriptionForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { useToast } from "@/hooks/use-toast";
 
 const EditSubscriptionPage = () => {
@@ -23,20 +23,15 @@ const EditSubscriptionPage = () => {
       }
       
       try {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .select('id, name, description, price')
-          .eq('id', id)
-          .single();
+        const subscriptions = await getSubscriptionTiers();
+        const subscriptionData = subscriptions.find(sub => sub.id === id);
         
-        if (error) throw error;
-        
-        if (data) {
+        if (subscriptionData) {
           // Format data for the form
           const formattedData = {
-            ...data,
-            price: data.price.toString(),
-            features: [] // Features will be implemented in a future update
+            ...subscriptionData,
+            price: subscriptionData.price.toString(),
+            features: subscriptionData.features || []
           };
           
           setSubscription(formattedData);
