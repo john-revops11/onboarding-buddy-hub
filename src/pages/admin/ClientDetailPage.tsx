@@ -89,8 +89,8 @@ const ClientDetailPage = () => {
   
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="flex items-center justify-between">
+      <div className="space-y-5 bg-neutral-50 p-5 min-h-screen">
+        <div className="flex items-center justify-between bg-white rounded-lg p-4 shadow-sm">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{clientData.name}</h1>
             <p className="text-muted-foreground">
@@ -110,7 +110,7 @@ const ClientDetailPage = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5">
-          <TabsList>
+          <TabsList className="bg-white rounded-md shadow-sm p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="subscription">Subscription</TabsTrigger>
             <TabsTrigger value="team">Team Members</TabsTrigger>
@@ -227,7 +227,7 @@ const ClientDetailPage = () => {
                 </div>
                 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="border rounded-md p-3">
+                  <div className="border rounded-md p-3 bg-white">
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         <Check className="mr-1 h-3 w-3" />
@@ -238,7 +238,7 @@ const ClientDetailPage = () => {
                     <p className="text-xs text-muted-foreground mt-1">Account configuration complete</p>
                   </div>
                   
-                  <div className="border rounded-md p-3">
+                  <div className="border rounded-md p-3 bg-white">
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         <Check className="mr-1 h-3 w-3" />
@@ -249,7 +249,7 @@ const ClientDetailPage = () => {
                     <p className="text-xs text-muted-foreground mt-1">Data sources connected</p>
                   </div>
                   
-                  <div className="border rounded-md p-3">
+                  <div className="border rounded-md p-3 bg-white">
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                         <AlertTriangle className="mr-1 h-3 w-3" />
@@ -360,15 +360,15 @@ const ClientDetailPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="border rounded-md p-4">
+                  <div className="border rounded-md p-4 bg-white">
                     <h4 className="text-sm font-medium text-muted-foreground">Current Plan</h4>
                     <p className="text-lg font-bold mt-1">{clientData.subscription.plan}</p>
                   </div>
-                  <div className="border rounded-md p-4">
+                  <div className="border rounded-md p-4 bg-white">
                     <h4 className="text-sm font-medium text-muted-foreground">Billing Cycle</h4>
                     <p className="text-lg font-bold mt-1 capitalize">{clientData.subscription.billingCycle}</p>
                   </div>
-                  <div className="border rounded-md p-4">
+                  <div className="border rounded-md p-4 bg-white">
                     <h4 className="text-sm font-medium text-muted-foreground">Price</h4>
                     <p className="text-lg font-bold mt-1">{clientData.subscription.price}</p>
                   </div>
@@ -432,42 +432,44 @@ const ClientDetailPage = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Last Active</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clientData.team.map(member => (
-                      <TableRow key={member.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                              <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            {member.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={member.role === "Admin" ? "secondary" : "outline"}>
-                            {member.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{member.lastActive}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">Edit</Button>
-                          <Button variant="ghost" size="sm" className="text-red-500">Remove</Button>
-                        </TableCell>
+                <div className="bg-white rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Last Active</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {clientData.team.map(member => (
+                        <TableRow key={member.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-2">
+                                <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                              </Avatar>
+                              {member.name}
+                            </div>
+                          </TableCell>
+                          <TableCell>{member.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={member.role === "Admin" ? "secondary" : "outline"}>
+                              {member.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{member.lastActive}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm">Edit</Button>
+                            <Button variant="ghost" size="sm" className="text-red-500">Remove</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -485,38 +487,40 @@ const ClientDetailPage = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>File Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Uploaded By</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clientData.files.map(file => (
-                      <TableRow key={file.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <div className="mr-3 p-2 bg-neutral-100 rounded">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            {file.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>{file.type}</TableCell>
-                        <TableCell>{file.uploadedBy}</TableCell>
-                        <TableCell>{file.date}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">View</Button>
-                          <Button variant="ghost" size="sm">Download</Button>
-                        </TableCell>
+                <div className="bg-white rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>File Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Uploaded By</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {clientData.files.map(file => (
+                        <TableRow key={file.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <div className="mr-3 p-2 bg-neutral-100 rounded">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              {file.name}
+                            </div>
+                          </TableCell>
+                          <TableCell>{file.type}</TableCell>
+                          <TableCell>{file.uploadedBy}</TableCell>
+                          <TableCell>{file.date}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm">View</Button>
+                            <Button variant="ghost" size="sm">Download</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

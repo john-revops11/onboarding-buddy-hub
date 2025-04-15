@@ -28,8 +28,8 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="mb-2">
+      <div className="space-y-5 bg-neutral-50 p-5 min-h-screen">
+        <div className="mb-2 bg-white p-4 rounded-lg shadow-sm">
           <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Overview of system statistics and user activities.
