@@ -5,7 +5,7 @@ import {
   getUserFiles, 
   getUserFilesByCategory, 
   checkRequiredDocuments 
-} from "@/utils/fileUtils";
+} from "@/utils/fileUtils"; // Keep using the compatibility layer
 import {
   getClientOnboardingSteps
 } from "@/lib/template-management";

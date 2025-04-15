@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getUploadedFiles, updateFileStatus } from "@/utils/fileUtils";
+import { getUploadedFiles, updateFileStatus } from "@/utils/file";
 
 interface File {
   id: string;
