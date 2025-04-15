@@ -2,6 +2,28 @@
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
 
+// Define a type for the raw data coming from Supabase
+interface RawClientData {
+  id: string;
+  email: string;
+  company_name: string | null;
+  status: string;
+  created_at: string;
+  subscription_id: string | null;
+  subscriptions: {
+    id: string;
+    name: string;
+    price: number;
+    description: string | null;
+  } | null;
+  addons: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description: string | null;
+  }> | null;
+}
+
 // Function to fetch clients with their subscription and addon data
 export async function getOnboardingClients() {
   try {
@@ -20,7 +42,7 @@ export async function getOnboardingClients() {
 
     if (error) throw error;
 
-    return (data || []).map(client => {
+    return (data as RawClientData[] || []).map(client => {
       // Parse subscription data properly - ensure it's a valid Subscription object
       let subscription: Subscription = {
         id: "",
@@ -41,7 +63,7 @@ export async function getOnboardingClients() {
 
       // Parse addons data - ensure it's an array
       const addons: Addon[] = Array.isArray(client.addons) 
-        ? client.addons.map((addon: any) => ({
+        ? client.addons.map((addon) => ({
             id: addon.id || "",
             name: addon.name || "",
             price: addon.price || 0,
