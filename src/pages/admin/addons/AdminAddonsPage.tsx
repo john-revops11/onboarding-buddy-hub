@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getAddons, deleteAddon } from "@/lib/addon-management";
 import { Addon } from "@/lib/types/client-types";
+import { AddonAnalytics } from "@/components/admin/addon/AddonAnalytics";
 
 const AdminAddonsPage = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const AdminAddonsPage = () => {
   const [addons, setAddons] = useState<Addon[]>([]);
   const [loading, setLoading] = useState(true);
   const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(true);
 
   useEffect(() => {
     const fetchAddons = async () => {
@@ -86,13 +88,23 @@ const AdminAddonsPage = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Add-ons</h1>
-          <Button
-            onClick={() => navigate("/admin/addons/create")}
-            className="flex items-center gap-2"
-          >
-            <Plus size={18} /> New Add-on
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowAnalytics(!showAnalytics)}
+            >
+              {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/addons/create")}
+              className="flex items-center gap-2"
+            >
+              <Plus size={18} /> New Add-on
+            </Button>
+          </div>
         </div>
+
+        {showAnalytics && <AddonAnalytics />}
 
         <Card>
           <CardHeader>
