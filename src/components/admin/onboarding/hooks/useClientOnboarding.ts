@@ -58,40 +58,39 @@ export function useClientOnboarding() {
     loadData();
   }, [toast]);
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
-  };
+  }, []);
 
-  const nextTab = () => {
+  const nextTab = useCallback(() => {
     const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
     const currentIndex = tabOrder.indexOf(activeTab);
     
     if (currentIndex < tabOrder.length - 1) {
       setActiveTab(tabOrder[currentIndex + 1]);
     }
-  };
+  }, [activeTab]);
 
-  const prevTab = () => {
+  const prevTab = useCallback(() => {
     const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
     const currentIndex = tabOrder.indexOf(activeTab);
     
     if (currentIndex > 0) {
       setActiveTab(tabOrder[currentIndex - 1]);
     }
-  };
+  }, [activeTab]);
 
-  // Memoized toggle function to prevent recreating on each render
+  // Memoized toggle function with stable implementation
   const toggleAddon = useCallback((addonId: string) => {
-    const currentAddons = form.getValues("addons") || [];
-    const isSelected = currentAddons.includes(addonId);
-    
-    // Create a new array to ensure React detects the change
-    const newAddons = isSelected
-      ? currentAddons.filter(id => id !== addonId)
-      : [...currentAddons, addonId];
-    
-    // Update form state in a single operation
-    form.setValue("addons", newAddons, { shouldValidate: true });
+    form.setValue("addons", (current = []) => {
+      // Make a copy of the current array to ensure immutability
+      const isSelected = current.includes(addonId);
+      
+      // Return a new array based on whether the addon is already selected
+      return isSelected
+        ? current.filter(id => id !== addonId)
+        : [...current, addonId];
+    }, { shouldValidate: true });
   }, [form]);
   
   const onSubmit = async (data: ClientFormValues) => {

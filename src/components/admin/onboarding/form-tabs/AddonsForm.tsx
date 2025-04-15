@@ -14,6 +14,14 @@ interface AddonsFormProps {
 }
 
 export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
+  // Function to handle addon selection via click
+  const handleAddonClick = (addonId: string) => (e: React.MouseEvent) => {
+    // Prevent default behavior to avoid any unintended actions
+    e.preventDefault();
+    // Call the toggleAddon function from props
+    toggleAddon(addonId);
+  };
+
   return (
     <CardContent className="pt-6">
       <FormLabel>Available Add-ons</FormLabel>
@@ -33,20 +41,18 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
                   ? "border-primary bg-primary/10"
                   : "hover:border-muted-foreground"
               }`}
+              onClick={handleAddonClick(addon.id)}
             >
               <div className="flex items-start gap-3">
-                {/* Separate the checkbox from the onClick to prevent infinite loops */}
-                <div onClick={() => toggleAddon(addon.id)}>
-                  <Checkbox
-                    checked={isSelected}
-                    id={`addon-${addon.id}`}
-                    // Important: No onCheckedChange handler here to avoid loops
-                    className="pointer-events-none" // Prevent direct interaction with checkbox
-                    tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
-                  />
-                </div>
+                <Checkbox
+                  checked={isSelected}
+                  id={`addon-${addon.id}`}
+                  className="pointer-events-none" // Prevent direct interaction with checkbox
+                  tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
+                  // Completely remove any onChange handlers to prevent loops
+                />
                 
-                <div className="flex-1" onClick={() => toggleAddon(addon.id)}>
+                <div className="flex-1">
                   <p className="font-medium">{addon.name} - ${addon.price}</p>
                   <p className="text-sm text-muted-foreground">
                     {addon.description}
