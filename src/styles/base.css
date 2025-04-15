@@ -1,70 +1,97 @@
 
 @layer base {
-  /* Dark mode variables */
-  .dark {
-    /* Ensure primary-900 is explicitly defined */
-    --primary-900: 215 28% 17%; /* Match the dark mode foreground color */
-    --primary-900-rgb: 215, 28%, 17%; /* Add RGB version for rgba support */
-  }
-  
-  /* Define brand colors */
   :root {
-    /* Brand colors */
-    --green-base: 92 170 68; /* #5caa44 */
-    --green-light: 122 201 10; /* #7ac90a */
-    --green-dark: 75 132 48; /* #4b8430 */
-    --darkblue-base: 10 28 52; /* #0a1c34 */
-    --error-red: 234 56 76; /* #ea384c */
+    --primary-50: #f4f9ef;
+    --primary-100: #e6f2dc;
+    --primary-200: #cce5b9;
+    --primary-300: #aad38d;
+    --primary-400: #8ab454;
+    --primary-500: #5d842e;
+    --primary-600: #547a29;
+    --primary-700: #466422;
+    --primary-800: #3c541e;
+    --primary-900: #324619;
     
-    /* UI colors */
-    --neutral-50: 0 0% 98%;
-    --neutral-100: 0 0% 96%;
-    --neutral-200: 0 0% 90%;
-    --neutral-300: 0 0% 83%;
-    --neutral-400: 0 0% 64%;
-    --neutral-500: 0 0% 45%;
-    --neutral-600: 0 0% 32%;
-    --neutral-700: 0 0% 25%;
-    --neutral-800: 0 0% 15%;
-    --neutral-900: 0 0% 9%;
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
     
-    /* Semantic colors */
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    --info: 217 91% 60%;
-    --error: 0 84% 60%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 224 71.4% 4.1%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 142 76.2% 36.3%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-ring: 142 76.2% 36.3% / 0.5;
     
-    /* Primary color scheme */
-    --primary-50: 92 75% 95%;
-    --primary-100: 92 65% 90%;
-    --primary-200: 92 60% 80%;
-    --primary-300: 92 55% 70%;
-    --primary-400: 92 50% 60%;
-    --primary-500: 92 45% 50%; /* #5caa44 equivalent */
-    --primary-600: 92 40% 40%;
-    --primary-700: 92 35% 35%;
-    --primary-800: 92 30% 25%;
-    --primary-900: 92 25% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
     
-    /* Spacing system */
-    --space-xs: 0.25rem;
-    --space-sm: 0.5rem;
-    --space-md: 1rem;
-    --space-lg: 1.5rem;
-    --space-xl: 2rem;
-    --space-2xl: 3rem;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
     
-    /* Border radius */
-    --radius-sm: 0.25rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-full: 9999px;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 76.2% 36.3%;
+    
+    --radius: 0.5rem;
   }
   
-  /* Focus styles */
-  *:focus-visible {
-    outline: 2px solid rgb(var(--green-base));
-    outline-offset: 2px;
+  .dark {
+    --primary-50: #f4f9ef;
+    --primary-100: #e6f2dc;
+    --primary-200: #cce5b9;
+    --primary-300: #aad38d;
+    --primary-400: #8ab454;
+    --primary-500: #5d842e;
+    --primary-600: #547a29;
+    --primary-700: #466422;
+    --primary-800: #3c541e;
+    --primary-900: #324619;
+    
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 40% 98%;
+    
+    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 215 27.9% 16.9%;
+    --sidebar-accent: 142 70.2% 46.3%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-ring: 142 70.2% 46.3% / 0.5;
+    
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 40% 98%;
+    
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 142 70.2% 46.3%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

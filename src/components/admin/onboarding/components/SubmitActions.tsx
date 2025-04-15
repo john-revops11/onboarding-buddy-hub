@@ -16,7 +16,7 @@ export function SubmitActions({ isSubmitting, onPrev }: SubmitActionsProps) {
         variant="outline" 
         onClick={onPrev} 
         disabled={isSubmitting}
-        className="gap-2 border-primary-700 text-primary-700"
+        className="gap-2 border-brand text-brand"
       >
         <ChevronLeft size={18} />
         Previous: Team Members
@@ -25,7 +25,7 @@ export function SubmitActions({ isSubmitting, onPrev }: SubmitActionsProps) {
       <Button 
         type="submit" 
         disabled={isSubmitting} 
-        variant="success"
+        variant="brand"
         className="gap-2 font-medium"
       >
         {isSubmitting ? (

@@ -2,7 +2,7 @@
 @layer components {
   /* Notification styles */
   .notification-item.unread {
-    @apply bg-primary-50 dark:bg-primary-900/20;
+    @apply bg-brand-50 dark:bg-brand/20;
   }
   
   /* Card hover effects */
@@ -25,7 +25,7 @@
   
   /* Form element focus styles */
   .input-focus {
-    @apply focus:ring-2 focus:ring-[#8ab454]/50 focus:border-[#8ab454] transition-all duration-200;
+    @apply focus:ring-2 focus:ring-brand/50 focus:border-brand transition-all duration-200;
   }
   
   /* Badge styles */
@@ -82,6 +82,6 @@
   
   /* Card with subtle border highlight instead of background */
   .tier-card {
-    @apply bg-white border-2 border-primary/20 shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply bg-white border-2 border-brand/20 shadow-sm hover:shadow-md transition-shadow duration-200;
   }
 }

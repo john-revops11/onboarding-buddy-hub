@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -29,16 +30,24 @@ export default {
         },
         brand: {
           DEFAULT: '#5d842e',
-          50: 'rgba(93, 132, 46, 0.1)',
-          100: 'rgba(93, 132, 46, 0.2)',
-          200: 'rgba(93, 132, 46, 0.3)',
-          300: 'rgba(93, 132, 46, 0.4)',
-          400: 'rgba(93, 132, 46, 0.5)',
-          500: 'rgba(93, 132, 46, 0.6)',
+          50: 'rgba(93, 132, 46, 0.05)',
+          100: 'rgba(93, 132, 46, 0.1)',
+          200: 'rgba(93, 132, 46, 0.2)',
+          300: 'rgba(93, 132, 46, 0.3)',
+          400: 'rgba(93, 132, 46, 0.4)',
+          500: 'rgba(93, 132, 46, 0.5)',
           600: '#5d842e',
           700: 'rgba(93, 132, 46, 0.8)',
           800: 'rgba(93, 132, 46, 0.9)',
           900: 'rgba(93, 132, 46, 1)'
+        },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          ring: "hsl(var(--sidebar-ring))",
         }
       }
     }
