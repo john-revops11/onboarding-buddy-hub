@@ -42,7 +42,8 @@ export async function getOnboardingClients() {
 
     if (error) throw error;
 
-    return (data as RawClientData[] || []).map(client => {
+    // Cast the data to our expected type after validating its structure
+    return ((data || []) as unknown as RawClientData[]).map(client => {
       // Parse subscription data properly - ensure it's a valid Subscription object
       let subscription: Subscription = {
         id: "",
@@ -75,7 +76,7 @@ export async function getOnboardingClients() {
         id: client.id,
         email: client.email,
         companyName: client.company_name,
-        status: client.status,
+        status: client.status as "pending" | "active", // Cast to expected union type
         createdAt: client.created_at,
         subscriptionTier: subscription,
         addons,

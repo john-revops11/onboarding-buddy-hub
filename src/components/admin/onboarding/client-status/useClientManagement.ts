@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import { OnboardingClient } from "@/lib/types/client-types";
@@ -15,7 +14,11 @@ export function useClientManagement() {
     try {
       const clientsData = await getClients();
       console.log("Fetched clients:", clientsData);
-      setClients(clientsData);
+      const typedClientsData = clientsData.map(client => ({
+        ...client,
+        status: client.status as "pending" | "active"
+      }));
+      setClients(typedClientsData);
     } catch (error) {
       console.error("Error fetching clients:", error);
       toast({
@@ -48,7 +51,7 @@ export function useClientManagement() {
             client.id === id 
               ? { 
                   ...client, 
-                  status: "active"
+                  status: "active" as const
                 } 
               : client
           )
