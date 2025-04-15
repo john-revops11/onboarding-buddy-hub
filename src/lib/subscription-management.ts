@@ -75,6 +75,8 @@ export async function updateSubscriptionTier(
   subscription: Partial<SubscriptionTier>
 ): Promise<SubscriptionTier | null> {
   try {
+    console.log("Updating subscription with:", { id, subscription });
+    
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: updatedSubscription, error: updateError } = await supabase
       .rpc('admin_update_subscription_with_features', {

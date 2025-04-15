@@ -111,8 +111,10 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
       let result;
       
       if (isEditing && initialData?.id) {
+        console.log("Updating subscription:", initialData.id, subscriptionData);
         result = await updateSubscriptionTier(initialData.id, subscriptionData);
       } else {
+        console.log("Creating subscription:", subscriptionData);
         result = await createSubscriptionTier(subscriptionData);
       }
       

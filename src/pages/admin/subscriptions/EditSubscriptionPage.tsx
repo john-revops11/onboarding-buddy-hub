@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { useToast } from "@/hooks/use-toast";
+import { SubscriptionTier } from "@/lib/types/client-types";
 
 const EditSubscriptionPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [subscription, setSubscription] = useState(null);
+  const [subscription, setSubscription] = useState<SubscriptionTier | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
