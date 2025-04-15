@@ -9,11 +9,20 @@ import { getSubscriptionTiers } from "@/lib/subscription-management";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionTier } from "@/lib/types/client-types";
 
+// Define a type for the formatted subscription data expected by the form
+type FormattedSubscription = {
+  id?: string;
+  name: string;
+  description?: string;
+  price: string;  // SubscriptionForm expects price as string
+  features: string[];
+};
+
 const EditSubscriptionPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [subscription, setSubscription] = useState<SubscriptionTier | null>(null);
+  const [subscription, setSubscription] = useState<FormattedSubscription | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,10 +37,12 @@ const EditSubscriptionPage = () => {
         const subscriptionData = subscriptions.find(sub => sub.id === id);
         
         if (subscriptionData) {
-          // Format data for the form
-          const formattedData = {
-            ...subscriptionData,
-            price: subscriptionData.price.toString(),
+          // Format data for the form - convert price to string for the form
+          const formattedData: FormattedSubscription = {
+            id: subscriptionData.id,
+            name: subscriptionData.name,
+            description: subscriptionData.description,
+            price: subscriptionData.price.toString(), // Convert number to string for the form
             features: subscriptionData.features || []
           };
           

@@ -45,16 +45,24 @@ export async function deleteSubscriptionTier(id: string): Promise<boolean> {
 
 // Create a new subscription tier
 export async function createSubscriptionTier(
-  subscription: Omit<SubscriptionTier, 'id'>
+  subscription: Omit<SubscriptionTier, 'id'> | { name: string; description: string; price: number; features?: string[] }
 ): Promise<SubscriptionTier | null> {
   try {
+    // Ensure price is a number before sending to API
+    const subscriptionData = {
+      name: subscription.name,
+      description: subscription.description,
+      price: typeof subscription.price === 'string' ? parseFloat(subscription.price) : subscription.price,
+      features: subscription.features || []
+    };
+
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: newSubscription, error: insertError } = await supabase
       .rpc('admin_create_subscription_with_features', {
-        name_param: subscription.name,
-        description_param: subscription.description,
-        price_param: subscription.price,
-        features_param: subscription.features || []
+        name_param: subscriptionData.name,
+        description_param: subscriptionData.description,
+        price_param: subscriptionData.price,
+        features_param: subscriptionData.features
       });
     
     if (insertError) {
@@ -72,19 +80,27 @@ export async function createSubscriptionTier(
 // Update an existing subscription tier
 export async function updateSubscriptionTier(
   id: string, 
-  subscription: Partial<SubscriptionTier>
+  subscription: Partial<SubscriptionTier> | { name?: string; description?: string; price?: number; features?: string[] }
 ): Promise<SubscriptionTier | null> {
   try {
     console.log("Updating subscription with:", { id, subscription });
+    
+    // Ensure price is a number before sending to API
+    const subscriptionData = {
+      name: subscription.name,
+      description: subscription.description,
+      price: typeof subscription.price === 'string' ? parseFloat(subscription.price as string) : subscription.price,
+      features: subscription.features || []
+    };
     
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: updatedSubscription, error: updateError } = await supabase
       .rpc('admin_update_subscription_with_features', {
         id_param: id,
-        name_param: subscription.name,
-        description_param: subscription.description,
-        price_param: subscription.price,
-        features_param: subscription.features || []
+        name_param: subscriptionData.name,
+        description_param: subscriptionData.description,
+        price_param: subscriptionData.price,
+        features_param: subscriptionData.features
       });
     
     if (updateError) {
