@@ -75,7 +75,11 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       .from('onboarding_progress')
       .insert(onboardingRecords);
     
-    if (onboardingError) throw onboardingError;
+   if (error) {
+  console.error("🛑 Supabase insert error:", error);
+} else {
+  console.log("✅ Supabase insert success:", data);
+}
     
     return clientId;
   } catch (error: any) {
