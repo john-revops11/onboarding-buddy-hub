@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Addon } from "@/lib/types/client-types";
 
@@ -88,5 +87,59 @@ export async function deleteAddon(id: string): Promise<boolean> {
   } catch (error) {
     console.error("Error deleting addon:", error);
     return false;
+  }
+}
+
+interface AddonAnalyticsData {
+  subscriptionTierData: {
+    tierName: string;
+    addonCount: number;
+    color: string;
+  }[];
+  addonPopularityData: {
+    name: string;
+    count: number;
+    color: string;
+  }[];
+}
+
+export async function fetchAddonAnalytics(): Promise<AddonAnalyticsData> {
+  try {
+    // Fetch addon popularity
+    const { data: addonPopularityData, error: addonError } = await supabase
+      .rpc('get_addon_popularity');
+    
+    // Fetch addon distribution by subscription tier
+    const { data: subscriptionTierData, error: tierError } = await supabase
+      .rpc('get_addon_tier_distribution');
+    
+    if (addonError || tierError) {
+      console.error("Error fetching addon analytics:", addonError || tierError);
+      throw addonError || tierError;
+    }
+
+    // Add colors to the data (you can customize these)
+    const colorPalette = [
+      "#3b82f6", "#10b981", "#f59e0b", 
+      "#ef4444", "#8b5cf6", "#ec4899", "#4ade80"
+    ];
+
+    return {
+      subscriptionTierData: subscriptionTierData.map((tier, index) => ({
+        ...tier,
+        color: colorPalette[index % colorPalette.length]
+      })),
+      addonPopularityData: addonPopularityData.map((addon, index) => ({
+        ...addon,
+        color: colorPalette[index % colorPalette.length]
+      }))
+    };
+  } catch (error) {
+    console.error("Error in fetchAddonAnalytics:", error);
+    // Return mock data or empty data in case of error
+    return {
+      subscriptionTierData: [],
+      addonPopularityData: []
+    };
   }
 }
