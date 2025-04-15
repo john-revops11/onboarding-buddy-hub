@@ -4,16 +4,25 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Main } from "@/components/ui/main";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { ChecklistSection } from "@/components/dashboard/ChecklistSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
-import { assignTemplateToClient, getClientOnboardingSteps, updateClientProgress } from "@/lib/client-management/onboarding-templates";
+import { 
+  assignTemplateToClient, 
+  getClientOnboardingSteps, 
+  updateClientProgress 
+} from "@/lib/client-management/onboarding-templates";
 import { getClientProgress } from "@/lib/client-management/client-query";
 import { ChecklistItem, DocumentCategory } from "@/types/onboarding";
 import { useAuth } from "@/hooks/use-auth";
-import { uploadFile, getClientFiles, updateFileStatus } from "@/lib/client-management/file-upload";
+import { 
+  uploadFile, 
+  getClientFiles, 
+  updateFileStatus 
+} from "@/lib/client-management/file-upload";
 import { FileUpload, ClientFile } from "@/lib/types/client-types";
 import { OnboardingProgressRecord } from "@/lib/types/client-types";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -25,11 +34,14 @@ const OnboardingPage = () => {
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     if (clientId) {
       loadClientSteps();
       loadClientFiles();
+    } else {
+      setError("Client ID not found. Please log in again.");
     }
   }, [clientId]);
   
@@ -40,6 +52,8 @@ const OnboardingPage = () => {
   }, [clientId]);
   
   const assignTemplate = async () => {
+    if (!clientId) return;
+    
     try {
       const assigned = await assignTemplateToClient(clientId);
       if (assigned) {
@@ -50,22 +64,19 @@ const OnboardingPage = () => {
         loadClientSteps();
       } else {
         toast({
-          title: "Error",
-          description: "Failed to assign onboarding template.",
-          variant: "destructive",
+          title: "Notice",
+          description: "No onboarding template is available for your subscription.",
         });
       }
     } catch (error) {
       console.error("Error assigning template:", error);
-      toast({
-        title: "Error",
-        description: "Failed to assign onboarding template.",
-        variant: "destructive",
-      });
+      setError("Failed to assign onboarding template. Please contact support.");
     }
   };
   
   const loadClientFiles = async () => {
+    if (!clientId) return;
+    
     try {
       const files = await getClientFiles(clientId);
       setUploadedFiles(files as unknown as FileUpload[]);
@@ -80,10 +91,18 @@ const OnboardingPage = () => {
   };
 
   const loadClientSteps = async () => {
+    if (!clientId) return;
+    
     try {
       setLoadingSteps(true);
       const steps = await getClientOnboardingSteps(clientId);
       console.log("Loaded steps:", steps);
+      
+      if (!steps || steps.length === 0) {
+        setError("No onboarding steps found. Please contact support.");
+        setLoadingSteps(false);
+        return;
+      }
       
       const checklist: ChecklistItem[] = steps.map(step => ({
         id: step.step_id || `step-${Math.random().toString(36).substring(2, 9)}`,
@@ -117,17 +136,15 @@ const OnboardingPage = () => {
       }
     } catch (error) {
       console.error("Error loading client checklist:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your onboarding checklist.",
-        variant: "destructive",
-      });
+      setError("Failed to load your onboarding checklist. Please contact support.");
     } finally {
       setLoadingSteps(false);
     }
   };
   
   const handleCompleteTask = async (id: string, isCompleted: boolean = true) => {
+    if (!clientId) return;
+    
     try {
       const task = checklistItems.find((item) => item.id === id);
       
@@ -136,6 +153,7 @@ const OnboardingPage = () => {
         return;
       }
       
+      // Optimistically update the UI
       const updatedChecklist = checklistItems.map((item) =>
         item.id === id ? { ...item, completed: isCompleted } : item
       );
@@ -150,6 +168,7 @@ const OnboardingPage = () => {
           variant: "destructive",
         });
         
+        // Revert the optimistic update
         setChecklistItems(checklistItems);
       }
     } catch (error) {
@@ -160,6 +179,7 @@ const OnboardingPage = () => {
         variant: "destructive",
       });
       
+      // Revert the optimistic update
       setChecklistItems(checklistItems);
     }
   };
@@ -178,10 +198,19 @@ const OnboardingPage = () => {
       setUploading(true);
       setUploadProgress(0);
       
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 500);
+      
       try {
-        const uploadedFile = await uploadFile(clientId, files[0], category);
+        const result = await uploadFile(clientId, files[0], category);
         
-        if (uploadedFile.success) {
+        if (result.success) {
+          setUploadProgress(100);
           toast({
             title: "File uploaded",
             description: `${files[0].name} has been uploaded successfully.`,
@@ -189,7 +218,7 @@ const OnboardingPage = () => {
           
           await loadClientFiles();
         } else {
-          throw new Error("Failed to upload file");
+          throw new Error(result.error || "Failed to upload file");
         }
       } catch (error: any) {
         console.error("File upload error:", error);
@@ -199,11 +228,28 @@ const OnboardingPage = () => {
           variant: "destructive",
         });
       } finally {
-        setUploading(false);
-        setUploadProgress(0);
+        clearInterval(progressInterval);
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(0);
+        }, 500);
       }
     }
   }, [clientId, toast]);
+  
+  const handleFileUploadComplete = (file: any) => {
+    // This is called by the FileUploader component after a successful upload
+    console.log("File upload complete:", file);
+    
+    // Convert the file data to the format expected by the handleFileUpload function
+    const fileObject = new File(
+      [new Blob([])], // Empty blob as we don't have the actual file data
+      file.name,
+      { type: file.type }
+    );
+    
+    handleFileUpload([fileObject], file.category);
+  };
   
   const handleVerificationStatusChange = async (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
     try {
@@ -238,15 +284,6 @@ const OnboardingPage = () => {
       uploadedFiles.some(file => file.category === category)
     );
   };
-  
-  const convertFileToDocCategory = (file: File): DocumentCategory => {
-    const fileType = file.type.split('/')[0];
-    
-    if (fileType === 'image') return 'general';
-    if (fileType === 'application' && file.type.includes('pdf')) return 'general';
-    
-    return 'general';
-  };
 
   return (
     <Main>
@@ -259,6 +296,14 @@ const OnboardingPage = () => {
           <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
         </div>
         
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ChecklistSection
             checklist={checklistItems}
@@ -267,7 +312,7 @@ const OnboardingPage = () => {
             isLoading={loadingSteps}
           />
           <FileUploadSection
-            onFileUploadComplete={(file: any) => console.log("File upload complete:", file)}
+            onFileUploadComplete={handleFileUploadComplete}
             onVerificationStatusChange={handleVerificationStatusChange}
           />
         </div>

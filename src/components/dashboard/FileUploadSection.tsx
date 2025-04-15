@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FileUploader } from "@/components/onboarding/FileUploader";
+import { FileUploader } from "@/components/FileUploader";
 
 interface FileUploadSectionProps {
   onFileUploadComplete: (file: any) => void;
