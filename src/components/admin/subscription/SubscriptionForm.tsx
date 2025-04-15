@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -246,7 +247,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
             type="button"
             variant="outline"
             onClick={() => navigate("/admin/subscriptions")}
-            className="flex items-center gap-1 text-primary-700 hover:bg-primary-50"
+            className="flex items-center gap-2 text-primary-700 hover:bg-primary-50"
           >
             <ArrowLeft size={16} /> Cancel
           </Button>
@@ -254,11 +255,11 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
             type="submit" 
             disabled={isSubmitting || !hasChanges} 
             className={`
-              bg-primary-700 
+              bg-brand-600 
               text-white 
-              hover:bg-primary-600 
+              hover:bg-brand-700 
               focus:ring-2 
-              focus:ring-primary-500 
+              focus:ring-brand-500 
               focus:ring-offset-2
               ${!hasChanges ? 'opacity-50 cursor-not-allowed' : ''}
             `}
