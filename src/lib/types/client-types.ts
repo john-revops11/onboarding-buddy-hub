@@ -1,101 +1,75 @@
 
-export interface SubscriptionTier {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  features?: string[]; // Add features array to the interface
-}
+// If this file doesn't exist, we'll create it
 
 export interface Addon {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   price: number;
   tags?: string[];
 }
 
-export interface TeamMember {
-  email: string;
-  invitationStatus: string;
-  userId?: string; // Added to link with auth.users
-}
-
-export interface OnboardingStep {
+export interface Subscription {
   id: string;
-  stepName: string;
-  stepOrder: number;
-  completed: boolean;
-  startedAt: string;
-  completedAt?: string;
+  name: string;
+  description: string;
+  price: number;
+  features?: string[];
 }
 
-export interface FileRecord {
+export interface OnboardingTemplateStep {
+  id?: string;
+  template_id?: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  required_document_categories?: string[];
+}
+
+export interface OnboardingTemplate {
   id: string;
-  fileName: string;
-  filePath: string;
-  fileSize: number;
-  fileType: string;
-  category?: string;
-  status: 'pending' | 'verified' | 'rejected';
-  uploadedAt: string;
-  verifiedAt?: string;
-  metadata?: Record<string, any>;
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+  is_default?: boolean;
+  steps?: OnboardingTemplateStep[];
 }
 
-export interface OnboardingClient {
+export interface SubscriptionTemplate {
   id: string;
-  email: string;
-  companyName?: string;
-  subscriptionTier: SubscriptionTier;
-  addons: Addon[];
-  teamMembers: TeamMember[];
-  status: string;
-  created_at: string;
-  onboardingProgress?: OnboardingStep[];
-  files?: FileRecord[];
-  assignedAdmin?: string;
-  notes?: string;
-  metadata?: Record<string, any>;
+  subscription_id: string;
+  template_id: string;
+  is_default: boolean;
+  created_at?: string;
 }
 
-export interface ClientCreationResult {
-  success: boolean;
-  clientId?: string;
-  error?: string;
+export interface AddonTemplateStep {
+  id?: string;
+  addon_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  required_document_categories?: string[];
 }
 
-// ClientFormValues type with required email in TeamMember
-export interface ClientFormValues {
-  email: string;
-  companyName?: string;
-  subscriptionTierId: string;
-  addons: string[];
-  teamMembers: { email: string }[];
-}
-
-// New type for tracking onboarding progress
 export interface OnboardingProgressRecord {
   clientId: string;
   stepName: string;
   stepOrder: number;
   completed: boolean;
-  startedAt: string;
+  startedAt?: string;
   completedAt?: string;
 }
 
-// Updated type for file uploads
-export interface FileUpload {
-  id: string;
-  clientId: string;
-  fileName: string;
-  filePath: string;
-  fileSize: number;
-  fileType: string;
-  category?: string;
-  status: 'pending' | 'verified' | 'rejected';
-  uploadedBy?: string;
-  uploadedAt: string;
-  verifiedAt?: string;
-  metadata?: Record<string, any>;
+export interface ClientOnboardingStep {
+  step_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  required_document_categories?: string[];
+  is_addon_step: boolean;
+  addon_id?: string;
+  addon_name?: string;
 }

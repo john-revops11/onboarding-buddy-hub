@@ -6,78 +6,60 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, ChevronRight, Save } from "lucide-react";
+import { CheckCircle, ChevronRight, Save, AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { 
-  completeOnboardingStep, 
-  getOnboardingProgress, 
-  shouldRedirectToDashboard 
-} from "@/utils/onboardingUtils";
 import { toast } from "@/hooks/use-toast";
-
-// Define onboarding steps
-const ONBOARDING_STEPS = [
-  {
-    id: "welcome",
-    title: "Welcome to Revify",
-    description: "Let's get you set up with Revify's powerful data analysis platform."
-  },
-  {
-    id: "contract",
-    title: "Contract & Terms",
-    description: "Review and agree to our terms of service."
-  },
-  {
-    id: "questionnaire",
-    title: "Data Questionnaire",
-    description: "Tell us about your data so we can better serve your needs."
-  },
-  {
-    id: "upload",
-    title: "Initial Data Upload",
-    description: "Upload your first dataset to get started."
-  },
-  {
-    id: "integration",
-    title: "Integration Setup",
-    description: "Configure any necessary integrations with your existing systems."
-  },
-  {
-    id: "training",
-    title: "Schedule Training",
-    description: "Schedule a training session for your team."
-  }
-];
+import { useChecklist } from "@/hooks/useChecklist";
+import { supabase } from "@/integrations/supabase/client";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { state } = useAuth();
-  const [activeStep, setActiveStep] = useState(ONBOARDING_STEPS[0].id);
-  const [progress, setProgress] = useState(getOnboardingProgress());
+  const userId = state?.user?.id || "demo-user";
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  
+  const {
+    checklist,
+    updateTaskCompletion,
+    areRequiredDocumentsUploaded,
+    getProgress,
+    isLoading
+  } = useChecklist(userId);
   
   // Redirect if onboarding is complete and client is active
   useEffect(() => {
-    if (shouldRedirectToDashboard()) {
-      toast({
-        title: "Onboarding Complete",
-        description: "You've completed onboarding and your account is now active."
-      });
-      navigate("/dashboard");
-    }
-  }, [navigate]);
+    const checkClientStatus = async () => {
+      if (userId && userId !== "demo-user") {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('onboarding_completed, status')
+          .eq('id', userId)
+          .single();
+        
+        if (!error && data && data.onboarding_completed && data.status === 'active') {
+          toast({
+            title: "Onboarding Complete",
+            description: "You've completed onboarding and your account is now active."
+          });
+          navigate("/dashboard");
+        }
+      }
+    };
+    
+    checkClientStatus();
+  }, [navigate, userId]);
   
   const handleContinue = () => {
-    const currentIndex = ONBOARDING_STEPS.findIndex(step => step.id === activeStep);
+    const currentStep = checklist[activeStepIndex];
     
     // Mark the current step as complete
-    completeOnboardingStep(currentIndex);
-    
-    // Update progress
-    setProgress(getOnboardingProgress());
+    if (currentStep && !currentStep.completed) {
+      updateTaskCompletion(currentStep.id, true);
+    }
     
     // Move to next step if not at the end
-    if (currentIndex < ONBOARDING_STEPS.length - 1) {
-      setActiveStep(ONBOARDING_STEPS[currentIndex + 1].id);
+    if (activeStepIndex < checklist.length - 1) {
+      setActiveStepIndex(activeStepIndex + 1);
     } else {
       toast({
         title: "Onboarding Steps Completed",
@@ -94,12 +76,29 @@ const OnboardingPage = () => {
     navigate("/dashboard");
   };
   
-  // Get the current step index
-  const currentStepIndex = ONBOARDING_STEPS.findIndex(step => step.id === activeStep);
-  const isLastStep = currentStepIndex === ONBOARDING_STEPS.length - 1;
+  // Get the current step
+  const currentStep = checklist[activeStepIndex] || {};
+  const isLastStep = activeStepIndex === checklist.length - 1;
   
   // Check if current step is completed
-  const isCurrentStepCompleted = currentStepIndex < progress.completedCount;
+  const isCurrentStepCompleted = currentStep?.completed || false;
+  
+  // Get progress percentage
+  const progress = getProgress();
+  const completedCount = checklist.filter(item => item.completed).length;
+  
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="container max-w-5xl py-6 flex justify-center items-center min-h-[70vh]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-lg font-medium">Loading your onboarding checklist...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   return (
     <DashboardLayout>
@@ -121,36 +120,36 @@ const OnboardingPage = () => {
                 </CardDescription>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold">{progress.progress}%</div>
+                <div className="text-2xl font-bold">{progress}%</div>
                 <div className="text-sm text-muted-foreground">
-                  {progress.completedCount} of {progress.totalSteps} steps completed
+                  {completedCount} of {checklist.length} steps completed
                 </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Progress value={progress.progress} className="h-2 mb-6" />
+            <Progress value={progress} className="h-2 mb-6" />
             
             <div className="grid gap-4">
-              {ONBOARDING_STEPS.map((step, index) => (
+              {checklist.map((step, index) => (
                 <button
                   key={step.id}
                   className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                    activeStep === step.id 
+                    activeStepIndex === index 
                       ? "border-primary bg-primary/5" 
-                      : index < progress.completedCount 
+                      : index < completedCount 
                         ? "border-green-200 bg-green-50"
                         : "border-muted-foreground/20"
                   }`}
-                  onClick={() => setActiveStep(step.id)}
+                  onClick={() => setActiveStepIndex(index)}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      index < progress.completedCount 
+                      step.completed 
                         ? "bg-green-100 text-green-600" 
                         : "bg-muted-foreground/10 text-muted-foreground"
                     }`}>
-                      {index < progress.completedCount ? (
+                      {step.completed ? (
                         <CheckCircle className="h-5 w-5" />
                       ) : (
                         <span>{index + 1}</span>
@@ -159,9 +158,16 @@ const OnboardingPage = () => {
                     <div className="text-left">
                       <div className="font-medium">{step.title}</div>
                       <div className="text-sm text-muted-foreground">{step.description}</div>
+                      {step.isAddonStep && step.addonName && (
+                        <div className="mt-1">
+                          <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                            {step.addonName} Add-on
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {activeStep === step.id && (
+                  {activeStepIndex === index && (
                     <ChevronRight className="h-5 w-5 text-primary" />
                   )}
                 </button>
@@ -173,7 +179,10 @@ const OnboardingPage = () => {
               <Save className="mr-2 h-4 w-4" />
               Finish Later
             </Button>
-            <Button onClick={handleContinue} disabled={isLastStep && isCurrentStepCompleted}>
+            <Button 
+              onClick={handleContinue} 
+              disabled={isLastStep && isCurrentStepCompleted}
+            >
               {isLastStep ? "Complete Onboarding" : "Continue"}
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
@@ -182,9 +191,9 @@ const OnboardingPage = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle>{ONBOARDING_STEPS[currentStepIndex].title}</CardTitle>
+            <CardTitle>{currentStep.title || "Welcome"}</CardTitle>
             <CardDescription>
-              {ONBOARDING_STEPS[currentStepIndex].description}
+              {currentStep.description || "Complete the onboarding steps to get started."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -197,62 +206,55 @@ const OnboardingPage = () => {
               
               <TabsContent value="form" className="space-y-4">
                 {/* This would be replaced with actual form components for each step */}
-                <div className="min-h-[200px] border rounded-lg p-6 flex items-center justify-center">
-                  {activeStep === "welcome" && (
-                    <div className="text-center space-y-4">
-                      <h2 className="text-2xl font-bold">Welcome to Revify!</h2>
-                      <p className="text-muted-foreground max-w-md mx-auto">
-                        We're excited to have you onboard. Complete this onboarding process
-                        to get started with our powerful data analysis platform.
-                      </p>
+                <div className="min-h-[200px] border rounded-lg p-6">
+                  {currentStep.requiredDocuments && currentStep.requiredDocuments.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-amber-600">
+                        <AlertCircle className="h-5 w-5" />
+                        <p className="font-medium">This step requires document uploads</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <p className="font-medium">Required documents:</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {currentStep.requiredDocuments.map((doc, i) => (
+                            <li key={i} className="text-muted-foreground">
+                              {doc.replace(/_/g, ' ')}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <Button
+                        onClick={() => navigate("/dashboard/documents")}
+                        className="mt-4"
+                      >
+                        Upload Documents
+                      </Button>
                     </div>
-                  )}
-                  
-                  {activeStep === "contract" && (
-                    <div className="space-y-4 w-full">
-                      <h2 className="text-xl font-semibold">Terms of Service</h2>
-                      <div className="bg-muted p-4 rounded-lg h-40 overflow-y-auto text-sm">
-                        <p>
-                          This is a placeholder for the Terms of Service document.
-                          In a real implementation, this would include the actual legal text.
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center space-y-4 max-w-md">
+                        <h2 className="text-xl font-semibold">{currentStep.title || "Welcome to Revify"}</h2>
+                        <p className="text-muted-foreground">
+                          {currentStep.description || "Complete this step to continue with your onboarding process."}
                         </p>
+                        
+                        {currentStep.isAddonStep && currentStep.addonName && (
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                            <p className="text-blue-700">
+                              This step is required for the {currentStep.addonName} add-on you selected.
+                            </p>
+                          </div>
+                        )}
+                        
+                        <Button
+                          onClick={handleContinue}
+                          className="mt-4"
+                        >
+                          {currentStep.completed ? "Already Completed" : "Mark as Complete"}
+                        </Button>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="agree" className="rounded" />
-                        <label htmlFor="agree">I agree to the terms and conditions</label>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {activeStep === "questionnaire" && (
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        This is where the data questionnaire form would appear.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {activeStep === "upload" && (
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        This is where the data upload interface would appear.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {activeStep === "integration" && (
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        This is where the integration setup options would appear.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {activeStep === "training" && (
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        This is where the training scheduling interface would appear.
-                      </p>
                     </div>
                   )}
                 </div>

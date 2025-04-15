@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, Copy, ArrowUp, ArrowDown, AlertCircle, CheckCircle, X } from "lucide-react";
+import { Plus, Edit, Trash2, Copy, ArrowUp, ArrowDown, AlertCircle, CheckCircle, X, LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { 
@@ -45,23 +47,38 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
   getOnboardingTemplates, 
-  saveOnboardingTemplate,
-  deleteOnboardingTemplate 
-} from "@/utils/onboardingUtils";
+  getTemplateWithSteps,
+  createOnboardingTemplate, 
+  updateOnboardingTemplate, 
+  deleteOnboardingTemplate,
+  linkTemplateToSubscription
+} from "@/lib/template-management";
+import { OnboardingTemplate, OnboardingTemplateStep } from "@/lib/types/client-types";
+import { getSubscriptions } from "@/lib/subscription-management";
 
 // Step schema
 const stepSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Step title is required"),
-  description: z.string().min(1, "Step description is required"),
+  description: z.string().optional(),
+  order_index: z.number().int().positive().default(1),
+  required_document_categories: z.array(z.string()).optional(),
 });
 
 // Template schema
 const templateSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Template name is required"),
-  description: z.string().min(1, "Template description is required"),
+  description: z.string().optional(),
+  is_default: z.boolean().default(false),
   steps: z.array(stepSchema).min(1, "At least one step is required"),
 });
 
@@ -70,21 +87,27 @@ type StepFormValues = z.infer<typeof stepSchema>;
 
 export function OnboardingTemplateManager() {
   const { toast } = useToast();
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<OnboardingTemplate[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentTemplate, setCurrentTemplate] = useState<any | null>(null);
+  const [currentTemplate, setCurrentTemplate] = useState<OnboardingTemplate | null>(null);
   const [showStepDialog, setShowStepDialog] = useState(false);
-  const [stepToEdit, setStepToEdit] = useState<any | null>(null);
+  const [stepToEdit, setStepToEdit] = useState<OnboardingTemplateStep | null>(null);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<string | null>(null);
   
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
       name: "",
       description: "",
+      is_default: false,
       steps: [],
     },
   });
@@ -94,18 +117,37 @@ export function OnboardingTemplateManager() {
     defaultValues: {
       title: "",
       description: "",
+      order_index: 1,
+      required_document_categories: [],
     },
   });
 
-  // Load templates on mount
+  // Load templates and subscriptions on mount
   useEffect(() => {
-    loadTemplates();
+    loadTemplatesAndSubscriptions();
   }, []);
 
-  // Load templates from localStorage (or API in real implementation)
-  const loadTemplates = () => {
-    const loadedTemplates = getOnboardingTemplates();
-    setTemplates(loadedTemplates);
+  // Load templates from database
+  const loadTemplatesAndSubscriptions = async () => {
+    setIsLoading(true);
+    try {
+      const [templatesData, subscriptionsData] = await Promise.all([
+        getOnboardingTemplates(),
+        getSubscriptions()
+      ]);
+      
+      setTemplates(templatesData);
+      setSubscriptions(subscriptionsData);
+    } catch (error) {
+      console.error("Error loading data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load templates and subscriptions.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Open template form for creating a new template
@@ -113,6 +155,7 @@ export function OnboardingTemplateManager() {
     form.reset({
       name: "",
       description: "",
+      is_default: false,
       steps: [],
     });
     setIsEditing(false);
@@ -121,35 +164,105 @@ export function OnboardingTemplateManager() {
   };
 
   // Open template form for editing an existing template
-  const handleEditTemplate = (template: any) => {
-    form.reset({
-      id: template.id,
-      name: template.name,
-      description: template.description,
-      steps: template.steps,
-    });
-    setIsEditing(true);
-    setCurrentTemplate(template);
-    setShowTemplateDialog(true);
+  const handleEditTemplate = async (templateId: string) => {
+    try {
+      setIsLoading(true);
+      const template = await getTemplateWithSteps(templateId);
+      
+      if (template) {
+        form.reset({
+          id: template.id,
+          name: template.name,
+          description: template.description || "",
+          is_default: template.is_default || false,
+          steps: template.steps || [],
+        });
+        setIsEditing(true);
+        setCurrentTemplate(template);
+        setShowTemplateDialog(true);
+      }
+    } catch (error) {
+      console.error("Error loading template for edit:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load template details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Duplicate an existing template
-  const handleDuplicateTemplate = (template: any) => {
-    const newTemplate = {
-      ...template,
-      id: undefined,
-      name: `${template.name} (Copy)`,
-    };
+  const handleDuplicateTemplate = async (templateId: string) => {
+    try {
+      setIsLoading(true);
+      const template = await getTemplateWithSteps(templateId);
+      
+      if (template) {
+        form.reset({
+          name: `${template.name} (Copy)`,
+          description: template.description || "",
+          is_default: false,
+          steps: template.steps || [],
+        });
+        setIsEditing(false);
+        setCurrentTemplate(null);
+        setShowTemplateDialog(true);
+        
+        toast({
+          title: "Template duplicated",
+          description: "You can now edit the duplicated template.",
+        });
+      }
+    } catch (error) {
+      console.error("Error duplicating template:", error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate template.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Open dialog to link template to subscription
+  const handleLinkTemplateToSubscription = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setSelectedSubscriptionId(null);
+    setShowLinkDialog(true);
+  };
+
+  // Link template to subscription
+  const handleSaveLinkToSubscription = async () => {
+    if (!selectedTemplateId || !selectedSubscriptionId) {
+      toast({
+        title: "Error",
+        description: "Please select a subscription tier.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    form.reset(newTemplate);
-    setIsEditing(false);
-    setCurrentTemplate(null);
-    setShowTemplateDialog(true);
-    
-    toast({
-      title: "Template duplicated",
-      description: "You can now edit the duplicated template.",
-    });
+    try {
+      const result = await linkTemplateToSubscription(selectedSubscriptionId, selectedTemplateId, true);
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Template linked to subscription tier.",
+        });
+        setShowLinkDialog(false);
+      }
+    } catch (error) {
+      console.error("Error linking template to subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to link template to subscription.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Open delete confirmation dialog
@@ -159,18 +272,35 @@ export function OnboardingTemplateManager() {
   };
 
   // Delete template after confirmation
-  const handleDeleteTemplate = () => {
+  const handleDeleteTemplate = async () => {
     if (templateToDelete) {
-      deleteOnboardingTemplate(templateToDelete);
-      loadTemplates();
-      
-      toast({
-        title: "Template deleted",
-        description: "The template has been deleted successfully.",
-      });
-      
-      setShowDeleteDialog(false);
-      setTemplateToDelete(null);
+      try {
+        setIsLoading(true);
+        const success = await deleteOnboardingTemplate(templateToDelete);
+        
+        if (success) {
+          // Refresh templates list
+          loadTemplatesAndSubscriptions();
+          
+          toast({
+            title: "Template deleted",
+            description: "The template has been deleted successfully.",
+          });
+        } else {
+          throw new Error("Failed to delete template");
+        }
+      } catch (error) {
+        console.error("Error deleting template:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete template.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+        setShowDeleteDialog(false);
+        setTemplateToDelete(null);
+      }
     }
   };
 
@@ -179,6 +309,8 @@ export function OnboardingTemplateManager() {
     stepForm.reset({
       title: "",
       description: "",
+      order_index: (form.getValues("steps")?.length || 0) + 1,
+      required_document_categories: [],
     });
     setStepToEdit(null);
     setStepIndex(null);
@@ -186,10 +318,13 @@ export function OnboardingTemplateManager() {
   };
 
   // Open step dialog for editing an existing step
-  const handleEditStep = (step: any, index: number) => {
+  const handleEditStep = (step: OnboardingTemplateStep, index: number) => {
     stepForm.reset({
+      id: step.id,
       title: step.title,
-      description: step.description,
+      description: step.description || "",
+      order_index: step.order_index,
+      required_document_categories: step.required_document_categories || [],
     });
     setStepToEdit(step);
     setStepIndex(index);
@@ -220,9 +355,16 @@ export function OnboardingTemplateManager() {
     
     const currentSteps = form.getValues("steps");
     const newSteps = [...currentSteps];
+    
+    // Swap the steps
     const temp = newSteps[index];
     newSteps[index] = newSteps[index - 1];
     newSteps[index - 1] = temp;
+    
+    // Update order_index values
+    newSteps.forEach((step, i) => {
+      step.order_index = i + 1;
+    });
     
     form.setValue("steps", newSteps);
   };
@@ -234,9 +376,16 @@ export function OnboardingTemplateManager() {
     if (index === currentSteps.length - 1) return;
     
     const newSteps = [...currentSteps];
+    
+    // Swap the steps
     const temp = newSteps[index];
     newSteps[index] = newSteps[index + 1];
     newSteps[index + 1] = temp;
+    
+    // Update order_index values
+    newSteps.forEach((step, i) => {
+      step.order_index = i + 1;
+    });
     
     form.setValue("steps", newSteps);
   };
@@ -250,7 +399,7 @@ export function OnboardingTemplateManager() {
       const newSteps = [...currentSteps];
       newSteps[stepIndex] = {
         ...data,
-        id: stepToEdit?.id || `step-${Date.now()}`,
+        id: stepToEdit?.id || `step-${Date.now()}`
       };
       form.setValue("steps", newSteps);
     } else {
@@ -259,8 +408,8 @@ export function OnboardingTemplateManager() {
         ...currentSteps,
         {
           ...data,
-          id: `step-${Date.now()}`,
-        },
+          id: `step-${Date.now()}`
+        }
       ]);
     }
     
@@ -269,39 +418,52 @@ export function OnboardingTemplateManager() {
   };
 
   // Save the template
-  const onTemplateSubmit = (data: TemplateFormValues) => {
+  const onTemplateSubmit = async (data: TemplateFormValues) => {
     try {
-      // Ensure each step has an ID
-      const stepsWithIds = data.steps.map(step => ({
+      setIsLoading(true);
+      
+      // Ensure steps have correct order indexes
+      const stepsWithCorrectOrder = data.steps.map((step, index) => ({
         ...step,
-        id: step.id || `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        order_index: index + 1
       }));
       
-      const templateToSave = {
-        ...data,
-        id: data.id || undefined,
-        steps: stepsWithIds,
-      };
+      let result;
       
-      // Save template to localStorage (or API in real implementation)
-      saveOnboardingTemplate(templateToSave);
+      if (isEditing && currentTemplate) {
+        // Update existing template
+        result = await updateOnboardingTemplate(currentTemplate.id, {
+          ...data,
+          steps: stepsWithCorrectOrder
+        });
+      } else {
+        // Create new template
+        result = await createOnboardingTemplate({
+          ...data,
+          steps: stepsWithCorrectOrder
+        });
+      }
       
-      // Reload templates
-      loadTemplates();
-      
-      // Show success message
-      toast({
-        title: isEditing ? "Template updated" : "Template created",
-        description: isEditing 
-          ? "The template has been updated successfully." 
-          : "The template has been created successfully.",
-      });
-      
-      // Reset form and state
-      form.reset();
-      setShowTemplateDialog(false);
-      setIsEditing(false);
-      setCurrentTemplate(null);
+      if (result) {
+        // Refresh templates list
+        loadTemplatesAndSubscriptions();
+        
+        // Show success message
+        toast({
+          title: isEditing ? "Template updated" : "Template created",
+          description: isEditing 
+            ? "The template has been updated successfully." 
+            : "The template has been created successfully.",
+        });
+        
+        // Reset form and state
+        form.reset();
+        setShowTemplateDialog(false);
+        setIsEditing(false);
+        setCurrentTemplate(null);
+      } else {
+        throw new Error("Failed to save template");
+      }
     } catch (error) {
       console.error("Error saving template:", error);
       toast({
@@ -309,6 +471,8 @@ export function OnboardingTemplateManager() {
         description: "Failed to save template. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -316,13 +480,17 @@ export function OnboardingTemplateManager() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Onboarding Templates</h2>
-        <Button onClick={handleAddTemplate}>
+        <Button onClick={handleAddTemplate} disabled={isLoading}>
           <Plus className="h-4 w-4 mr-2" />
           Add Template
         </Button>
       </div>
       
-      {templates.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : templates.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
@@ -342,12 +510,17 @@ export function OnboardingTemplateManager() {
           {templates.map((template) => (
             <Card key={template.id}>
               <CardHeader className="pb-2">
-                <CardTitle>{template.name}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{template.name}</CardTitle>
+                  {template.is_default && (
+                    <Badge variant="secondary">Default</Badge>
+                  )}
+                </div>
                 <CardDescription>{template.description}</CardDescription>
               </CardHeader>
               <CardContent className="pb-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Badge variant="outline">{template.steps.length} Steps</Badge>
+                  <Badge variant="outline">{template.steps?.length || 0} Steps</Badge>
                 </div>
                 
                 <Accordion type="single" collapsible className="w-full">
@@ -355,7 +528,7 @@ export function OnboardingTemplateManager() {
                     <AccordionTrigger>View Steps</AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-2 mt-2">
-                        {template.steps.map((step: any, index: number) => (
+                        {template.steps && template.steps.map((step, index) => (
                           <div 
                             key={step.id} 
                             className="p-3 border rounded-md bg-muted/30"
@@ -366,6 +539,15 @@ export function OnboardingTemplateManager() {
                             <p className="text-sm text-muted-foreground mt-1">
                               {step.description}
                             </p>
+                            {step.required_document_categories && step.required_document_categories.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {step.required_document_categories.map((category) => (
+                                  <Badge key={category} variant="outline" className="text-xs">
+                                    {category.replace('_', ' ')}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -378,7 +560,16 @@ export function OnboardingTemplateManager() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDuplicateTemplate(template)}
+                    onClick={() => handleLinkTemplateToSubscription(template.id)}
+                  >
+                    <LinkIcon className="h-4 w-4 mr-1" />
+                    Link to Tier
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDuplicateTemplate(template.id)}
+                    disabled={isLoading}
                   >
                     <Copy className="h-4 w-4 mr-1" />
                     Duplicate
@@ -386,7 +577,8 @@ export function OnboardingTemplateManager() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleEditTemplate(template)}
+                    onClick={() => handleEditTemplate(template.id)}
+                    disabled={isLoading}
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
@@ -396,6 +588,7 @@ export function OnboardingTemplateManager() {
                     size="sm"
                     onClick={() => handleConfirmDelete(template.id)}
                     className="text-destructive border-destructive hover:bg-destructive/10"
+                    disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Delete
@@ -456,6 +649,27 @@ export function OnboardingTemplateManager() {
                   )}
                 />
                 
+                <FormField
+                  control={form.control}
+                  name="is_default"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Default Template</FormLabel>
+                        <FormDescription>
+                          Make this the default template for new clients
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <FormLabel className="text-base">Onboarding Steps</FormLabel>
@@ -497,6 +711,15 @@ export function OnboardingTemplateManager() {
                                         <p className="text-sm text-muted-foreground truncate max-w-[300px]">
                                           {step.description}
                                         </p>
+                                        {step.required_document_categories && step.required_document_categories.length > 0 && (
+                                          <div className="mt-1 flex flex-wrap gap-1">
+                                            {step.required_document_categories.map((category) => (
+                                              <Badge key={category} variant="outline" className="text-xs">
+                                                {category.replace('_', ' ')}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        )}
                                       </div>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -572,11 +795,17 @@ export function OnboardingTemplateManager() {
                   type="button" 
                   variant="outline" 
                   onClick={() => setShowTemplateDialog(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {isEditing ? "Update Template" : "Create Template"}
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                      Saving...
+                    </>
+                  ) : isEditing ? "Update Template" : "Create Template"}
                 </Button>
               </DialogFooter>
             </form>
@@ -632,6 +861,39 @@ export function OnboardingTemplateManager() {
                 )}
               />
               
+              <FormField
+                control={stepForm.control}
+                name="required_document_categories"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Required Documents</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                      {["id_verification", "address_proof", "business_certificate", "tax_document", "contract_agreement", "company_logo"].map((category) => (
+                        <Badge 
+                          key={category}
+                          variant={field.value?.includes(category) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const currentCategories = field.value || [];
+                            if (currentCategories.includes(category)) {
+                              field.onChange(currentCategories.filter(cat => cat !== category));
+                            } else {
+                              field.onChange([...currentCategories, category]);
+                            }
+                          }}
+                        >
+                          {category.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+                    <FormDescription>
+                      Select any documents required to complete this step
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
               <DialogFooter>
                 <Button 
                   type="button" 
@@ -646,6 +908,51 @@ export function OnboardingTemplateManager() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Link Template to Subscription Dialog */}
+      <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link Template to Subscription</DialogTitle>
+            <DialogDescription>
+              Associate this template with a subscription tier to automatically assign it to clients.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subscription Tier</label>
+              <Select value={selectedSubscriptionId || ""} onValueChange={setSelectedSubscriptionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a subscription tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subscriptions.map((subscription) => (
+                    <SelectItem key={subscription.id} value={subscription.id}>
+                      {subscription.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                This will set the template as the default for new clients with this subscription.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLinkDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveLinkToSubscription} disabled={!selectedSubscriptionId}>
+              Link Template
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       

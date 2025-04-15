@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      addon_template_steps: {
+        Row: {
+          addon_id: string
+          description: string | null
+          id: string
+          order_index: number
+          required_document_categories: string[] | null
+          title: string
+        }
+        Insert: {
+          addon_id: string
+          description?: string | null
+          id?: string
+          order_index: number
+          required_document_categories?: string[] | null
+          title: string
+        }
+        Update: {
+          addon_id?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          required_document_categories?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_template_steps_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       addons: {
         Row: {
           created_at: string
@@ -447,6 +482,71 @@ export type Database = {
           },
         ]
       }
+      onboarding_template_steps: {
+        Row: {
+          description: string | null
+          id: string
+          order_index: number
+          required_document_categories: string[] | null
+          template_id: string
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          order_index: number
+          required_document_categories?: string[] | null
+          template_id: string
+          title: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          order_index?: number
+          required_document_categories?: string[] | null
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_template_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -479,6 +579,45 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      subscription_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          subscription_id: string
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          subscription_id: string
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          subscription_id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_templates_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -683,6 +822,19 @@ export type Database = {
         Returns: {
           tier_name: string
           addon_count: number
+        }[]
+      }
+      get_client_template_steps: {
+        Args: { client_id: string }
+        Returns: {
+          step_id: string
+          title: string
+          description: string
+          order_index: number
+          required_document_categories: string[]
+          is_addon_step: boolean
+          addon_id: string
+          addon_name: string
         }[]
       }
       get_secret: {
