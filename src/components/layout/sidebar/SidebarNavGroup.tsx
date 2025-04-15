@@ -30,8 +30,8 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
         className={cn(
           "flex w-full items-center justify-between py-2 px-3 text-xs font-semibold uppercase tracking-wider transition-colors",
           isGroupActive 
-            ? "text-[#9b87f5] dark:text-[#7E69AB]" 
-            : "text-muted-foreground hover:text-primary-500/80"
+            ? "text-brand dark:text-brand/80" 
+            : "text-muted-foreground hover:text-brand/70"
         )}
       >
         <span>{title}</span>
@@ -55,8 +55,8 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
                   isActive 
-                    ? "bg-[#9b87f5]/10 text-[#9b87f5] font-semibold border-l-4 border-[#9b87f5]" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground border-l-4 border-transparent"
+                    ? "bg-brand/10 text-brand font-semibold border-l-4 border-brand" 
+                    : "text-sidebar-foreground hover:bg-brand/5 hover:text-brand border-l-4 border-transparent"
                 )}
               >
                 {IconComponent && (
@@ -65,8 +65,8 @@ export function SidebarNavGroup({ title, items, currentPath }: NavGroupProps) {
                     className={cn(
                       "transition-colors",
                       isActive 
-                        ? "text-[#9b87f5]" 
-                        : "text-muted-foreground group-hover:text-sidebar-accent"
+                        ? "text-brand" 
+                        : "text-muted-foreground group-hover:text-brand"
                     )}
                   />
                 )}

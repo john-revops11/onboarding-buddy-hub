@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -12,7 +11,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Add explicit primary color definitions for dark mode
         primary: {
           DEFAULT: 'var(--primary-600)',
           50: 'var(--primary-50)',
@@ -26,8 +24,21 @@ export default {
           800: 'var(--primary-800)',
           900: {
             DEFAULT: 'var(--primary-900)',
-            '20': 'rgba(var(--primary-900), 0.2)' // Add opacity variant
+            '20': 'rgba(var(--primary-900), 0.2)'
           }
+        },
+        brand: {
+          DEFAULT: '#5d842e',
+          50: 'rgba(93, 132, 46, 0.1)',
+          100: 'rgba(93, 132, 46, 0.2)',
+          200: 'rgba(93, 132, 46, 0.3)',
+          300: 'rgba(93, 132, 46, 0.4)',
+          400: 'rgba(93, 132, 46, 0.5)',
+          500: 'rgba(93, 132, 46, 0.6)',
+          600: '#5d842e',
+          700: 'rgba(93, 132, 46, 0.8)',
+          800: 'rgba(93, 132, 46, 0.9)',
+          900: 'rgba(93, 132, 46, 1)'
         }
       }
     }

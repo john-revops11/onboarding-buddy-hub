@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -11,7 +10,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#8ab454] text-white hover:bg-[#75a33d] focus-visible:ring-[#8ab454]/50 shadow-sm",
+        default: "bg-brand text-white hover:bg-brand/90 focus-visible:ring-brand/50 shadow-sm",
+        brand: "bg-brand text-white hover:bg-brand/90 focus-visible:ring-brand/50 shadow-sm",
+        "brand-outline": "border border-brand bg-transparent text-brand hover:bg-brand/10 focus-visible:ring-brand/50",
+        "brand-ghost": "text-brand hover:bg-brand/10 focus-visible:ring-brand/50",
         destructive:
           "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm",
         outline:
@@ -19,15 +21,10 @@ const buttonVariants = cva(
         secondary:
           "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 focus-visible:ring-neutral-400",
         ghost: "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-neutral-400",
-        link: "text-[#8ab454] underline-offset-4 hover:underline focus-visible:ring-[#8ab454]/50",
+        link: "text-brand underline-offset-4 hover:underline focus-visible:ring-brand/50",
         success: "bg-green-500 text-white hover:bg-green-600 focus-visible:ring-green-400 shadow-sm",
         warning: "bg-amber-500 text-white hover:bg-amber-600 focus-visible:ring-amber-400 shadow-sm",
         info: "bg-blue-500 text-white hover:bg-blue-600 focus-visible:ring-blue-400 shadow-sm",
-        
-        // Brand-specific variants
-        brand: "bg-[#8ab454] text-white hover:bg-[#75a33d] focus-visible:ring-[#8ab454]/50 shadow-sm",
-        "brand-outline": "border border-[#8ab454] bg-transparent text-[#8ab454] hover:bg-[#8ab454]/10 focus-visible:ring-[#8ab454]/50",
-        "brand-ghost": "text-[#8ab454] hover:bg-[#8ab454]/10 focus-visible:ring-[#8ab454]/50",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -74,7 +71,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const Comp = asChild ? Slot : "button"
     
-    // Button content with optional icon
     const buttonContent = (
       <>
         {isLoading && (
@@ -128,7 +124,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, isLoading, className }))}
         ref={ref}
         disabled={isLoading || props.disabled}
-        {...props as any} // Using type assertion to resolve the incompatible event handler types
+        {...props as any}
       >
         {buttonContent}
       </motion.button>
