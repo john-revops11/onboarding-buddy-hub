@@ -1,9 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingProgressRecord } from "@/lib/types/client-types";
+import { OnboardingProgressRecord, OnboardingClient, Subscription, Addon } from "@/lib/types/client-types";
 
 // Get all clients
-export async function getClients() {
+export async function getClients(): Promise<OnboardingClient[]> {
   try {
     const { data, error } = await supabase
       .from('clients')
@@ -20,15 +20,20 @@ export async function getClients() {
     
     return (data || []).map(client => {
       // Extract subscription data
-      const subscription = client.subscriptions ? {
+      const subscriptionTier: Subscription = client.subscriptions ? {
         id: client.subscriptions.id,
         name: client.subscriptions.name,
         price: client.subscriptions.price,
         description: client.subscriptions.description
-      } : null;
+      } : {
+        id: "default",
+        name: "Basic",
+        price: 0,
+        description: "Default subscription"
+      };
       
       // Extract add-ons data
-      const addons = (client.client_addons || [])
+      const addons: Addon[] = (client.client_addons || [])
         .map(item => item.addons)
         .filter(Boolean)
         .map(addon => ({
@@ -44,7 +49,7 @@ export async function getClients() {
         companyName: client.company_name,
         status: client.status,
         createdAt: client.created_at,
-        subscription,
+        subscriptionTier, // Ensure this property exists
         addons
       };
     });

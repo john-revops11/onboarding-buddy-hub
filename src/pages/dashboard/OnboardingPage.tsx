@@ -8,10 +8,11 @@ import { ChecklistSection } from "@/components/dashboard/ChecklistSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
 import { assignTemplateToClient, getClientOnboardingSteps, updateClientProgress } from "@/lib/client-management/onboarding-templates";
 import { getClientProgress } from "@/lib/client-management/client-query";
-import { ChecklistItem } from "@/types/onboarding";
+import { ChecklistItem, DocumentCategory } from "@/types/onboarding";
 import { useAuth } from "@/hooks/use-auth";
 import { uploadFile, getClientFiles, updateFileStatus } from "@/lib/client-management/file-upload";
 import { FileUpload } from "@/lib/types/client-types";
+import { OnboardingProgressRecord } from "@/lib/types/client-types";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -24,7 +25,6 @@ const OnboardingPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   
-  // Load client steps and files on mount
   useEffect(() => {
     if (clientId) {
       loadClientSteps();
@@ -32,14 +32,12 @@ const OnboardingPage = () => {
     }
   }, [clientId]);
   
-  // Assign template to client if not already assigned
   useEffect(() => {
     if (clientId) {
       assignTemplate();
     }
   }, [clientId]);
   
-  // Load client steps
   const assignTemplate = async () => {
     try {
       const assigned = await assignTemplateToClient(clientId);
@@ -66,7 +64,6 @@ const OnboardingPage = () => {
     }
   };
   
-  // Load client files
   const loadClientFiles = async () => {
     try {
       const files = await getClientFiles(clientId);
@@ -81,22 +78,19 @@ const OnboardingPage = () => {
     }
   };
 
-  // Update the problematic section where we're trying to access properties on empty objects
   const loadClientSteps = async () => {
     try {
       setLoadingSteps(true);
-      // Fetch the client's onboarding steps from the API
       const steps = await getClientOnboardingSteps(clientId);
       console.log("Loaded steps:", steps);
       
-      // Create checklist items from the steps
-      const checklist = steps.map(step => ({
+      const checklist: ChecklistItem[] = steps.map(step => ({
         id: step.step_id || `step-${Math.random().toString(36).substring(2, 9)}`,
         title: step.title || 'Untitled Step',
         description: step.description || '',
         order: step.order_index,
-        completed: false, // We'll update this from progress data
-        requiredDocuments: step.required_document_categories || [],
+        completed: false,
+        requiredDocuments: step.required_document_categories as DocumentCategory[] || [],
         isAddonStep: step.is_addon_step || false,
         addonId: step.addon_id,
         addonName: step.addon_name
@@ -104,13 +98,11 @@ const OnboardingPage = () => {
       
       setChecklistItems(checklist);
       
-      // Load progress data
-      const progress = await getClientProgress(clientId);
+      const progress: OnboardingProgressRecord[] = await getClientProgress(clientId);
       
-      // Update checklist item completion status
       if (progress && progress.length > 0) {
-        const updatedChecklist = checklist.map((item, index) => {
-          const stepProgress = progress.find(p => p.step_order === item.order);
+        const updatedChecklist = checklist.map((item) => {
+          const stepProgress = progress.find(p => p.stepOrder === item.order);
           if (stepProgress) {
             return {
               ...item,
@@ -134,10 +126,8 @@ const OnboardingPage = () => {
     }
   };
   
-  // Handle task completion
   const handleCompleteTask = async (id: string, isCompleted: boolean = true) => {
     try {
-      // Find the checklist item by ID
       const task = checklistItems.find((item) => item.id === id);
       
       if (!task) {
@@ -145,13 +135,11 @@ const OnboardingPage = () => {
         return;
       }
       
-      // Optimistically update the checklist item
       const updatedChecklist = checklistItems.map((item) =>
         item.id === id ? { ...item, completed: isCompleted } : item
       );
       setChecklistItems(updatedChecklist);
       
-      // Call the API to update the task completion status
       const success = await updateClientProgress(clientId, task.order, isCompleted);
       
       if (!success) {
@@ -161,7 +149,6 @@ const OnboardingPage = () => {
           variant: "destructive",
         });
         
-        // Revert the optimistic update if the API call fails
         setChecklistItems(checklistItems);
       }
     } catch (error) {
@@ -172,12 +159,10 @@ const OnboardingPage = () => {
         variant: "destructive",
       });
       
-      // Revert the optimistic update if an error occurs
       setChecklistItems(checklistItems);
     }
   };
   
-  // Handle file upload
   const handleFileUpload = useCallback(async (files: File[], category: string) => {
     if (!clientId) {
       toast({
@@ -201,7 +186,6 @@ const OnboardingPage = () => {
             description: `${files[0].name} has been uploaded successfully.`,
           });
           
-          // Refresh file list
           await loadClientFiles();
         } else {
           throw new Error("Failed to upload file");
@@ -220,7 +204,6 @@ const OnboardingPage = () => {
     }
   }, [clientId, toast, loadClientFiles]);
   
-  // Handle file verification status change
   const handleVerificationStatusChange = async (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
     try {
       const success = await updateFileStatus(fileId, status);
@@ -231,7 +214,6 @@ const OnboardingPage = () => {
           description: `File status updated to ${status}.`,
         });
         
-        // Refresh file list
         await loadClientFiles();
       } else {
         throw new Error("Failed to update file status");
@@ -246,10 +228,9 @@ const OnboardingPage = () => {
     }
   };
   
-  // Check if required documents are uploaded for a task
   const areRequiredDocumentsUploaded = (task: ChecklistItem) => {
     if (!task.requiredDocuments || task.requiredDocuments.length === 0) {
-      return true; // No required documents, so consider it uploaded
+      return true;
     }
     
     return task.requiredDocuments.every(category =>

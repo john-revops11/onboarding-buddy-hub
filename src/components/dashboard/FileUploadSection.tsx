@@ -1,5 +1,5 @@
 
-import React from "react";
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -7,26 +7,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FileUp } from "lucide-react";
-import { FileUploader } from "@/components/dashboard/FileUploader";
+import { FileUploader } from "@/components/onboarding/FileUploader";
 
 interface FileUploadSectionProps {
   onFileUploadComplete: (file: any) => void;
   onVerificationStatusChange: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
 }
 
-export const FileUploadSection = ({
+export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   onFileUploadComplete,
-  onVerificationStatusChange,
-}: FileUploadSectionProps) => {
+  onVerificationStatusChange
+}) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileUp className="h-5 w-5" /> Document Upload
-        </CardTitle>
+        <CardTitle>Document Upload</CardTitle>
         <CardDescription>
-          Upload required documents for your onboarding process
+          Upload your required documents for verification
         </CardDescription>
       </CardHeader>
       <CardContent>

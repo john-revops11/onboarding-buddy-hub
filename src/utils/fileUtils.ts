@@ -1,4 +1,3 @@
-
 import { UploadedFile, DocumentCategory } from "@/types/onboarding";
 
 // Get all uploaded files
@@ -37,20 +36,26 @@ export async function deleteFile(fileId: string): Promise<boolean> {
 }
 
 // Upload file
-export async function uploadFile(file: File, userId: string, category: DocumentCategory): Promise<UploadedFile> {
-  // Mock implementation
-  return {
-    id: `file-${Date.now()}`,
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    url: URL.createObjectURL(file),
-    category: category,
-    uploadedAt: new Date().toISOString(),
-    status: 'pending',
-    userId: userId,
-    userEmail: 'user@example.com'
-  };
+export async function uploadFile(clientId: string, file: File, category: DocumentCategory): Promise<UploadedFile | null> {
+  try {
+    // Mock implementation
+    console.log(`Uploading file ${file.name} for client ${clientId} in category ${category}`);
+    return {
+      id: `file-${Date.now()}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+      category: category,
+      uploadedAt: new Date().toISOString(),
+      status: 'pending',
+      userId: clientId,
+      userEmail: 'user@example.com'
+    };
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    return null;
+  }
 }
 
 // Add compatibility functions for useChecklist.tsx

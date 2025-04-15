@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import { OnboardingClient } from "@/lib/types/client-types";
@@ -43,7 +42,6 @@ export function useClientManagement() {
           description: "The client's onboarding has been marked as complete."
         });
         
-        // Update the client status in the UI
         setClients(prevClients => 
           prevClients.map(client => 
             client.id === id 
@@ -68,11 +66,9 @@ export function useClientManagement() {
   };
 
   const getClientProgress = (client: OnboardingClient): {progress: number, steps_completed: number, total_steps: number} => {
-    // Calculate progress based on completion of team invitations and onboarding steps
     const total_steps = 6;
     let steps_completed = 0;
     
-    // If we have actual onboarding progress data, use that
     if (client.onboardingProgress && client.onboardingProgress.length > 0) {
       const completedSteps = client.onboardingProgress.filter(step => step.completed).length;
       const totalSteps = client.onboardingProgress.length;
@@ -85,7 +81,6 @@ export function useClientManagement() {
       };
     }
     
-    // Fallback progress calculation
     if (client.email) steps_completed++;
     if (client.companyName) steps_completed++;
     if (client.subscriptionTier.id) steps_completed++;

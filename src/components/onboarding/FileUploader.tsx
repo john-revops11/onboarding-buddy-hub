@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UploadCloud, File, X, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,23 +20,40 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
-interface FileUploaderProps {
+export interface FileUploaderProps {
   onUploadComplete?: (file: any) => void;
-  onVerificationStatusChange?: (status: any) => void;
+  onVerificationStatusChange?: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
   categories?: DocumentCategory[];
+  // Add these props to match the DataUploadsPage interface
+  uploading?: boolean;
+  uploadProgress?: number;
+  onUpload?: (files: File[]) => Promise<void>;
+  acceptedFileTypes?: string;
+  helpText?: string;
 }
 
 export function FileUploader({ 
   onUploadComplete, 
   onVerificationStatusChange,
-  categories = Object.keys(DOCUMENT_CATEGORIES) as DocumentCategory[]
+  categories = Object.keys(DOCUMENT_CATEGORIES) as DocumentCategory[],
+  uploading: externalUploading,
+  uploadProgress: externalProgress,
+  onUpload,
+  acceptedFileTypes,
+  helpText
 }: FileUploaderProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("general");
+  const [internalUploadProgress, setInternalUploadProgress] = useState(0);
+  
   const userId = user?.id || "demo-user";
+  
+  // Use either external or internal state for uploading status
+  const uploading = externalUploading !== undefined ? externalUploading : isUploading;
+  const uploadProgress = externalProgress !== undefined ? externalProgress : internalUploadProgress;
   
   // Load existing files on component mount
   useEffect(() => {
@@ -60,25 +76,37 @@ export function FileUploader({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
-    const file = e.target.files[0];
+    const fileArray = Array.from(e.target.files);
+    
+    // If external upload handler is provided, use it
+    if (onUpload) {
+      await onUpload(fileArray);
+      return;
+    }
+    
+    const file = fileArray[0];
     setIsUploading(true);
     
     try {
       // Upload the file with category
-      const uploadedFile = await uploadFile(file, userId, selectedCategory);
+      const uploadedFile = await uploadFile(userId, file, selectedCategory);
       
       // Update local state
-      setFiles(prev => [...prev, uploadedFile]);
+      if (uploadedFile) {
+        setFiles(prev => [...prev, uploadedFile]);
       
-      // Notify parent component
-      if (onUploadComplete) {
-        onUploadComplete(uploadedFile);
+        // Notify parent component
+        if (onUploadComplete) {
+          onUploadComplete(uploadedFile);
+        }
+        
+        toast({
+          title: "File uploaded",
+          description: `${file.name} has been uploaded as ${DOCUMENT_CATEGORIES[selectedCategory]} and is pending verification.`,
+        });
+      } else {
+        throw new Error("Failed to upload file");
       }
-      
-      toast({
-        title: "File uploaded",
-        description: `${file.name} has been uploaded as ${DOCUMENT_CATEGORIES[selectedCategory]} and is pending verification.`,
-      });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -128,8 +156,8 @@ export function FileUploader({
 
   // Calculate upload progress
   const verificationStatus = checkRequiredDocuments(userId, REQUIRED_DOCUMENTS);
-  const uploadedCount = verificationStatus.missing ? REQUIRED_DOCUMENTS.length - verificationStatus.missing.length : 0;
-  const uploadProgress = Math.round(
+  const uploadedCount = verificationStatus.uploaded ? verificationStatus.uploaded.length : 0;
+  const calculatedProgress = Math.round(
     (uploadedCount / REQUIRED_DOCUMENTS.length) * 100
   );
 
@@ -154,11 +182,11 @@ export function FileUploader({
 
         <div className="w-full md:w-auto">
           <Button 
-            disabled={isUploading} 
+            disabled={uploading} 
             className="w-full md:w-auto bg-[#68b046] hover:bg-[#72c90a]"
             onClick={() => document.getElementById('file-upload')?.click()}
           >
-            {isUploading ? (
+            {uploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Uploading...
@@ -175,7 +203,7 @@ export function FileUploader({
             id="file-upload"
             className="hidden"
             onChange={handleFileChange}
-            disabled={isUploading}
+            disabled={uploading}
           />
         </div>
       </div>

@@ -1,14 +1,12 @@
 
 import React from "react";
+import { cn } from "@/lib/utils";
 
-interface MainProps {
-  children: React.ReactNode;
-  className?: string;
-}
+interface MainProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export function Main({ children, className = "" }: MainProps) {
+export function Main({ className, children, ...props }: MainProps) {
   return (
-    <main className={`flex-1 overflow-auto ${className}`}>
+    <main className={cn("flex-1", className)} {...props}>
       {children}
     </main>
   );
