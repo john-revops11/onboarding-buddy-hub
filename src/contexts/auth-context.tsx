@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { AuthContextType, AuthState } from "./auth/types";
 import { authReducer, initialState } from "./auth/auth-reducer";
@@ -6,8 +5,8 @@ import { useAuthService } from "./auth/auth-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
 
-// Create the Auth Context
-const AuthContext = createContext<AuthContextType | null>(null);
+// Create and EXPORT the Auth Context
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 // Auth Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
