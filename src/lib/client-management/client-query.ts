@@ -83,3 +83,5 @@ export async function getClientProgress(clientId: string): Promise<OnboardingPro
     return [];
   }
 }
+
+export const getClients = getOnboardingClients;

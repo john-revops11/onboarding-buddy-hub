@@ -2,7 +2,7 @@
 import React, { createContext, useReducer, useEffect } from "react";
 import { AuthContextType, AuthState } from "./auth/types";
 import { authReducer, initialState } from "./auth/auth-reducer";
-import { useAuthService } from "./auth/auth-hooks";
+import { useAuthActions } from "./auth/auth-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,7 +16,7 @@ export { useAuth };
 // Auth Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const authServices = useAuthService(dispatch);
+  const authServices = useAuthActions(dispatch);
 
   useEffect(() => {
     // First set up the auth listener

@@ -228,3 +228,6 @@ export const useAuthActions = (dispatch: React.Dispatch<any>) => {
     clearError,
   };
 };
+
+// Add this alias for backward compatibility
+export const useAuthService = useAuthActions;
