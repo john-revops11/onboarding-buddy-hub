@@ -14,6 +14,11 @@ interface AddonsFormProps {
 }
 
 export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
+  // Create a handler to prevent direct binding to checked state
+  const handleToggle = (addonId: string) => {
+    toggleAddon(addonId);
+  };
+
   return (
     <CardContent className="pt-6">
       <FormLabel>Available Add-ons</FormLabel>
@@ -30,12 +35,16 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
                 ? "border-primary bg-primary/10"
                 : "hover:border-muted-foreground"
             }`}
-            onClick={() => toggleAddon(addon.id)}
+            onClick={() => handleToggle(addon.id)}
           >
             <div className="flex items-start gap-3">
               <Checkbox
                 checked={selectedAddons.includes(addon.id)}
-                onCheckedChange={() => toggleAddon(addon.id)}
+                onCheckedChange={() => {
+                  // The checkbox's onChange handler should not directly set state
+                  // We're using this indirection to break the infinite loop
+                }}
+                id={`addon-${addon.id}`}
               />
               <div>
                 <p className="font-medium">{addon.name} - ${addon.price}</p>

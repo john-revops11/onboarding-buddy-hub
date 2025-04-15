@@ -32,6 +32,7 @@ export function useClientOnboarding() {
   
   useEffect(() => {
     const loadData = async () => {
+      setIsLoading(true);
       try {
         const [subscriptionsData, addonsData] = await Promise.all([
           getSubscriptionTiers(),
@@ -47,6 +48,8 @@ export function useClientOnboarding() {
           description: "Failed to load subscription tiers and addons.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -75,21 +78,30 @@ export function useClientOnboarding() {
     }
   };
 
+  // Fixed toggleAddon function to prevent potential infinite loops
   const toggleAddon = (addonId: string) => {
+    // Use functional updates to ensure we're working with the latest state
     setSelectedAddons(prev => {
-      if (prev.includes(addonId)) {
-        return prev.filter(id => id !== addonId);
-      } else {
-        return [...prev, addonId];
-      }
+      // Check if the addon is already selected
+      const isSelected = prev.includes(addonId);
+      
+      // Create a new array based on the previous state
+      const newSelectedAddons = isSelected
+        ? prev.filter(id => id !== addonId)
+        : [...prev, addonId];
+      
+      // Update the form value separately from the state update
+      const currentAddons = form.getValues("addons") || [];
+      form.setValue(
+        "addons", 
+        isSelected
+          ? currentAddons.filter(id => id !== addonId)
+          : [...currentAddons, addonId],
+        { shouldValidate: true }
+      );
+      
+      return newSelectedAddons;
     });
-
-    const currentAddons = form.getValues("addons") || [];
-    if (currentAddons.includes(addonId)) {
-      form.setValue("addons", currentAddons.filter(id => id !== addonId));
-    } else {
-      form.setValue("addons", [...currentAddons, addonId]);
-    }
   };
   
   const onSubmit = async (data: ClientFormValues) => {
