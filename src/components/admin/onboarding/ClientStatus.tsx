@@ -25,7 +25,7 @@ export function ClientStatus() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <ClientStatusHeader 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
