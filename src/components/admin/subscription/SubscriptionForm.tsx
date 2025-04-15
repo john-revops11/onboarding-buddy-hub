@@ -49,6 +49,9 @@ export function SubscriptionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
+  console.log("SubscriptionForm initialized with initialData:", initialData);
+  console.log("isEditing:", isEditing);
+
   const defaultValues: SubscriptionFormValues = initialData || {
     name: "",
     description: "",
@@ -71,6 +74,12 @@ export function SubscriptionForm({
         subscription.description !== initialData.description ||
         subscription.price !== initialData.price ||
         JSON.stringify(subscription.features) !== JSON.stringify(initialData.features);
+      
+      console.log("Form change detected:", {
+        current: subscription,
+        initial: initialData,
+        hasChanges: changed
+      });
       
       setHasChanges(changed);
     } else {
@@ -103,6 +112,8 @@ export function SubscriptionForm({
 
   const onSubmit = async (data: SubscriptionFormValues) => {
     setIsSubmitting(true);
+    console.log("Form submitted with data:", data);
+    
     try {
       const numericPrice = parseFloat(data.price);
       
@@ -127,10 +138,12 @@ export function SubscriptionForm({
       }
       
       if (!result) {
-        throw new Error(`Failed to ${isEditing ? 'update' : 'create'} subscription`);
+        const errorMsg = `Failed to ${isEditing ? 'update' : 'create'} subscription`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
       }
       
-      console.log("Subscription saved:", result);
+      console.log("Subscription saved successfully:", result);
       
       // Show success toast
       toast({
