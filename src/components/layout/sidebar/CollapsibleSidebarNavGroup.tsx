@@ -25,7 +25,7 @@ export function CollapsibleSidebarNavGroup({
   const navigate = useNavigate();
   
   // Check if any item in this group is active
-  const isGroupActive = items.some(item => currentPath === item.path);
+  const isGroupActive = items.some(item => currentPath.startsWith(item.path));
   
   // Don't show the collapse/expand button if sidebar is collapsed
   return (
@@ -53,7 +53,7 @@ export function CollapsibleSidebarNavGroup({
         <div className={`mt-1 space-y-1 ${collapsed ? "" : "pl-2"}`}>
           {items.map((item) => {
             const IconComponent = item.icon;
-            const isActive = currentPath === item.path;
+            const isActive = currentPath.startsWith(item.path);
             
             return (
               <button

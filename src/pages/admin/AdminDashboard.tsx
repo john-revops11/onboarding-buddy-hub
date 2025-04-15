@@ -1,18 +1,22 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight, Info } from "lucide-react";
+import { Loader2, Users, UserPlus, CheckCircle, FileUp, ArrowUpRight, Info, BarChart3, FileCheck } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 import ConsultingTierBox from "@/components/dashboard/ConsultingTierBox";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  
   const tierBenefits = [
     "Priority access to support",
     "Custom reporting dashboards",
@@ -28,9 +32,9 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5 bg-neutral-50 p-5 min-h-screen">
-        <div className="mb-2 bg-white p-4 rounded-lg shadow-sm">
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+      <div className="space-y-5">
+        <div className="mb-2 bg-white p-6 rounded-lg shadow-sm">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Overview of system statistics and user activities.
           </p>
@@ -45,13 +49,13 @@ const AdminDashboard = () => {
             onChange={handleTierChange}
           />
 
-          <div className="col-span-2 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="standard-card">
+          <div className="col-span-2 grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="bg-white shadow-sm border-gray-200 transition-all duration-200 hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Users
                 </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="h-4 w-4 text-primary-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">246</div>
@@ -80,12 +84,12 @@ const AdminDashboard = () => {
               </CardFooter>
             </Card>
 
-            <Card className="standard-card">
+            <Card className="bg-white shadow-sm border-gray-200 transition-all duration-200 hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   New Sign-ups
                 </CardTitle>
-                <UserPlus className="h-4 w-4 text-muted-foreground" />
+                <UserPlus className="h-4 w-4 text-primary-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">34</div>
@@ -114,12 +118,12 @@ const AdminDashboard = () => {
               </CardFooter>
             </Card>
 
-            <Card className="standard-card">
+            <Card className="bg-white shadow-sm border-gray-200 transition-all duration-200 hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Completed Onboardings
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <CheckCircle className="h-4 w-4 text-primary-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">128</div>
@@ -151,12 +155,12 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid gap-5 md:grid-cols-3">
-          <Card className="standard-card md:col-span-1">
+          <Card className="bg-white shadow-sm border-gray-200 transition-all duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 Files Uploaded
               </CardTitle>
-              <FileUp className="h-4 w-4 text-muted-foreground" />
+              <FileUp className="h-4 w-4 text-primary-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">862</div>
@@ -165,11 +169,18 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
             <CardFooter className="pt-2">
-              <Button variant="outline" size="sm" className="w-full">View All Files</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full hover:bg-primary-50 hover:text-primary-600 hover:border-primary-300"
+                onClick={() => navigate('/admin/files')}
+              >
+                View All Files
+              </Button>
             </CardFooter>
           </Card>
 
-          <Card className="standard-card md:col-span-2">
+          <Card className="md:col-span-2 bg-white shadow-sm border-gray-200 transition-all duration-200 hover:shadow-md">
             <CardHeader>
               <CardTitle>Recent Activities</CardTitle>
               <CardDescription>
@@ -177,39 +188,51 @@ const AdminDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-2 border-b">
-                  <div>
-                    <p className="font-medium">New client onboarded</p>
-                    <p className="text-sm text-muted-foreground">Acme Inc.</p>
+              <div className="space-y-0">
+                <div className="flex items-center justify-between py-3 border-b hover:bg-gray-50 px-2 rounded-sm transition-colors">
+                  <div className="flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <p className="font-medium">New client onboarded</p>
+                      <p className="text-sm text-muted-foreground">Acme Inc.</p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">2 hours ago</p>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b">
-                  <div>
-                    <p className="font-medium">Subscription updated</p>
-                    <p className="text-sm text-muted-foreground">TechSolutions LLC</p>
+                <div className="flex items-center justify-between py-3 border-b hover:bg-gray-50 px-2 rounded-sm transition-colors">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="h-5 w-5 text-violet-500" />
+                    <div>
+                      <p className="font-medium">Subscription updated</p>
+                      <p className="text-sm text-muted-foreground">TechSolutions LLC</p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">Yesterday</p>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b">
-                  <div>
-                    <p className="font-medium">File uploaded</p>
-                    <p className="text-sm text-muted-foreground">Global Partners Co.</p>
+                <div className="flex items-center justify-between py-3 border-b hover:bg-gray-50 px-2 rounded-sm transition-colors">
+                  <div className="flex items-center gap-3">
+                    <FileUp className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="font-medium">File uploaded</p>
+                      <p className="text-sm text-muted-foreground">Global Partners Co.</p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">Yesterday</p>
                 </div>
-                <div className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium">Account activated</p>
-                    <p className="text-sm text-muted-foreground">NextGen Innovations</p>
+                <div className="flex items-center justify-between py-3 hover:bg-gray-50 px-2 rounded-sm transition-colors">
+                  <div className="flex items-center gap-3">
+                    <FileCheck className="h-5 w-5 text-amber-500" />
+                    <div>
+                      <p className="font-medium">Account activated</p>
+                      <p className="text-sm text-muted-foreground">NextGen Innovations</p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">2 days ago</p>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="border-t pt-3 flex justify-center">
-              <Button variant="link" className="p-0">View all activities</Button>
+              <Button variant="link" className="text-primary-600 hover:text-primary-800">View all activities</Button>
             </CardFooter>
           </Card>
         </div>

@@ -27,10 +27,10 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
   return (
     <div 
       className={cn(
-        "bg-sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out overflow-y-auto",
+        "bg-sidebar flex flex-col h-full border-r shadow-sm transition-all duration-300 ease-in-out overflow-y-auto",
         collapsed 
           ? "w-[70px]" 
-          : "min-w-[240px] max-w-[240px]"
+          : "min-w-[260px] max-w-[260px]"
       )}
     >
       <div className="p-4 relative">
@@ -72,7 +72,7 @@ export function DesktopSidebar({ collapsed, setCollapsed }: DesktopSidebarProps)
         
         {!collapsed && <SearchBar />}
         
-        <div className="mb-6 overflow-y-auto">
+        <div className="mt-4 overflow-y-auto">
           {navGroups.map((group, index) => (
             <CollapsibleSidebarNavGroup
               key={index}
