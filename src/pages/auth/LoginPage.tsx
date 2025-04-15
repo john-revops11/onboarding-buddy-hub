@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,10 +31,8 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Get the intended destination from location state or default to dashboard
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // If already authenticated, redirect to the appropriate dashboard
   useEffect(() => {
     if (state.isAuthenticated) {
       const redirectPath = state.user?.role === "admin" ? "/admin" : "/dashboard";
@@ -54,7 +51,7 @@ const LoginPage = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    if (isLoading) return; // Prevent multiple submissions
+    if (isLoading) return;
 
     setIsLoading(true);
     try {
@@ -67,7 +64,6 @@ const LoginPage = () => {
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Show more specific error messages based on error type
       const errorMessage = error.message || "Invalid email or password. Please try again.";
       toast({
         title: "Login Failed",
@@ -81,11 +77,14 @@ const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* Left side - Login form */}
       <div className="relative flex w-full md:w-1/2 flex-col items-center justify-center bg-white px-6 md:px-12 lg:px-16 py-10 md:py-12">
         <div className="absolute top-6 left-6 md:top-10 md:left-10">
           <div className="text-2xl font-bold text-[#8ab454] flex items-center">
-            <span className="animate-float">Revify</span>
+            <img 
+              src="/lovable-uploads/ecb627fb-b2e0-4b5b-a2e2-3c6a448df661.png" 
+              alt="Revify Logo" 
+              className="h-10 w-auto animate-float mr-2" 
+            />
           </div>
         </div>
         
@@ -188,7 +187,6 @@ const LoginPage = () => {
         </div>
       </div>
       
-      {/* Right side - Security info */}
       <div className="hidden md:flex md:w-1/2 bg-[#8ab454] relative">
         <div className="absolute inset-0 bg-gradient-to-br from-[#8ab454]/90 to-[#75a33d]/90"></div>
         
