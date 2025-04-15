@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingProgressRecord } from "@/lib/types/client-types";
+import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
 
 // Function to fetch clients with their subscription and addon data
 export async function getOnboardingClients() {
@@ -21,20 +21,25 @@ export async function getOnboardingClients() {
     if (error) throw error;
 
     return (data || []).map(client => {
-      // Parse subscription data properly - ensure it's either an object or null
-      const subscription = client.subscriptions && client.subscriptions[0] ? {
-        id: client.subscriptions[0].id,
-        name: client.subscriptions[0].name,
-        price: client.subscriptions[0].price,
-        description: client.subscriptions[0].description
-      } : null;
+      // Parse subscription data properly - ensure it's a valid Subscription object
+      const subscription: Subscription = client.subscriptions ? {
+        id: client.subscriptions.id || "",
+        name: client.subscriptions.name || "No Subscription",
+        price: client.subscriptions.price || 0,
+        description: client.subscriptions.description || ""
+      } : {
+        id: "",
+        name: "No Subscription",
+        price: 0,
+        description: ""
+      };
 
       // Parse addons data - ensure it's an array
-      const addons = Array.isArray(client.addons) ? client.addons.map(addon => ({
-        id: addon.id,
-        name: addon.name,
-        price: addon.price,
-        description: addon.description
+      const addons: Addon[] = Array.isArray(client.addons) ? client.addons.map(addon => ({
+        id: addon.id || "",
+        name: addon.name || "",
+        price: addon.price || 0,
+        description: addon.description || ""
       })) : [];
 
       return {
@@ -43,9 +48,9 @@ export async function getOnboardingClients() {
         companyName: client.company_name,
         status: client.status,
         createdAt: client.created_at,
-        subscription,
+        subscriptionTier: subscription,
         addons,
-        subscriptionTier: subscription?.name || 'None' // Add this for OnboardingClient type
+        teamMembers: [] // Add empty teamMembers array to match OnboardingClient type
       };
     });
   } catch (error) {

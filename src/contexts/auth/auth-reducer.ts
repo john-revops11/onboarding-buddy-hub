@@ -1,57 +1,54 @@
 
-import { AuthState, AuthAction } from "./types";
+import { AuthState, AuthAction } from './types';
 
-// Initial state
 export const initialState: AuthState = {
   user: null,
   token: null,
-  isAuthenticated: false,
   loading: false,
   error: null,
+  isAuthenticated: false
 };
 
-// Reducer
 export const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
-    case "LOGIN_REQUEST":
-    case "REGISTER_REQUEST":
+    case 'LOGIN_START':
+    case 'REGISTER_START':
       return {
         ...state,
         loading: true,
-        error: null,
+        error: null
       };
-    case "LOGIN_SUCCESS":
-    case "REGISTER_SUCCESS":
+    case 'LOGIN_SUCCESS':
+    case 'REGISTER_SUCCESS':
       return {
         ...state,
         user: action.payload.user,
         token: action.payload.token,
-        isAuthenticated: true,
         loading: false,
         error: null,
+        isAuthenticated: true
       };
-    case "LOGIN_FAILURE":
-    case "REGISTER_FAILURE":
+    case 'LOGIN_FAILURE':
+    case 'REGISTER_FAILURE':
       return {
         ...state,
-        user: null,
-        token: null,
-        isAuthenticated: false,
         loading: false,
         error: action.payload,
+        isAuthenticated: false
       };
-    case "LOGOUT":
+    case 'LOGOUT':
+      return {
+        ...initialState
+      };
+    case 'UPDATE_USER':
       return {
         ...state,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        loading: false,
+        user: action.payload
       };
-    case "CLEAR_ERROR":
+    case 'CLEAR_ERROR':
       return {
         ...state,
-        error: null,
+        error: null
       };
     default:
       return state;

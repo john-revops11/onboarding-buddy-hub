@@ -17,6 +17,7 @@ export interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean; // Add isAuthenticated property
 }
 
 export interface AuthContextType {
@@ -37,4 +38,5 @@ export type AuthAction =
   | { type: 'REGISTER_SUCCESS'; payload: { user: User, token: string } }
   | { type: 'REGISTER_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
-  | { type: 'UPDATE_USER'; payload: User };
+  | { type: 'UPDATE_USER'; payload: User }
+  | { type: 'CLEAR_ERROR' }; // Add CLEAR_ERROR action type

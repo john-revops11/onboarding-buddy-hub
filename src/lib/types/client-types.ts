@@ -1,4 +1,3 @@
-
 // Client and user types
 export interface Addon {
   id: string;
@@ -80,10 +79,10 @@ export interface OnboardingClient {
   id: string;
   email: string;
   companyName?: string;
-  subscriptionTier: string | Subscription; // Accept both string and Subscription
+  subscriptionTier: Subscription; // Change to always be Subscription type
   addons: Addon[];
   status: 'pending' | 'active';
-  teamMembers?: TeamMember[];
+  teamMembers: TeamMember[];
   onboardingProgress?: OnboardingProgressItem[];
   created_at?: string;
   createdAt?: string; // Alternative property name

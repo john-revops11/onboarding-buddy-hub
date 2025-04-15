@@ -1,212 +1,221 @@
 
-import { useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { User } from "@/types/auth";
-import { AuthAction } from "./types";
+import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { RegisterCredentials } from './types';
 
-export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
+export const useAuthActions = (dispatch: React.Dispatch<any>) => {
+  const { toast } = useToast();
+
   const login = useCallback(async (email: string, password: string) => {
-    dispatch({ type: "LOGIN_REQUEST" });
-    
+    dispatch({ type: 'LOGIN_START' });
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
-      if (error) throw error;
-      
-      // Return data but don't update state directly - 
-      // the onAuthStateChange handler will update the user state
-      
-    } catch (error: any) {
-      console.error("Login error:", error);
-      
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: error.message || "Invalid login credentials",
-      });
-      
-      throw error;
-    }
-  }, [dispatch]);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    dispatch({ type: "REGISTER_REQUEST" });
-    
+      if (error) {
+        dispatch({ type: 'LOGIN_FAILURE', payload: error.message });
+        toast({
+          title: 'Login Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data?.user && data?.session) {
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { user: data.user, token: data.session.access_token },
+        });
+      }
+    } catch (error: any) {
+      dispatch({ type: 'LOGIN_FAILURE', payload: error.message });
+      toast({
+        title: 'Login Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [dispatch, toast]);
+
+  const register = useCallback(async ({ email, password, name }: RegisterCredentials) => {
+    dispatch({ type: 'REGISTER_START' });
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name,
+            full_name: name,
           },
         },
       });
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        dispatch({ type: 'REGISTER_FAILURE', payload: error.message });
+        toast({
+          title: 'Registration Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data?.user && data?.session) {
+        // Also create profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            name: name || email.split('@')[0],
+            email,
+            role: 'user',
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          // Don't fail registration if profile creation fails
+        }
+
+        dispatch({
+          type: 'REGISTER_SUCCESS',
+          payload: { user: data.user, token: data.session.access_token },
+        });
+
+        toast({
+          title: 'Registration Successful',
+          description: 'Your account has been created successfully.',
+        });
+      }
+    } catch (error: any) {
+      dispatch({ type: 'REGISTER_FAILURE', payload: error.message });
       toast({
-        title: "Registration successful",
-        description: "Your account has been created and is pending admin approval.",
+        title: 'Registration Failed',
+        description: error.message,
+        variant: 'destructive',
       });
-      
-      // For registration, we don't automatically log in the user since they need approval
-      dispatch({ type: "LOGOUT" });
-      
+    }
+  }, [dispatch, toast]);
+
+  const logout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+      dispatch({ type: 'LOGOUT' });
     } catch (error: any) {
       toast({
-        title: "Registration failed",
-        description: error.message || "An error occurred during registration",
-        variant: "destructive",
+        title: 'Logout Failed',
+        description: error.message,
+        variant: 'destructive',
       });
-      
-      dispatch({
-        type: "REGISTER_FAILURE",
-        payload: error.message || "An error occurred during registration",
-      });
-      
-      throw error;
     }
-  }, [dispatch]);
+  }, [dispatch, toast]);
 
   const resetPassword = useCallback(async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        toast({
+          title: 'Reset Password Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
-        title: "Reset password email sent",
-        description: "Check your email for a link to reset your password",
+        title: 'Reset Password Email Sent',
+        description: 'Check your email for a reset password link.',
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  }, []);
-
-  const updateProfile = useCallback(async (userData: Partial<User>) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(userData)
-        .eq('id', userData.id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  }, []);
-
-  const approveUser = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ status: 'approved' })
-        .eq('id', userId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "User approved",
-        description: "The user can now log in.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-    }
-  }, []);
-
-  const rejectUser = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ status: 'rejected' })
-        .eq('id', userId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "User rejected",
-        description: "The user's registration has been rejected.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-    }
-  }, []);
-
-  const getAllUsers = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) throw error;
-      
-      return data.map((profile): User => ({
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        role: profile.role as "admin" | "user",
-        createdAt: profile.created_at,
-        avatar: profile.avatar_url,
-        status: profile.status as "pending" | "approved" | "rejected",
-        onboardingStatus: profile.onboarding_status
-      }));
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      return [];
-    }
-  }, []);
-
-  const logout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-      
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
-      
-      dispatch({ type: "LOGOUT" });
-    } catch (error: any) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Error logging out",
+        title: 'Reset Password Failed',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     }
-  }, [dispatch]);
+  }, [toast]);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast({
+          title: 'Update Password Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Password Updated',
+        description: 'Your password has been updated successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Update Password Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
+  const updateProfile = useCallback(async (userData: any) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: userData,
+      });
+
+      if (error) {
+        toast({
+          title: 'Update Profile Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Also update profile in DB if we have more data
+      if (userData.name) {
+        const user = await supabase.auth.getUser();
+        if (user.data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ name: userData.name })
+            .eq('id', user.data.user.id);
+
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+          }
+        }
+      }
+
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been updated successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Update Profile Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
 
   const clearError = useCallback(() => {
-    dispatch({ type: "CLEAR_ERROR" });
+    dispatch({ type: 'CLEAR_ERROR' });
   }, [dispatch]);
 
   return {
@@ -214,9 +223,8 @@ export const useAuthService = (dispatch: React.Dispatch<AuthAction>) => {
     register,
     logout,
     resetPassword,
+    updatePassword,
     updateProfile,
-    approveUser,
-    rejectUser,
-    getAllUsers
+    clearError,
   };
 };
