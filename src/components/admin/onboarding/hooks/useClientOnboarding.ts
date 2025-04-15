@@ -29,13 +29,14 @@ export function useClientOnboarding() {
     },
   });
   
-  // Derive selected addons from form values to ensure single source of truth
+  // Safely get the selected addons, ensuring it's always an array
   const selectedAddons = form.watch("addons") || [];
   
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        // Fetch subscriptions and addons in parallel
         const [subscriptionsData, addonsData] = await Promise.all([
           getSubscriptionTiers(),
           getAddons(),
@@ -80,25 +81,46 @@ export function useClientOnboarding() {
     }
   }, [activeTab]);
 
-  // Memoized toggle function with stable implementation
+  // Improved toggle function with proper error handling and type safety
   const toggleAddon = useCallback((addonId: string) => {
-    const currentAddons = form.getValues("addons") || [];
-    const isSelected = currentAddons.includes(addonId);
-    
-    // Create a new array based on whether the addon is already selected
-    const newAddons = isSelected
-      ? currentAddons.filter(id => id !== addonId) 
-      : [...currentAddons, addonId];
-    
-    // Update form state with the new array
-    form.setValue("addons", newAddons, { shouldValidate: true });
+    try {
+      // Get current addons array, ensuring it's always an array
+      const currentAddons = form.getValues("addons") || [];
+      
+      // Ensure we're working with an array
+      if (!Array.isArray(currentAddons)) {
+        console.warn("Expected addons to be an array, got:", currentAddons);
+        // Reset to empty array if it's not an array
+        form.setValue("addons", [], { shouldValidate: true });
+        // Add the addon since we're starting fresh
+        form.setValue("addons", [addonId], { shouldValidate: true });
+        return;
+      }
+      
+      // Regular toggle logic
+      const isSelected = currentAddons.includes(addonId);
+      const newAddons = isSelected
+        ? currentAddons.filter(id => id !== addonId) 
+        : [...currentAddons, addonId];
+      
+      // Update form state with the new array
+      form.setValue("addons", newAddons, { shouldValidate: true });
+    } catch (error) {
+      console.error("Error toggling addon:", error);
+      // Recover from error by resetting addons to empty array
+      form.setValue("addons", [], { shouldValidate: true });
+    }
   }, [form]);
   
-  const onSubmit = async (data: ClientFormValues) => {
+  const onSubmit = useCallback(async (data: ClientFormValues) => {
     setIsSubmitting(true);
     
     try {
-      const clientId = await createClient(data);
+      // Ensure addons is an array
+      const safeAddons = Array.isArray(data.addons) ? data.addons : [];
+      const formData = { ...data, addons: safeAddons };
+      
+      const clientId = await createClient(formData);
       
       if (clientId) {
         form.reset();
@@ -126,7 +148,7 @@ export function useClientOnboarding() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [form, toast, setActiveTab]);
   
   return {
     form,

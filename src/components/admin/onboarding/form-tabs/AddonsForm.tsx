@@ -5,6 +5,7 @@ import { FormLabel, FormDescription } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ClientFormValues } from "../formSchema";
+import { memo } from "react";
 
 interface AddonsFormProps {
   form: UseFormReturn<ClientFormValues>;
@@ -13,7 +14,7 @@ interface AddonsFormProps {
   toggleAddon: (addonId: string) => void;
 }
 
-export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
+function AddonsForm({ form, addons, selectedAddons, toggleAddon }: AddonsFormProps) {
   // Function to handle addon selection via click
   const handleAddonClick = (addonId: string) => (e: React.MouseEvent) => {
     // Prevent default behavior to avoid any unintended actions
@@ -31,8 +32,9 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {addons.map((addon) => {
-          // Make sure selectedAddons is an array before using includes
-          const isSelected = Array.isArray(selectedAddons) && selectedAddons.includes(addon.id);
+          // Ensure selectedAddons is always treated as an array
+          const safeSelectedAddons = Array.isArray(selectedAddons) ? selectedAddons : [];
+          const isSelected = safeSelectedAddons.includes(addon.id);
           
           return (
             <div
@@ -50,7 +52,8 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
                   id={`addon-${addon.id}`}
                   className="pointer-events-none" // Prevent direct interaction with checkbox
                   tabIndex={-1} // Remove from tab order since we're handling clicks on the parent
-                  // Completely remove any onChange handlers to prevent loops
+                  // No onChange handler to prevent potential loops
+                  readOnly
                 />
                 
                 <div className="flex-1">
@@ -76,3 +79,6 @@ export default function AddonsForm({ form, addons, selectedAddons, toggleAddon }
     </CardContent>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AddonsForm);
