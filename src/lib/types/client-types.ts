@@ -1,3 +1,4 @@
+
 // Client and user types
 export interface Addon {
   id: string;
@@ -79,7 +80,7 @@ export interface OnboardingClient {
   id: string;
   email: string;
   companyName?: string;
-  subscriptionTier: Subscription; // This is what we need to ensure exists
+  subscriptionTier: string | Subscription; // Accept both string and Subscription
   addons: Addon[];
   status: 'pending' | 'active';
   teamMembers?: TeamMember[];
@@ -101,6 +102,7 @@ export interface OnboardingProgressItem {
   completedAt?: string;
 }
 
+// Make FileUpload and ClientFile compatible
 export interface FileUpload {
   id: string;
   clientId: string;
@@ -127,6 +129,9 @@ export interface ClientFile {
   clientId: string;
   clientEmail?: string;
   clientCompany?: string;
+  // Add these to make it compatible with FileUpload
+  fileName?: string;
+  url?: string;
 }
 
 export interface ClientFormValues {

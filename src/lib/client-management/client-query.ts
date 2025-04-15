@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { OnboardingProgressRecord } from "@/lib/types/client-types";
 
 // Function to fetch clients with their subscription and addon data
 export async function getOnboardingClients() {
@@ -49,6 +50,31 @@ export async function getOnboardingClients() {
     });
   } catch (error) {
     console.error("Error fetching onboarding clients:", error);
+    return [];
+  }
+}
+
+// Get client onboarding progress
+export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
+  try {
+    const { data, error } = await supabase
+      .from('onboarding_progress')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('step_order', { ascending: true });
+    
+    if (error) throw error;
+    
+    return (data || []).map(record => ({
+      clientId: record.client_id,
+      stepName: record.step_name,
+      stepOrder: record.step_order,
+      completed: record.completed,
+      startedAt: record.started_at,
+      completedAt: record.completed_at
+    }));
+  } catch (error) {
+    console.error("Error fetching client progress:", error);
     return [];
   }
 }

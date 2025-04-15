@@ -1,48 +1,76 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { FileUp, Upload } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { DOCUMENT_CATEGORIES, DocumentCategory } from "@/types/onboarding";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/use-auth";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 
-interface FileUploaderProps {
-  onUploadComplete: (file: any) => void;
-  onVerificationStatusChange: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
-  uploading?: boolean;
-  uploadProgress?: number;
-  onUpload?: (files: File[]) => Promise<void>;
+import React, { useState, useCallback, useRef } from 'react';
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadFile, getClientFiles } from "@/lib/client-management/file-upload";
+import { FileUpload } from "@/lib/types/client-types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Upload, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { UploadIcon } from "@/components/ui/UploadIcon";
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
+export interface FileUploaderProps {
+  onUploadComplete?: (file: FileUpload) => void;
+  onVerificationStatusChange?: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
   acceptedFileTypes?: string;
   helpText?: string;
 }
 
-export const FileUploader = ({
+export function FileUploader({
   onUploadComplete,
   onVerificationStatusChange,
-  uploading: externalUploading,
-  uploadProgress: externalProgress,
-  onUpload,
-  acceptedFileTypes,
-  helpText
-}: FileUploaderProps) => {
+  acceptedFileTypes = ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+  helpText = "Upload your documents here. We accept PDF, Word, and image files."
+}: FileUploaderProps) {
   const { state } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("general");
-  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+  const [files, setFiles] = useState<FileUpload[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [files, setFiles] = useState<File[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('general');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const clientId = state.user?.id || '';
 
-  const isUploading = externalUploading !== undefined ? externalUploading : uploading;
-  const progress = externalProgress !== undefined ? externalProgress : uploadProgress;
+  const categoryOptions = [
+    { value: 'general', label: 'General Document' },
+    { value: 'id_verification', label: 'ID Verification' },
+    { value: 'address_proof', label: 'Address Proof' },
+    { value: 'business_certificate', label: 'Business Certificate' },
+    { value: 'tax_document', label: 'Tax Document' },
+    { value: 'contract_agreement', label: 'Contract Agreement' }
+  ];
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value as DocumentCategory);
+  // Load user files when component mounts
+  React.useEffect(() => {
+    if (clientId) {
+      fetchUserFiles();
+    }
+  }, [clientId]);
+
+  const fetchUserFiles = async () => {
+    try {
+      if (!clientId) return;
+
+      const userFiles = await getClientFiles(clientId);
+      setFiles(userFiles as unknown as FileUpload[]);
+    } catch (error) {
+      console.error('Error fetching files:', error);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -50,133 +78,218 @@ export const FileUploader = ({
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFiles(Array.from(e.dataTransfer.files));
-    }
-  };
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFiles(Array.from(e.target.files));
-    }
-  };
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        await handleFileUpload(droppedFiles[0]);
+      }
+    },
+    [selectedCategory, clientId]
+  );
 
-  const handleUpload = async () => {
-    if (files.length > 0) {
-      if (onUpload) {
-        await onUpload(files);
-      } else {
-        setUploading(true);
-        
-        const interval = setInterval(() => {
-          setUploadProgress(prev => {
-            const newProgress = prev + 10;
-            if (newProgress >= 100) {
-              clearInterval(interval);
-              return 100;
-            }
-            return newProgress;
-          });
-        }, 300);
-        
-        try {
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = e.target.files;
+      if (selectedFiles && selectedFiles.length > 0) {
+        await handleFileUpload(selectedFiles[0]);
+      }
+    },
+    [selectedCategory, clientId]
+  );
+
+  const handleFileUpload = async (file: File) => {
+    if (!clientId) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to upload files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setUploadProgress(10);
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev + Math.random() * 20;
+          return newProgress >= 90 ? 90 : newProgress;
+        });
+      }, 500);
+
+      const result = await uploadFile(clientId, file, selectedCategory);
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "File uploaded successfully!",
+        });
+
+        // Refresh the file list
+        await fetchUserFiles();
+
+        if (onUploadComplete) {
+          // Call the callback with a placeholder FileUpload object
+          // This would be replaced with the actual file data in a full implementation
           onUploadComplete({
-            name: files[0].name,
-            size: files[0].size,
-            type: files[0].type,
-            category: selectedCategory
-          });
-          
-          setTimeout(() => {
-            setUploading(false);
-            setUploadProgress(0);
-            setFiles([]);
-          }, 1000);
-        } catch (error) {
-          console.error("Upload error:", error);
-          setUploading(false);
-          setUploadProgress(0);
+            id: result.fileId || '',
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            category: selectedCategory,
+            status: 'pending',
+            uploadedAt: new Date().toISOString(),
+            url: URL.createObjectURL(file),
+            clientId: clientId,
+          } as FileUpload);
         }
+      } else {
+        throw new Error(result.error || "Failed to upload file");
+      }
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "There was an error uploading your file.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
   };
 
+  const handleStatusChange = async (fileId: string, newStatus: 'pending' | 'verified' | 'rejected') => {
+    if (onVerificationStatusChange) {
+      onVerificationStatusChange(fileId, newStatus);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="document-category">Document Category</Label>
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-          <SelectTrigger id="document-category">
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(DOCUMENT_CATEGORIES).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium mb-2">Document Category</label>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-full p-2 border rounded-md"
+          disabled={loading}
+        >
+          {categoryOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {isUploading ? (
-        <div className="space-y-4">
-          <Progress value={progress} className="h-2" />
-          <p className="text-sm text-center">{progress}% complete</p>
-        </div>
-      ) : (
-        <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-            files.length > 0 ? "border-primary bg-primary/5" : "hover:bg-muted/50"
-          }`}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('file-upload')?.click()}
-        >
-          <FileUp className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          {files.length > 0 ? (
-            <div>
-              <p className="font-medium mb-1">{files.length} file(s) selected</p>
-              <ul className="text-sm text-muted-foreground mb-3">
-                {files.map((file, index) => (
-                  <li key={index}>{file.name} ({Math.round(file.size / 1024)} KB)</li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <>
-              <p className="font-medium mb-1">Drag and drop files here or click to browse</p>
-              {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-            </>
-          )}
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+          dragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center justify-center text-center">
+          <UploadIcon className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Drag and drop your files here</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            {helpText}
+          </p>
           
           <input
-            id="file-upload"
+            ref={fileInputRef}
             type="file"
-            multiple
-            className="hidden"
             accept={acceptedFileTypes}
-            onChange={handleFileChange}
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={loading}
           />
           
-          {files.length > 0 && (
-            <Button 
-              className="mt-2" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUpload();
-              }}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Files
-            </Button>
-          )}
+          <Button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            className="gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Select File
+              </>
+            )}
+          </Button>
+        </div>
+        
+        {loading && (
+          <div className="mt-4">
+            <Progress value={uploadProgress} className="h-2 w-full" />
+            <p className="text-xs text-center mt-1 text-muted-foreground">
+              Uploading... {Math.round(uploadProgress)}%
+            </p>
+          </div>
+        )}
+      </div>
+
+      {files.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-medium mb-3">Uploaded Documents</h3>
+          <div className="space-y-3">
+            {files.map(file => (
+              <Card key={file.id} className="overflow-hidden">
+                <div className="flex items-center p-3">
+                  <div className="bg-primary/10 p-2 rounded mr-3">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{file.fileName}</p>
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <span className="truncate">
+                        {(file.fileSize / 1024).toFixed(1)} KB • 
+                        {new Date(file.uploadedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={
+                      file.status === 'verified'
+                        ? 'default'
+                        : file.status === 'rejected'
+                        ? 'destructive'
+                        : 'outline'
+                    }
+                    className="ml-2 capitalize"
+                  >
+                    {file.status === 'verified' && <CheckCircle className="h-3 w-3 mr-1" />}
+                    {file.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
+                    {file.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                    {file.status}
+                  </Badge>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
-};
+}

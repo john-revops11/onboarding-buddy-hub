@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -11,14 +12,14 @@ import { getClientProgress } from "@/lib/client-management/client-query";
 import { ChecklistItem, DocumentCategory } from "@/types/onboarding";
 import { useAuth } from "@/hooks/use-auth";
 import { uploadFile, getClientFiles, updateFileStatus } from "@/lib/client-management/file-upload";
-import { FileUpload } from "@/lib/types/client-types";
+import { FileUpload, ClientFile } from "@/lib/types/client-types";
 import { OnboardingProgressRecord } from "@/lib/types/client-types";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const clientId = user?.id;
+  const { state } = useAuth();
+  const clientId = state.user?.id;
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [loadingSteps, setLoadingSteps] = useState(true);
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
@@ -67,7 +68,7 @@ const OnboardingPage = () => {
   const loadClientFiles = async () => {
     try {
       const files = await getClientFiles(clientId);
-      setUploadedFiles(files);
+      setUploadedFiles(files as unknown as FileUpload[]);
     } catch (error) {
       console.error("Error loading client files:", error);
       toast({
@@ -180,7 +181,7 @@ const OnboardingPage = () => {
       try {
         const uploadedFile = await uploadFile(clientId, files[0], category);
         
-        if (uploadedFile) {
+        if (uploadedFile.success) {
           toast({
             title: "File uploaded",
             description: `${files[0].name} has been uploaded successfully.`,
@@ -202,7 +203,7 @@ const OnboardingPage = () => {
         setUploadProgress(0);
       }
     }
-  }, [clientId, toast, loadClientFiles]);
+  }, [clientId, toast]);
   
   const handleVerificationStatusChange = async (fileId: string, status: 'pending' | 'verified' | 'rejected') => {
     try {
@@ -242,7 +243,7 @@ const OnboardingPage = () => {
     const fileType = file.type.split('/')[0];
     
     if (fileType === 'image') return 'general';
-    if (fileType === 'application' && file.type.includes('pdf')) return 'financial';
+    if (fileType === 'application' && file.type.includes('pdf')) return 'general';
     
     return 'general';
   };

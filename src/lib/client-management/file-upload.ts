@@ -1,11 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ClientFile } from "@/lib/types/client-types";
+import { ClientFile, FileUpload } from "@/lib/types/client-types";
 
 // Upload a file
 export async function uploadFile(
-  file: File,
   clientId: string,
+  file: File,
   category: string
 ): Promise<{ success: boolean; fileId?: string; error?: string }> {
   try {
@@ -71,7 +71,10 @@ export async function getClientFiles(clientId: string): Promise<ClientFile[]> {
       verifiedAt: file.verified_at,
       clientId: file.client_id,
       clientEmail: file.clients?.[0]?.email,
-      clientCompany: file.clients?.[0]?.company_name
+      clientCompany: file.clients?.[0]?.company_name,
+      // Add these properties to make it compatible with FileUpload
+      fileName: file.filename,
+      url: `${supabase.storage.from('client-files').getPublicUrl(file.file_path).data.publicUrl}`
     }));
   } catch (error) {
     console.error("Error fetching client files:", error);
