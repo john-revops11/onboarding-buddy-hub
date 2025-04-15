@@ -123,11 +123,11 @@ export function useClientOnboarding() {
       console.error("Error creating client:", error);
       
       toast({
-        title: "Error",
-        description: error.message || "Failed to create client. Please try again.",
-        variant: "destructive",
-      });
-      
+    title: "Error",
+    description: error?.message || "Failed to create client. Please try again.",
+    variant: "destructive"
+  });
+}
       return null;
     } finally {
       setIsSubmitting(false);
