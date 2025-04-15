@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -22,8 +23,8 @@ import { createSubscriptionTier, updateSubscriptionTier } from "@/lib/subscripti
 const subscriptionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Price must be a valid number",
+  price: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+    message: "Price must be a valid non-negative number",
   }),
   features: z.array(z.string()).min(1, "Add at least one feature"),
 });
@@ -33,9 +34,16 @@ type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 interface SubscriptionFormProps {
   initialData?: SubscriptionFormValues & { id?: string };
   isEditing?: boolean;
+  onUpdateSuccess?: () => void;
+  onUpdateError?: (errorMsg: string) => void;
 }
 
-export function SubscriptionForm({ initialData, isEditing = false }: SubscriptionFormProps) {
+export function SubscriptionForm({ 
+  initialData, 
+  isEditing = false,
+  onUpdateSuccess,
+  onUpdateError 
+}: SubscriptionFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,6 +61,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
     defaultValues,
   });
 
+  // Watch for form changes to enable/disable submit button
   useEffect(() => {
     const subscription = form.watch();
     
@@ -64,9 +73,7 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
         JSON.stringify(subscription.features) !== JSON.stringify(initialData.features);
       
       setHasChanges(changed);
-    }
-    
-    if (!initialData) {
+    } else {
       const filled = 
         subscription.name.trim() !== "" &&
         subscription.description.trim() !== "" &&
@@ -99,11 +106,14 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
     try {
       const numericPrice = parseFloat(data.price);
       
+      // Filter out empty features
+      const filteredFeatures = data.features.filter(f => f.trim() !== "");
+      
       const subscriptionData = {
         name: data.name,
         description: data.description,
         price: numericPrice,
-        features: data.features.filter(f => f.trim() !== "")
+        features: filteredFeatures
       };
       
       let result;
@@ -117,24 +127,39 @@ export function SubscriptionForm({ initialData, isEditing = false }: Subscriptio
       }
       
       if (!result) {
-        throw new Error("Failed to save subscription");
+        throw new Error(`Failed to ${isEditing ? 'update' : 'create'} subscription`);
       }
       
       console.log("Subscription saved:", result);
       
+      // Show success toast
       toast({
         title: `Subscription ${isEditing ? "updated" : "created"} successfully`,
         description: `${data.name} subscription has been ${isEditing ? "updated" : "created"}.`,
+        variant: "success",
       });
       
-      navigate("/admin/subscriptions");
+      // Call success callback if provided
+      if (isEditing && onUpdateSuccess) {
+        onUpdateSuccess();
+      } else {
+        navigate("/admin/subscriptions");
+      }
     } catch (error) {
       console.error("Error submitting subscription:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
+      // Show error toast
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} subscription. Please try again.`,
+        description: `Failed to ${isEditing ? "update" : "create"} subscription. ${errorMessage}`,
         variant: "destructive",
       });
+      
+      // Call error callback if provided
+      if (isEditing && onUpdateError) {
+        onUpdateError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }

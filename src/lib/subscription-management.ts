@@ -73,14 +73,14 @@ export async function createSubscriptionTier(
     return newSubscription;
   } catch (error) {
     console.error("Error creating subscription tier:", error);
-    return null;
+    throw error; // Rethrow the error for better error handling in UI
   }
 }
 
 // Update an existing subscription tier
 export async function updateSubscriptionTier(
   id: string, 
-  subscription: Partial<SubscriptionTier> | { name?: string; description?: string; price?: number; features?: string[] }
+  subscription: Partial<SubscriptionTier> | { name?: string; description?: string; price?: number | string; features?: string[] }
 ): Promise<SubscriptionTier | null> {
   try {
     console.log("Updating subscription with:", { id, subscription });
@@ -93,6 +93,8 @@ export async function updateSubscriptionTier(
       features: subscription.features || []
     };
     
+    console.log("Formatted subscription data:", subscriptionData);
+    
     // Use rpc to call a server-side function that will handle this with higher privileges
     const { data: updatedSubscription, error: updateError } = await supabase
       .rpc('admin_update_subscription_with_features', {
@@ -103,14 +105,20 @@ export async function updateSubscriptionTier(
         features_param: subscriptionData.features
       });
     
+    console.log("Update response:", { updatedSubscription, updateError });
+    
     if (updateError) {
       console.error("Error updating subscription tier:", updateError);
       throw updateError;
     }
     
+    if (!updatedSubscription) {
+      throw new Error("Failed to update subscription - no data returned");
+    }
+    
     return updatedSubscription;
   } catch (error) {
     console.error("Error updating subscription tier:", error);
-    return null;
+    throw error; // Rethrow the error for better error handling in UI
   }
 }

@@ -63,6 +63,25 @@ const EditSubscriptionPage = () => {
     fetchSubscription();
   }, [id, toast]);
 
+  const handleUpdateSuccess = () => {
+    toast({
+      title: "Subscription Updated",
+      description: "Subscription plan has been successfully updated.",
+      variant: "success", // Using success variant for positive feedback
+    });
+    
+    // Navigate back to subscriptions list after successful update
+    navigate("/admin/subscriptions");
+  };
+
+  const handleUpdateError = (errorMsg: string) => {
+    toast({
+      title: "Update Failed",
+      description: errorMsg || "Failed to update subscription. Please try again.",
+      variant: "destructive",
+    });
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -97,7 +116,12 @@ const EditSubscriptionPage = () => {
             <CardTitle>Edit {subscription.name} Subscription</CardTitle>
           </CardHeader>
           <CardContent>
-            <SubscriptionForm initialData={subscription} isEditing />
+            <SubscriptionForm 
+              initialData={subscription} 
+              isEditing 
+              onUpdateSuccess={handleUpdateSuccess}
+              onUpdateError={handleUpdateError}
+            />
           </CardContent>
         </Card>
       </div>
