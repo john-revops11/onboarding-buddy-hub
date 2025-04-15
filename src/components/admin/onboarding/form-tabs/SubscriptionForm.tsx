@@ -44,7 +44,7 @@ export default function SubscriptionForm({ form, subscriptions }: SubscriptionFo
               </FormControl>
               <SelectContent>
                 {subscriptions.map((sub) => (
-                  <SelectItem key={sub.id.id} value={sub.id.id}>
+                  <SelectItem key={sub.id} value={sub.id}>
                     {sub.name} - ${sub.price}
                   </SelectItem>
                 ))}
