@@ -671,6 +671,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_addon_popularity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          count: number
+        }[]
+      }
+      get_addon_tier_distribution: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          tier_name: string
+          addon_count: number
+        }[]
+      }
       get_secret: {
         Args: { secret_name: string }
         Returns: Json
