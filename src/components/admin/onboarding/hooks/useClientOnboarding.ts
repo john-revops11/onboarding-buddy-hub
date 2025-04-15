@@ -122,12 +122,6 @@ export function useClientOnboarding() {
     } catch (error: any) {
       console.error("Error creating client:", error);
       
-      toast({
-    title: "Error",
-    description: error?.message || "Failed to create client. Please try again.",
-    variant: "destructive"
-  });
-}
       return null;
     } finally {
       setIsSubmitting(false);
