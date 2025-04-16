@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+process.env.SMTP_USER
+process.env.SMTP_PASS
 
 type InviteEmailParams = {
   to: string;
