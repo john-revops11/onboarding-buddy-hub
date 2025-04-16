@@ -34,13 +34,36 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, Filter } from "lucide-react";
 
 // Type for enhanced client data with onboarding progress
-interface EnhancedClient extends OnboardingClient {
+// Instead of extending OnboardingClient, define a separate type to avoid conflicts
+type EnhancedClient = {
+  id: string;
+  email: string;
+  companyName?: string;
+  subscriptionTier: {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+  };
+  addons: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+  }>;
+  status: 'pending' | 'active';
+  teamMembers: Array<any>;
+  contactPerson?: string;
+  position?: string;
+  industry?: string;
+  companySize?: string;
+  createdAt?: string;
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
     totalSteps: number;
   };
-}
+};
 
 const ClientList = () => {
   // State for table sorting
@@ -82,7 +105,7 @@ const ClientList = () => {
             };
           })
         );
-        return clientsWithProgress;
+        return clientsWithProgress as EnhancedClient[];
       } catch (error) {
         console.error("Error loading client progress:", error);
         return clients.map(client => ({
@@ -92,7 +115,7 @@ const ClientList = () => {
             completedSteps: 0,
             totalSteps: 0,
           },
-        }));
+        })) as EnhancedClient[];
       }
     },
     enabled: clients.length > 0,
@@ -154,7 +177,7 @@ const ClientList = () => {
       cell: (info) => (
         <ClientActions 
           clientId={info.getValue()} 
-          client={info.row.original}
+          client={info.row.original as unknown as OnboardingClient}
           onSuccess={() => refetch()}
         />
       ),
