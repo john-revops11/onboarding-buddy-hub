@@ -5,10 +5,9 @@ import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues): Promise<string> {
   try {
-    // Ensure addons is an array
     const addons = Array.isArray(data.addons) ? data.addons : [];
 
-    // Step 1: Insert into 'clients' table
+    // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase
       .from("clients")
       .insert([
@@ -18,7 +17,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
           subscription_id: data.subscriptionId,
           status: "pending",
 
-          // ✅ New fields
+          // New fields
           industry: data.industry || null,
           contact_person: data.contactPerson || null,
           position: data.position || null,
@@ -32,7 +31,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
 
     const clientId = clientData.id;
 
-    // Step 2: Insert selected addons
+    // Step 2: Add addons
     if (addons.length > 0) {
       const addonRecords = addons.map(addonId => ({
         client_id: clientId,
@@ -46,7 +45,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (addonError) throw addonError;
     }
 
-    // Step 3: Insert team members
+    // Step 3: Add team members
     if (data.teamMembers && data.teamMembers.length > 0) {
       const teamMemberRecords = data.teamMembers.map(member => ({
         client_id: clientId,
@@ -61,4 +60,36 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (teamError) throw teamError;
     }
 
-    // Step 4: Create default onboarding steps
+    // Step 4: Create onboarding steps
+    const onboardingSteps = [
+      { step_name: "welcome", step_order: 1, completed: false },
+      { step_name: "contract", step_order: 2, completed: false },
+      { step_name: "questionnaire", step_order: 3, completed: false },
+      { step_name: "upload", step_order: 4, completed: false },
+      { step_name: "integration", step_order: 5, completed: false },
+      { step_name: "training", step_order: 6, completed: false }
+    ];
+
+    const onboardingRecords = onboardingSteps.map(step => ({
+      client_id: clientId,
+      step_name: step.step_name,
+      step_order: step.step_order,
+      completed: step.completed,
+    }));
+
+    const { error: onboardingError } = await supabase
+      .from("onboarding_progress")
+      .insert(onboardingRecords);
+
+    if (onboardingError) throw onboardingError;
+
+    return clientId;
+  } catch (error: any) {
+    toast({
+      title: "Error creating client",
+      description: error.message || "An unexpected error occurred",
+      variant: "destructive",
+    });
+    throw error;
+  }
+}
