@@ -24,7 +24,14 @@ export async function createClient(data: ClientFormValues): Promise<string> {
     if (clientError) throw clientError;
     
     const clientId = clientData.id;
-    
+    import { sendInviteEmail } from "@/lib/email/sendInviteEmail";
+
+await sendInviteEmail({
+  to: data.email,
+  companyName: data.companyName,
+  inviteLink: `https://onboarding.myrevify.com/confirm?email=${encodeURIComponent(data.email)}`
+});
+
     // Step 2: Add addons if selected
     if (addons.length > 0) {
       const addonRecords = addons.map(addonId => ({
@@ -75,11 +82,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       .from('onboarding_progress')
       .insert(onboardingRecords);
     
-   if (error) {
-  console.error("🛑 Supabase insert error:", error);
-} else {
-  console.log("✅ Supabase insert success:", data);
-}
+    if (onboardingError) throw onboardingError;
     
     return clientId;
   } catch (error: any) {
