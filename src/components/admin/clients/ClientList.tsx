@@ -73,8 +73,8 @@ const ClientList = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   
   // State for column filters
-  const [industryFilter, setIndustryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [industryFilter, setIndustryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Query to fetch clients data
   const {
@@ -198,8 +198,8 @@ const ClientList = () => {
       sorting,
       globalFilter,
       columnFilters: [
-        ...(industryFilter ? [{ id: 'industry', value: industryFilter }] : []),
-        ...(statusFilter ? [{ id: 'status', value: statusFilter }] : []),
+        ...(industryFilter !== "all" ? [{ id: 'industry', value: industryFilter }] : []),
+        ...(statusFilter !== "all" ? [{ id: 'status', value: statusFilter }] : []),
       ],
     },
     onGlobalFilterChange: setGlobalFilter,
@@ -245,7 +245,7 @@ const ClientList = () => {
                 <SelectValue placeholder="Filter by Industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 {uniqueIndustries.map((industry) => (
                   <SelectItem key={industry} value={industry as string}>
                     {industry}
@@ -259,7 +259,7 @@ const ClientList = () => {
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
