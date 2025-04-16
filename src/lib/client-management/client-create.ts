@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
@@ -5,23 +6,25 @@ import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues): Promise<string> {
   try {
-    // Ensure addons is an array
     const addons = Array.isArray(data.addons) ? data.addons : [];
 
     // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase
       .from("clients")
-      .insert({
-        email: data.email,
-        company_name: data.companyName || null,
-        contact_person: data.contactPerson || null,
-        position: data.position || null,
-        industry: data.industry || null,
-        company_size: data.companySize || null,
-        subscription_id: data.subscriptionId,
-        status: "pending",
-        onboarding_status: "not_started"
-      })
+      .insert([
+        {
+          email: data.email,
+          company_name: data.companyName || null,
+          subscription_id: data.subscriptionId,
+          status: "pending",
+
+          // New fields
+          industry: data.industry || null,
+          contact_person: data.contactPerson || null,
+          position: data.position || null,
+          company_size: data.companySize || null,
+        }
+      ])
       .select("id")
       .single();
 
@@ -29,9 +32,9 @@ export async function createClient(data: ClientFormValues): Promise<string> {
 
     const clientId = clientData.id;
 
-    // Step 2: Add addons if selected
+    // Step 2: Add addons
     if (addons.length > 0) {
-      const addonRecords = addons.map((addonId) => ({
+      const addonRecords = addons.map(addonId => ({
         client_id: clientId,
         addon_id: addonId,
       }));
@@ -45,7 +48,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
 
     // Step 3: Add team members
     if (data.teamMembers && data.teamMembers.length > 0) {
-      const teamMemberRecords = data.teamMembers.map((member) => ({
+      const teamMemberRecords = data.teamMembers.map(member => ({
         client_id: clientId,
         email: member.email,
         invitation_status: "pending",
@@ -58,17 +61,17 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (teamError) throw teamError;
     }
 
-    // Step 4: Create initial onboarding progress records
+    // Step 4: Create onboarding steps
     const onboardingSteps = [
       { step_name: "welcome", step_order: 1, completed: false },
       { step_name: "contract", step_order: 2, completed: false },
       { step_name: "questionnaire", step_order: 3, completed: false },
       { step_name: "upload", step_order: 4, completed: false },
       { step_name: "integration", step_order: 5, completed: false },
-      { step_name: "training", step_order: 6, completed: false },
+      { step_name: "training", step_order: 6, completed: false }
     ];
 
-    const onboardingRecords = onboardingSteps.map((step) => ({
+    const onboardingRecords = onboardingSteps.map(step => ({
       client_id: clientId,
       step_name: step.step_name,
       step_order: step.step_order,
