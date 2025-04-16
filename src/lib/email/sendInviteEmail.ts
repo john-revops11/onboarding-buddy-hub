@@ -1,6 +1,3 @@
-import nodemailer from "nodemailer";
-process.env.SMTP_USER
-process.env.SMTP_PASS
 
 type InviteEmailParams = {
   to: string;
@@ -13,25 +10,30 @@ export const sendInviteEmail = async ({
   companyName,
   inviteLink,
 }: InviteEmailParams) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  try {
+    // We'll use the existing Supabase Edge Function to send the email
+    const response = await fetch(
+      "https://zepvfisrhhfzlqflgwzb.supabase.co/functions/v1/send-invite",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: to,
+          companyName: companyName || "Your Company",
+          inviteLink,
+        }),
+      }
+    );
 
-  await transporter.sendMail({
-    from: `"Revify Onboarding" <${process.env.SMTP_USER}>`,
-    to,
-    subject: `You're invited to onboard with ${companyName}`,
-    html: `
-      <h2>You're Invited to ${companyName}</h2>
-      <p>Hello,</p>
-      <p>You’ve been invited to onboard with <strong>${companyName}</strong>.</p>
-      <p>Click below to confirm and set your password:</p>
-      <a href="${inviteLink}" style="padding: 10px 15px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 4px;">Confirm My Access</a>
-      <p>This link will expire in 24 hours.</p>
-    `,
-  });
+    if (!response.ok) {
+      throw new Error(`Failed to send invite email: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending invite email:", error);
+    throw error;
+  }
 };
