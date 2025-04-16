@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, UserPlus, Download } from "lucide-react";
-import { ClientStatus } from "@/components/admin/onboarding/ClientStatus";
 import { Link } from "react-router-dom";
+import ClientList from "@/components/admin/clients/ClientList";
 
 const ClientsListPage = () => {
   return (
@@ -32,17 +32,7 @@ const ClientsListPage = () => {
           </div>
         </div>
         
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle>Client List</CardTitle>
-            <CardDescription>
-              View and manage all clients in the system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClientStatus />
-          </CardContent>
-        </Card>
+        <ClientList />
       </div>
     </DashboardLayout>
   );

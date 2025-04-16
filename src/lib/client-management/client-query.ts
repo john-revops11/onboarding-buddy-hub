@@ -9,6 +9,10 @@ interface RawClientData {
   company_name: string | null;
   status: string;
   created_at: string;
+  industry: string | null;
+  contact_person: string | null;
+  position: string | null;
+  company_size: string | null;
   subscription_id: string | null;
   subscriptions: {
     id: string;
@@ -35,6 +39,10 @@ export async function getOnboardingClients() {
         company_name, 
         status, 
         created_at,
+        industry,
+        contact_person,
+        position,
+        company_size,
         subscription_id,
         subscriptions(id, name, price, description),
         addons(id, name, price, description)
@@ -78,6 +86,10 @@ export async function getOnboardingClients() {
         companyName: client.company_name,
         status: client.status as "pending" | "active", // Cast to expected union type
         createdAt: client.created_at,
+        industry: client.industry,
+        contactPerson: client.contact_person,
+        position: client.position,
+        companySize: client.company_size,
         subscriptionTier: subscription,
         addons,
         teamMembers: [] // Add empty teamMembers array to match OnboardingClient type
@@ -111,6 +123,34 @@ export async function getClientProgress(clientId: string): Promise<OnboardingPro
   } catch (error) {
     console.error("Error fetching client progress:", error);
     return [];
+  }
+}
+
+// Calculate onboarding progress percentage for a client
+export async function calculateClientProgress(clientId: string): Promise<{
+  progress: number;
+  completedSteps: number;
+  totalSteps: number;
+}> {
+  try {
+    const progress = await getClientProgress(clientId);
+    
+    if (progress.length === 0) {
+      return { progress: 0, completedSteps: 0, totalSteps: 0 };
+    }
+    
+    const totalSteps = progress.length;
+    const completedSteps = progress.filter(step => step.completed).length;
+    const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
+    
+    return {
+      progress: progressPercentage,
+      completedSteps,
+      totalSteps
+    };
+  } catch (error) {
+    console.error("Error calculating client progress:", error);
+    return { progress: 0, completedSteps: 0, totalSteps: 0 };
   }
 }
 

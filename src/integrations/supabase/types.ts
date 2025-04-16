@@ -271,15 +271,19 @@ export type Database = {
         Row: {
           assigned_admin: string | null
           company_name: string | null
+          company_size: string | null
+          contact_person: string | null
           created_at: string
           drive_id: string | null
           drive_name: string | null
           email: string
           google_drive_id: string | null
           id: string
+          industry: string | null
           metadata: Json | null
           notes: string | null
           onboarding_completed: boolean | null
+          position: string | null
           status: string
           subscription_id: string | null
           updated_at: string
@@ -287,15 +291,19 @@ export type Database = {
         Insert: {
           assigned_admin?: string | null
           company_name?: string | null
+          company_size?: string | null
+          contact_person?: string | null
           created_at?: string
           drive_id?: string | null
           drive_name?: string | null
           email: string
           google_drive_id?: string | null
           id?: string
+          industry?: string | null
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          position?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -303,15 +311,19 @@ export type Database = {
         Update: {
           assigned_admin?: string | null
           company_name?: string | null
+          company_size?: string | null
+          contact_person?: string | null
           created_at?: string
           drive_id?: string | null
           drive_name?: string | null
           email?: string
           google_drive_id?: string | null
           id?: string
+          industry?: string | null
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          position?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -945,6 +957,10 @@ export type Database = {
       }
       revoke_secret: {
         Args: { secret_name: string }
+        Returns: undefined
+      }
+      send_invite_email: {
+        Args: { email: string; client_name: string }
         Returns: undefined
       }
       set_secret: {
