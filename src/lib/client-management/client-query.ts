@@ -20,18 +20,13 @@ interface RawClientData {
     price: number;
     description: string | null;
   } | null;
-  addons: Array<{
-    id: string;
-    name: string;
-    price: number;
-    description: string | null;
-  }> | null;
 }
 
-// Function to fetch clients with their subscription and addon data
+// Function to fetch clients with their subscription data
 export async function getOnboardingClients() {
   try {
-    const { data, error } = await supabase
+    // Get all clients with their subscription data
+    const { data: clientsData, error: clientsError } = await supabase
       .from('clients')
       .select(`
         id, 
@@ -44,15 +39,41 @@ export async function getOnboardingClients() {
         position,
         company_size,
         subscription_id,
-        subscriptions(id, name, price, description),
+        subscriptions(id, name, price, description)
+      `);
+
+    if (clientsError) throw clientsError;
+
+    // Get client-addon relationships
+    const { data: clientAddonsData, error: addonsError } = await supabase
+      .from('client_addons')
+      .select(`
+        client_id,
+        addon_id,
         addons(id, name, price, description)
       `);
 
-    if (error) throw error;
+    if (addonsError) throw addonsError;
+    
+    // Group addons by client_id
+    const addonsByClient = (clientAddonsData || []).reduce((acc, item) => {
+      if (!acc[item.client_id]) {
+        acc[item.client_id] = [];
+      }
+      if (item.addons) {
+        acc[item.client_id].push({
+          id: item.addons.id || "",
+          name: item.addons.name || "",
+          price: item.addons.price || 0,
+          description: item.addons.description || ""
+        });
+      }
+      return acc;
+    }, {});
 
-    // Cast the data to our expected type after validating its structure
-    return ((data || []) as unknown as RawClientData[]).map(client => {
-      // Parse subscription data properly - ensure it's a valid Subscription object
+    // Map the raw client data to our expected format
+    return ((clientsData || []) as unknown as RawClientData[]).map(client => {
+      // Parse subscription data properly
       let subscription: Subscription = {
         id: "",
         name: "No Subscription",
@@ -60,7 +81,7 @@ export async function getOnboardingClients() {
         description: ""
       };
 
-      // Check if subscriptions exists and is not null before accessing its properties
+      // Check if subscriptions exists and is not null
       if (client.subscriptions && typeof client.subscriptions === 'object') {
         subscription = {
           id: client.subscriptions.id || "",
@@ -70,15 +91,8 @@ export async function getOnboardingClients() {
         };
       }
 
-      // Parse addons data - ensure it's an array
-      const addons: Addon[] = Array.isArray(client.addons) 
-        ? client.addons.map((addon) => ({
-            id: addon.id || "",
-            name: addon.name || "",
-            price: addon.price || 0,
-            description: addon.description || ""
-          })) 
-        : [];
+      // Get addons for this client from our grouped data
+      const addons: Addon[] = addonsByClient[client.id] || [];
 
       return {
         id: client.id,

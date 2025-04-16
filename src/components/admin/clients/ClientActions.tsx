@@ -23,7 +23,11 @@ export const ClientActions: React.FC<ClientActionsProps> = ({ clientId, client, 
   };
 
   const handleEditClient = () => {
-    navigate(`/admin/clients/edit/${clientId}`);
+    // This is a placeholder - we'll implement this route later
+    toast({
+      title: "Edit Client",
+      description: "This feature is coming soon.",
+    });
   };
 
   const handleSendInvite = async () => {

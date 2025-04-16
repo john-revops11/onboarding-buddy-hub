@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -34,30 +33,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, Filter } from "lucide-react";
 
 // Type for enhanced client data with onboarding progress
-// Instead of extending OnboardingClient, define a separate type to avoid conflicts
-type EnhancedClient = {
-  id: string;
-  email: string;
-  companyName?: string;
-  subscriptionTier: {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-  };
-  addons: Array<{
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-  }>;
-  status: 'pending' | 'active';
-  teamMembers: Array<any>;
-  contactPerson?: string;
-  position?: string;
-  industry?: string;
-  companySize?: string;
-  createdAt?: string;
+type EnhancedClient = Omit<OnboardingClient, 'onboardingProgress'> & {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
