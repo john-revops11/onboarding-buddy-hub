@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { getSubscriptionTiers } from "@/lib/subscription-management";
@@ -15,7 +14,7 @@ export function useClientOnboarding() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>("client-info");
-  
+
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(ClientFormSchema),
     defaultValues: {
@@ -25,6 +24,11 @@ export function useClientOnboarding() {
       addons: [],
       teamMembers: [{ email: "" }],
       notes: "",
+      // ✅ New defaults
+      industry: "",
+      contactPerson: "",
+      position: "",
+      companySize: "1-10"
     },
   });
 
@@ -40,8 +44,8 @@ export function useClientOnboarding() {
         ]);
         setSubscriptions(subscriptionsData);
         setAddons(addonsData);
-      } catch (err) {
-        console.error("Error loading data:", err);
+      } catch (error) {
+        console.error("Error loading data:", error);
         toast({
           title: "Error",
           description: "Failed to load subscription tiers and addons.",
@@ -51,7 +55,6 @@ export function useClientOnboarding() {
         setIsLoading(false);
       }
     };
-
     loadData();
   }, [toast]);
 
@@ -78,7 +81,6 @@ export function useClientOnboarding() {
   const toggleAddon = useCallback((addonId: string) => {
     const currentAddons = form.getValues("addons") || [];
     const safeAddons = Array.isArray(currentAddons) ? currentAddons : [];
-
     if (safeAddons.includes(addonId)) {
       form.setValue("addons", safeAddons.filter(id => id !== addonId));
     } else {
@@ -88,7 +90,6 @@ export function useClientOnboarding() {
 
   const onSubmit = useCallback(async (data: ClientFormValues) => {
     setIsSubmitting(true);
-
     try {
       const safeAddons = Array.isArray(data.addons) ? data.addons : [];
       const formData = { ...data, addons: safeAddons };
@@ -98,26 +99,21 @@ export function useClientOnboarding() {
       if (clientId) {
         form.reset();
         setActiveTab("client-info");
-
         toast({
           title: "Client created",
-          description: `${data.companyName || "New client"} has been added. Invitation sent to ${data.email}`,
-          variant: "success",
+          description: `${data.companyName || 'New client'} has been added. Invitation sent to ${data.email}`,
         });
-
         return clientId;
       } else {
-        throw new Error("Client ID was not returned. Something went wrong.");
+        throw new Error("Failed to create client");
       }
     } catch (error: any) {
       console.error("Error creating client:", error);
-
       toast({
         title: "Error",
-        description: error?.message || "Failed to create client. Please try again.",
+        description: error.message || "Failed to create client. Please try again.",
         variant: "destructive",
       });
-
       return null;
     } finally {
       setIsSubmitting(false);
