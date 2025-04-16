@@ -33,8 +33,8 @@ import { ClientStatusBadge } from "./ClientStatusBadge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
 
-// Type for enhanced client data
-interface EnhancedClient extends OnboardingClient {
+// Type for enhanced client data with onboarding progress
+interface EnhancedClient extends Omit<OnboardingClient, 'onboardingProgress'> {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
@@ -306,7 +306,8 @@ const ClientList = () => {
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => table.previousPage()}
-                      disabled={!table.getCanPreviousPage()}
+                      aria-disabled={!table.getCanPreviousPage()}
+                      className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                   {Array.from({ length: table.getPageCount() }, (_, i) => (
@@ -322,7 +323,8 @@ const ClientList = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => table.nextPage()}
-                      disabled={!table.getCanNextPage()}
+                      aria-disabled={!table.getCanNextPage()}
+                      className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>
