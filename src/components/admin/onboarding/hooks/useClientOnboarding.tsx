@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +14,6 @@ export const useClientOnboarding = () => {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Query subscriptions and addons from Supabase
   const { data: subscriptions = [], isLoading: isLoadingSubscriptions } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: getSubscriptionTiers
@@ -26,7 +24,6 @@ export const useClientOnboarding = () => {
     queryFn: getAddons
   });
 
-  // Initialize form with default values
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(ClientFormSchema),
     defaultValues: {
@@ -38,50 +35,26 @@ export const useClientOnboarding = () => {
     },
   });
 
-  // Define tab navigation handlers
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
   const nextTab = () => {
-    switch (activeTab) {
-      case "client-info":
-        setActiveTab("subscription");
-        break;
-      case "subscription":
-        setActiveTab("addons");
-        break;
-      case "addons":
-        setActiveTab("team");
-        break;
-      case "team":
-        setActiveTab("confirm");
-        break;
-      default:
-        break;
+    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
     }
   };
 
   const prevTab = () => {
-    switch (activeTab) {
-      case "subscription":
-        setActiveTab("client-info");
-        break;
-      case "addons":
-        setActiveTab("subscription");
-        break;
-      case "team":
-        setActiveTab("addons");
-        break;
-      case "confirm":
-        setActiveTab("team");
-        break;
-      default:
-        break;
+    const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
     }
   };
 
-  // Toggle addon selection
   const toggleAddon = (addonId: string) => {
     setSelectedAddons((current) => {
       if (current.includes(addonId)) {
@@ -92,17 +65,12 @@ export const useClientOnboarding = () => {
     });
   };
 
-  // Submit form
   const onSubmit = async (data: ClientFormValues) => {
     try {
       setIsSubmitting(true);
-      console.log("Form data:", data);
-      console.log("Selected addons:", selectedAddons);
 
-      // Create client with selected addons
-      // Ensure the teamMembers array contains objects with required email properties
       const validTeamMembers = data.teamMembers.map(member => ({
-        email: member.email || "" // Ensure email is always a string, even if empty
+        email: member.email || ""
       }));
 
       const clientId = await createClient({
@@ -112,23 +80,26 @@ export const useClientOnboarding = () => {
         addons: selectedAddons,
         teamMembers: validTeamMembers
       });
-      
+
       if (clientId) {
         toast({
           title: "Client onboarded successfully",
           description: `${data.email} has been onboarded with the selected subscription and add-ons.`,
+          variant: "success"
         });
-        
-        // Reset form
+
         form.reset();
         setSelectedAddons([]);
         setActiveTab("client-info");
+      } else {
+        throw new Error("Client ID was not returned.");
       }
     } catch (error: any) {
       console.error("Error onboarding client:", error);
+
       toast({
         title: "Error",
-        description: error.message || "Failed to onboard client. Please try again.",
+        description: error?.message || "Failed to onboard client. Please try again.",
         variant: "destructive",
       });
     } finally {
