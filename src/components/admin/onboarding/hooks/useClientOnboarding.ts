@@ -112,8 +112,9 @@ export function useClientOnboarding() {
         
         toast({
           title: "Client created",
-          description: `${data.companyName || 'New client'} has been added. Invitation sent to ${data.email}`,
-        });
+          description: `${data.companyName || 'New client'} has been added.`,
+    variant: "success"
+  });
         
         return clientId;
       } else {
@@ -121,6 +122,12 @@ export function useClientOnboarding() {
       }
     } catch (error: any) {
       console.error("Error creating client:", error);
+      
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create client. Please try again.",
+        variant: "destructive",
+      });
       
       return null;
     } finally {
