@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,24 +27,21 @@ export function useClientOnboarding() {
       notes: "",
     },
   });
-  
-  // Safely get the selected addons, ensuring it's always an array
+
   const selectedAddons = form.watch("addons") || [];
-  
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Fetch subscriptions and addons in parallel
         const [subscriptionsData, addonsData] = await Promise.all([
           getSubscriptionTiers(),
           getAddons(),
         ]);
-        
         setSubscriptions(subscriptionsData);
         setAddons(addonsData);
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch (err) {
+        console.error("Error loading data:", err);
         toast({
           title: "Error",
           description: "Failed to load subscription tiers and addons.",
@@ -55,7 +51,7 @@ export function useClientOnboarding() {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, [toast]);
 
@@ -66,7 +62,6 @@ export function useClientOnboarding() {
   const nextTab = useCallback(() => {
     const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
     const currentIndex = tabOrder.indexOf(activeTab);
-    
     if (currentIndex < tabOrder.length - 1) {
       setActiveTab(tabOrder[currentIndex + 1]);
     }
@@ -75,66 +70,60 @@ export function useClientOnboarding() {
   const prevTab = useCallback(() => {
     const tabOrder = ["client-info", "subscription", "addons", "team", "confirm"];
     const currentIndex = tabOrder.indexOf(activeTab);
-    
     if (currentIndex > 0) {
       setActiveTab(tabOrder[currentIndex - 1]);
     }
   }, [activeTab]);
 
-  // Properly typed toggleAddon function
   const toggleAddon = useCallback((addonId: string) => {
     const currentAddons = form.getValues("addons") || [];
-    // Ensure currentAddons is an array
     const safeAddons = Array.isArray(currentAddons) ? currentAddons : [];
-    
+
     if (safeAddons.includes(addonId)) {
-      // Remove addon if already selected
       form.setValue("addons", safeAddons.filter(id => id !== addonId));
     } else {
-      // Add addon if not already selected
       form.setValue("addons", [...safeAddons, addonId]);
     }
   }, [form]);
-  
+
   const onSubmit = useCallback(async (data: ClientFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
-      // Ensure addons is an array
       const safeAddons = Array.isArray(data.addons) ? data.addons : [];
       const formData = { ...data, addons: safeAddons };
-      
+
       const clientId = await createClient(formData);
-      
+
       if (clientId) {
         form.reset();
         setActiveTab("client-info");
-        
+
         toast({
           title: "Client created",
-          description: `${data.companyName || 'New client'} has been added.`,
-    variant: "success"
-  });
-        
+          description: `${data.companyName || "New client"} has been added. Invitation sent to ${data.email}`,
+          variant: "success",
+        });
+
         return clientId;
       } else {
-        throw new Error("Failed to create client");
+        throw new Error("Client ID was not returned. Something went wrong.");
       }
     } catch (error: any) {
       console.error("Error creating client:", error);
-      
+
       toast({
         title: "Error",
-        description: error.message || "Failed to create client. Please try again.",
+        description: error?.message || "Failed to create client. Please try again.",
         variant: "destructive",
       });
-      
+
       return null;
     } finally {
       setIsSubmitting(false);
     }
   }, [form, toast, setActiveTab]);
-  
+
   return {
     form,
     subscriptions,
