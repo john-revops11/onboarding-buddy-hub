@@ -48,10 +48,11 @@ import EditAddonPage from "./pages/admin/addons/EditAddonPage";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
 
-// Create the QueryClient outside of the component
-const queryClient = new QueryClient();
-
+// Create the QueryClient as a function component to ensure proper React context
 const App = () => {
+  // Create a new QueryClient instance inside the component
+  const queryClient = new QueryClient();
+
   return (
     // Ensure all providers are properly nested
     <QueryClientProvider client={queryClient}>

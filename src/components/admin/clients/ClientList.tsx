@@ -34,7 +34,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, Filter } from "lucide-react";
 
 // Type for enhanced client data with onboarding progress
-interface EnhancedClient extends Omit<OnboardingClient, 'onboardingProgress'> {
+interface EnhancedClient extends OnboardingClient {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
@@ -112,19 +112,23 @@ const ClientList = () => {
       header: "Email",
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("contactPerson", {
+    columnHelper.accessor((row) => row.contactPerson || "", {
+      id: "contactPerson",
       header: "Contact Person",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("position", {
+    columnHelper.accessor((row) => row.position || "", {
+      id: "position",
       header: "Position",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("industry", {
+    columnHelper.accessor((row) => row.industry || "", {
+      id: "industry",
       header: "Industry",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("companySize", {
+    columnHelper.accessor((row) => row.companySize || "", {
+      id: "companySize",
       header: "Company Size",
       cell: (info) => info.getValue() || "-",
       enableSorting: true,
