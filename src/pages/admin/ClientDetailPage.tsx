@@ -1,3 +1,4 @@
+// ✅ File: src/pages/admin/ClientDetailPage.tsx
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import ClientDetailPage from "@/components/admin/clients/ClientDetailPage";
@@ -34,5 +35,5 @@ const AdminClientDetailPage = () => {
   );
 };
 
-// ✅ Only this one default export should exist
 export default AdminClientDetailPage;
+
