@@ -11,16 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { 
   MoreVertical, 
-  ArrowRight, 
+  ArrowUpDown, 
   CheckCircle, 
   Clock, 
   User, 
   Eye,
-  ArrowUpDown,
   ExternalLink 
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

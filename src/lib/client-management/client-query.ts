@@ -69,19 +69,23 @@ export async function getOnboardingClients() {
     
     // Group addons by client_id
     const addonsByClient: Record<string, Addon[]> = {};
-    (clientAddonsData || []).forEach((item: RawClientAddonData) => {
-      if (!addonsByClient[item.client_id]) {
-        addonsByClient[item.client_id] = [];
-      }
-      if (item.addons) {
-        addonsByClient[item.client_id].push({
-          id: item.addons.id || "",
-          name: item.addons.name || "",
-          price: item.addons.price || 0,
-          description: item.addons.description || ""
-        });
-      }
-    });
+    
+    if (clientAddonsData) {
+      // Use type assertion to ensure correct type handling
+      (clientAddonsData as unknown as RawClientAddonData[]).forEach((item) => {
+        if (!addonsByClient[item.client_id]) {
+          addonsByClient[item.client_id] = [];
+        }
+        if (item.addons) {
+          addonsByClient[item.client_id].push({
+            id: item.addons.id || "",
+            name: item.addons.name || "",
+            price: item.addons.price || 0,
+            description: item.addons.description || ""
+          });
+        }
+      });
+    }
 
     // Map the raw client data to our expected format
     return ((clientsData || []) as unknown as RawClientData[]).map(client => {

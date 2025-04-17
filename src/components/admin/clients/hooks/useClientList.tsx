@@ -9,7 +9,7 @@ import {
   getFilteredRowModel,
   useReactTable
 } from "@tanstack/react-table";
-import { getClients, calculateClientProgress } from "@/lib/client-management/client-query";
+import { getClients, calculateClientProgress } from "@/lib/client-management";
 import { toast } from "@/hooks/use-toast";
 import { useClientColumns } from "./useClientColumns";
 import { EnhancedClient } from "../types";
@@ -71,7 +71,9 @@ export function useClientList() {
   });
 
   // Extract unique industry values for filter
-  const uniqueIndustries = [...new Set(clients.map(client => client.industry).filter(Boolean))];
+  const uniqueIndustries = Array.from(
+    new Set(clients.filter(client => client.industry).map(client => client.industry))
+  ) as string[];
 
   // Define columns with the refetch callback
   const columns = useClientColumns(() => refetch());
