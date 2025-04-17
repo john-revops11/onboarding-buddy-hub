@@ -5,7 +5,7 @@ import ClientEditModal from "@/components/admin/clients/ClientEditModal";
 import { useQuery } from "@tanstack/react-query";
 import { getClientById } from "@/lib/client-management/client-query";
 
-export default function AdminClientDetailPage() {
+const AdminClientDetailPage = () => {
   const { clientId } = useParams();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -32,5 +32,7 @@ export default function AdminClientDetailPage() {
       />
     </>
   );
-}
+};
+
+// ✅ Only this one default export should exist
 export default AdminClientDetailPage;
