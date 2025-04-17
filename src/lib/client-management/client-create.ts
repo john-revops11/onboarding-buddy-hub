@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
+import { OnboardingStatus } from "@/lib/constants"; // ✅ Use enum from shared constants
 
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues): Promise<string> {
@@ -20,7 +21,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
         company_size: data.companySize || null,
         subscription_id: data.subscriptionId,
         status: "pending",
-        onboarding_status: "not_started"
+        onboarding_status: OnboardingStatus.NOT_STARTED // ✅ Enum usage
       })
       .select("id")
       .single();
