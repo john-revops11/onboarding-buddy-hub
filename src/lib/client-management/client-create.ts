@@ -1,15 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
-import { OnboardingStatus } from "@/lib/constants"; // ✅ Use enum from shared constants
+import { OnboardingStatus } from "../constants"; // ✅ use relative path to avoid alias issue
 
 // Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues): Promise<string> {
   try {
-    // Ensure addons is an array
     const addons = Array.isArray(data.addons) ? data.addons : [];
 
-    // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase
       .from("clients")
       .insert({
@@ -21,7 +19,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
         company_size: data.companySize || null,
         subscription_id: data.subscriptionId,
         status: "pending",
-        onboarding_status: OnboardingStatus.NOT_STARTED // ✅ Enum usage
+        onboarding_status: OnboardingStatus.NOT_STARTED, // ✅ enum usage
       })
       .select("id")
       .single();
@@ -30,7 +28,6 @@ export async function createClient(data: ClientFormValues): Promise<string> {
 
     const clientId = clientData.id;
 
-    // Step 2: Add addons if selected
     if (addons.length > 0) {
       const addonRecords = addons.map((addonId) => ({
         client_id: clientId,
@@ -44,7 +41,6 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (addonError) throw addonError;
     }
 
-    // Step 3: Add team members
     if (data.teamMembers && data.teamMembers.length > 0) {
       const teamMemberRecords = data.teamMembers.map((member) => ({
         client_id: clientId,
@@ -59,7 +55,6 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (teamError) throw teamError;
     }
 
-    // Step 4: Create initial onboarding progress records
     const onboardingSteps = [
       { step_name: "welcome", step_order: 1, completed: false },
       { step_name: "contract", step_order: 2, completed: false },
