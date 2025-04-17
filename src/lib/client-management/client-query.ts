@@ -56,7 +56,7 @@ export async function getOnboardingClients() {
     if (addonsError) throw addonsError;
     
     // Group addons by client_id
-    const addonsByClient = {};
+    const addonsByClient: Record<string, Addon[]> = {};
     (clientAddonsData || []).forEach(item => {
       if (!addonsByClient[item.client_id]) {
         addonsByClient[item.client_id] = [];
