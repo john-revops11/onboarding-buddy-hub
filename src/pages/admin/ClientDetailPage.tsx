@@ -33,4 +33,4 @@ export default function AdminClientDetailPage() {
     </>
   );
 }
-export default ClientDetailPage;
+export default AdminClientDetailPage;
