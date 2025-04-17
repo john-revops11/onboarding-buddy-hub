@@ -10,7 +10,7 @@ interface ClientDetailPageProps {
   client: Client;
 }
 
-export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) => {
+const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [clientData, setClientData] = useState(client);
   const { toast } = useToast();
