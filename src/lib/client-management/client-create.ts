@@ -1,9 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ClientFormValues } from "@/components/admin/onboarding/formSchema";
-import { OnboardingStatus } from "../constants"; // ✅ use relative path to avoid alias issue
+import { OnboardingStatus } from "../constants"; // ✅ Correct path to constants.ts
 
-// Create a new client with subscription, addons and team members
 export async function createClient(data: ClientFormValues): Promise<string> {
   try {
     const addons = Array.isArray(data.addons) ? data.addons : [];
@@ -33,11 +32,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
         client_id: clientId,
         addon_id: addonId,
       }));
-
-      const { error: addonError } = await supabase
-        .from("client_addons")
-        .insert(addonRecords);
-
+      const { error: addonError } = await supabase.from("client_addons").insert(addonRecords);
       if (addonError) throw addonError;
     }
 
@@ -47,11 +42,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
         email: member.email,
         invitation_status: "pending",
       }));
-
-      const { error: teamError } = await supabase
-        .from("team_members")
-        .insert(teamMemberRecords);
-
+      const { error: teamError } = await supabase.from("team_members").insert(teamMemberRecords);
       if (teamError) throw teamError;
     }
 
