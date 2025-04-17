@@ -11,7 +11,6 @@ import { ArrowLeft, Upload, FileText, Settings, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ClientInvites } from "@/components/admin/onboarding/ClientInvites";
 import { ClientStatus } from "@/components/admin/onboarding/ClientStatus";
-import { getClientProgress } from "@/lib/client-management/client-query";
 
 const AdminOnboardingPage = () => {
   const navigate = useNavigate();
