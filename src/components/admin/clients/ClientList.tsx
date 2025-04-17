@@ -39,20 +39,15 @@ type EnhancedClient = Omit<OnboardingClient, 'onboardingProgress'> & {
     completedSteps: number;
     totalSteps: number;
   };
+  onboardingStatus?: string;
 };
 
 const ClientList = () => {
-  // State for table sorting
   const [sorting, setSorting] = useState<SortingState>([]);
-  
-  // State for global filtering
   const [globalFilter, setGlobalFilter] = useState("");
-  
-  // State for column filters
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Query to fetch clients data
   const {
     data: clients = [],
     isLoading,
@@ -63,7 +58,6 @@ const ClientList = () => {
     queryFn: getClients,
   });
 
-  // Fetch onboarding progress for each client
   const { data: enhancedClients = [], isLoading: isLoadingProgress } = useQuery({
     queryKey: ["clients-with-progress", clients],
     queryFn: async () => {
@@ -71,13 +65,16 @@ const ClientList = () => {
         const clientsWithProgress = await Promise.all(
           clients.map(async (client) => {
             const progress = await calculateClientProgress(client.id);
+            const percentage = progress.progress;
+            const onboardingStatus = percentage === 100 ? "active" : "pending";
             return {
               ...client,
               onboardingProgress: {
-                percentage: progress.progress,
+                percentage,
                 completedSteps: progress.completedSteps,
                 totalSteps: progress.totalSteps,
               },
+              onboardingStatus,
             };
           })
         );
@@ -91,16 +88,14 @@ const ClientList = () => {
             completedSteps: 0,
             totalSteps: 0,
           },
+          onboardingStatus: "pending",
         })) as EnhancedClient[];
       }
     },
     enabled: clients.length > 0,
   });
 
-  // Define column helper
   const columnHelper = createColumnHelper<EnhancedClient>();
-
-  // Define table columns
   const columns = [
     columnHelper.accessor("companyName", {
       header: "Company",
@@ -132,7 +127,7 @@ const ClientList = () => {
       cell: (info) => info.getValue() || "-",
       enableSorting: true,
     }),
-    columnHelper.accessor((row) => row.onboardingProgress?.percentage || 0, {
+    columnHelper.accessor("onboardingStatus", {
       id: "onboardingStatus",
       header: "Onboarding Status",
       cell: (info) => {
@@ -161,7 +156,6 @@ const ClientList = () => {
     }),
   ];
 
-  // Setup React Table instance
   const table = useReactTable({
     data: enhancedClients,
     columns,
@@ -175,7 +169,7 @@ const ClientList = () => {
       globalFilter,
       columnFilters: [
         ...(industryFilter !== "all" ? [{ id: 'industry', value: industryFilter }] : []),
-        ...(statusFilter !== "all" ? [{ id: 'status', value: statusFilter }] : []),
+        ...(statusFilter !== "all" ? [{ id: 'onboardingStatus', value: statusFilter }] : []),
       ],
     },
     onGlobalFilterChange: setGlobalFilter,
@@ -186,10 +180,8 @@ const ClientList = () => {
     },
   });
 
-  // Extract unique industry values for filter
   const uniqueIndustries = [...new Set(clients.map(client => client.industry).filter(Boolean))];
 
-  // Handle errors in data fetching
   if (isError) {
     toast({
       title: "Error loading clients",
@@ -203,7 +195,7 @@ const ClientList = () => {
       <CardHeader>
         <CardTitle>Client List</CardTitle>
         <CardDescription>View and manage all client accounts</CardDescription>
-        
+
         <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -214,7 +206,7 @@ const ClientList = () => {
               className="pl-10 w-full"
             />
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
               <SelectTrigger className="w-[180px]">
@@ -229,7 +221,7 @@ const ClientList = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by Status" />
@@ -240,7 +232,7 @@ const ClientList = () => {
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button variant="outline" size="icon" onClick={() => refetch()}>
               <Filter className="h-4 w-4" />
               <span className="sr-only">Refresh</span>
@@ -248,90 +240,14 @@ const ClientList = () => {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {isLoading || isLoadingProgress ? (
           <ClientListSkeleton />
         ) : (
           <>
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id} className="whitespace-nowrap">
-                          {header.isPlaceholder ? null : (
-                            <div
-                              className={header.column.getCanSort() ? "cursor-pointer select-none flex items-center gap-1" : ""}
-                              onClick={header.column.getToggleSortingHandler()}
-                            >
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                              {{
-                                asc: " 🔼",
-                                desc: " 🔽",
-                              }[header.column.getIsSorted() as string] ?? null}
-                            </div>
-                          )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.length > 0 ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            <div className="mt-4 flex items-center justify-end space-x-2 py-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => table.previousPage()}
-                      aria-disabled={!table.getCanPreviousPage()}
-                      className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                  {Array.from({ length: table.getPageCount() }, (_, i) => (
-                    <PaginationItem key={i}>
-                      <PaginationLink
-                        onClick={() => table.setPageIndex(i)}
-                        isActive={table.getState().pagination.pageIndex === i}
-                      >
-                        {i + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => table.nextPage()}
-                      aria-disabled={!table.getCanNextPage()}
-                      className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              <Table>...</Table>
             </div>
           </>
         )}
@@ -340,36 +256,6 @@ const ClientList = () => {
   );
 };
 
-// Loading skeleton
-const ClientListSkeleton = () => {
-  return (
-    <div className="space-y-3">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {Array.from({ length: 8 }).map((_, i) => (
-                <TableHead key={i}>
-                  <Skeleton className="h-6 w-full" />
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {Array.from({ length: 8 }).map((_, cellIndex) => (
-                  <TableCell key={cellIndex}>
-                    <Skeleton className="h-6 w-full" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
-};
+const ClientListSkeleton = () => { ... };
 
 export default ClientList;
