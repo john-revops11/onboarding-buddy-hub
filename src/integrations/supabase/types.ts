@@ -283,7 +283,9 @@ export type Database = {
           metadata: Json | null
           notes: string | null
           onboarding_completed: boolean | null
+          onboarding_status: number | null
           position: string | null
+          role: string | null
           status: string
           subscription_id: string | null
           updated_at: string
@@ -303,7 +305,9 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          onboarding_status?: number | null
           position?: string | null
+          role?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -323,7 +327,9 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          onboarding_status?: number | null
           position?: string | null
+          role?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -337,6 +343,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      companies: {
+        Row: {
+          company_name: string
+          created_at: string
+          drive_created_at: string | null
+          id: string
+          shared_drive_id: string | null
+          upload_folder_id: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          drive_created_at?: string | null
+          id?: string
+          shared_drive_id?: string | null
+          upload_folder_id?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          drive_created_at?: string | null
+          id?: string
+          shared_drive_id?: string | null
+          upload_folder_id?: string | null
+        }
+        Relationships: []
       }
       drive_audit: {
         Row: {
