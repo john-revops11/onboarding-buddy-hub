@@ -17,7 +17,7 @@ export interface FileUploaderProps {
   helpText?: string;
 }
 
-export function FileUploader({
+export function FileUploaderAdmin({
   onUploadComplete,
   onVerificationStatusChange,
   acceptedFileTypes = ".pdf,.doc,.docx,.jpg,.jpeg,.png",
