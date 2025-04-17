@@ -1,11 +1,10 @@
-
-// Export all client management functionality from a single entry point
+// Custom client management modules
 export { createClient } from './client-create';
 export { getOnboardingClients, getClients, getClientProgress, calculateClientProgress } from './client-query';
 export { sendClientInvitation } from './client-invitations';
 export { completeClientOnboarding } from './client-status';
 
-// Export file management functions
+// File upload management
 export {
   uploadFile,
   getClientFiles,
@@ -13,7 +12,7 @@ export {
   deleteFile
 } from './file-upload';
 
-// Export onboarding progress management functions
+// Onboarding progress management
 export {
   getOnboardingProgress,
   updateOnboardingStep,
@@ -21,7 +20,7 @@ export {
   completeClientOnboarding as finalizeClientOnboarding
 } from './onboarding-progress';
 
-// Export subscription-related functions
+// Subscription management
 export {
   createSubscriptionTier,
   updateSubscriptionTier,
@@ -29,7 +28,7 @@ export {
   getSubscriptionTiers,
 } from '../subscription-management';
 
-// Export addon-related functions
+// Addon management
 export {
   createAddon,
   updateAddon,
