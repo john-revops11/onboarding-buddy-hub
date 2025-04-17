@@ -1,8 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
-import { Client } from "@/lib/types/client-types";
+import { OnboardingProgressRecord, Subscription, Addon, Client } from "@/lib/types/client-types";
 
-// Get a single client by ID
+// ------------------------------
+// ✅ Get a single client by ID
+// ------------------------------
 export async function getClientById(id: string): Promise<Client | null> {
   try {
     const { data, error } = await supabase
@@ -32,8 +33,9 @@ export async function getClientById(id: string): Promise<Client | null> {
   }
 }
 
-
-// Define a type for the raw data coming from Supabase
+// ------------------------------
+// ✅ RawClientData type
+// ------------------------------
 interface RawClientData {
   id: string;
   email: string;
@@ -53,16 +55,18 @@ interface RawClientData {
   } | null;
 }
 
-// Function to fetch clients with their subscription data
+// ------------------------------
+// ✅ Fetch all clients with subscription and addon info
+// ------------------------------
 export async function getOnboardingClients() {
   try {
     const { data: clientsData, error: clientsError } = await supabase
       .from("clients")
       .select(`
-        id, 
-        email, 
-        company_name, 
-        status, 
+        id,
+        email,
+        company_name,
+        status,
         created_at,
         industry,
         contact_person,
@@ -138,6 +142,9 @@ export async function getOnboardingClients() {
   }
 }
 
+// ------------------------------
+// ✅ Get client onboarding progress
+// ------------------------------
 export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
   try {
     const { data, error } = await supabase
@@ -162,6 +169,9 @@ export async function getClientProgress(clientId: string): Promise<OnboardingPro
   }
 }
 
+// ------------------------------
+// ✅ Calculate onboarding completion percentage
+// ------------------------------
 export async function calculateClientProgress(clientId: string): Promise<{
   progress: number;
   completedSteps: number;
@@ -188,3 +198,8 @@ export async function calculateClientProgress(clientId: string): Promise<{
     return { progress: 0, completedSteps: 0, totalSteps: 0 };
   }
 }
+
+// ------------------------------
+// ✅ Unified export
+// ------------------------------
+export const getClients = getOnboardingClients;
