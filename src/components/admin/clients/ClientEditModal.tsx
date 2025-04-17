@@ -82,3 +82,4 @@ export const ClientEditModal: React.FC<ClientEditModalProps> = ({
     </Dialog>
   );
 };
+export default ClientEditModal;
