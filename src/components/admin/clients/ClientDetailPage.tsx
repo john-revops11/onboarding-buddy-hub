@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Client } from "@/lib/types/client-types";
 import { updateClient } from "@/lib/client-management/client-update";
-import { ClientEditModal } from "./ClientEditModal";
+import ClientEditModal from "./ClientEditModal"; // ✅ also use default export for this file
 
 interface ClientDetailPageProps {
   client: Client;
@@ -61,4 +61,4 @@ const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) => {
   );
 };
 
-export default ClientDetailPage;
+export default ClientDetailPage; // ✅ this is REQUIRED
