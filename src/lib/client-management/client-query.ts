@@ -5,14 +5,16 @@ import { Client } from "@/lib/types/client-types";
 
 // Get a single client by ID
 export async function getClientById(id: string): Promise<Client | null> {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("id", id)
-      .single();
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    if (error) throw error;
+  if (error) {
+    console.error("Failed to fetch client by ID:", error);
+    return null;
+  }
 
     return {
       id: data.id,
