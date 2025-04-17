@@ -32,21 +32,14 @@ import { ClientStatusBadge } from "./ClientStatusBadge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
 
-const OnboardingStatus = {
-  NOT_STARTED: 0,
-  IN_PROGRESS: 1,
-  COMPLETED: 2,
-} as const;
-
-type OnboardingStatusType = typeof OnboardingStatus[keyof typeof OnboardingStatus];
-
+// Type for enhanced client data with onboarding progress
 type EnhancedClient = Omit<OnboardingClient, 'onboardingProgress'> & {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
     totalSteps: number;
   };
-  onboardingStatus?: OnboardingStatusType;
+  onboardingStatus?: string;
 };
 
 const ClientList = () => {
@@ -73,7 +66,7 @@ const ClientList = () => {
           clients.map(async (client) => {
             const progress = await calculateClientProgress(client.id);
             const percentage = progress.progress;
-            const onboardingStatus = percentage === 100 ? OnboardingStatus.COMPLETED : OnboardingStatus.NOT_STARTED;
+            const onboardingStatus = percentage === 100 ? "active" : "pending";
             return {
               ...client,
               onboardingProgress: {
@@ -95,7 +88,7 @@ const ClientList = () => {
             completedSteps: 0,
             totalSteps: 0,
           },
-          onboardingStatus: OnboardingStatus.NOT_STARTED,
+          onboardingStatus: "pending",
         })) as EnhancedClient[];
       }
     },
@@ -176,7 +169,7 @@ const ClientList = () => {
       globalFilter,
       columnFilters: [
         ...(industryFilter !== "all" ? [{ id: 'industry', value: industryFilter }] : []),
-        ...(statusFilter !== "all" ? [{ id: 'onboardingStatus', value: parseInt(statusFilter) }] : []),
+        ...(statusFilter !== "all" ? [{ id: 'onboardingStatus', value: statusFilter }] : []),
       ],
     },
     onGlobalFilterChange: setGlobalFilter,
@@ -199,9 +192,70 @@ const ClientList = () => {
 
   return (
     <Card className="w-full">
-      {/* ... rest of your UI rendering logic remains here ... */}
+      <CardHeader>
+        <CardTitle>Client List</CardTitle>
+        <CardDescription>View and manage all client accounts</CardDescription>
+
+        <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by company or email..."
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Select value={industryFilter} onValueChange={setIndustryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Industries</SelectItem>
+                {uniqueIndustries.map((industry) => (
+                  <SelectItem key={industry} value={industry as string}>
+                    {industry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <Filter className="h-4 w-4" />
+              <span className="sr-only">Refresh</span>
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {isLoading || isLoadingProgress ? (
+          <ClientListSkeleton />
+        ) : (
+          <>
+            <div className="rounded-md border">
+              <Table>...</Table>
+            </div>
+          </>
+        )}
+      </CardContent>
     </Card>
   );
 };
+
+const ClientListSkeleton = () => { ... };
 
 export default ClientList;
