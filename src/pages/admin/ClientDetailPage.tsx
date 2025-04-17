@@ -1,9 +1,9 @@
 // ✅ File: src/pages/admin/ClientDetailPage.tsx
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import ClientDetailPage from "@/components/admin/clients/ClientDetailPage";
 import ClientEditModal from "@/components/admin/clients/ClientEditModal";
-import { useQuery } from "@tanstack/react-query";
 import { getClientById } from "@/lib/client-management/client-query";
 
 const AdminClientDetailPage = () => {
@@ -35,5 +35,5 @@ const AdminClientDetailPage = () => {
   );
 };
 
+// ✅ Use only one default export
 export default AdminClientDetailPage;
-
