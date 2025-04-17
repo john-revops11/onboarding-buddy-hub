@@ -2,24 +2,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
 
 // Define a type for the raw data coming from Supabase
-interface RawClientData {
-  id: string;
-  email: string;
-  company_name: string | null;
-  status: string;
-  created_at: string;
-  industry: string | null;
-  contact_person: string | null;
-  position: string | null;
-  company_size: string | null;
-  subscription_id: string | null;
-  subscriptions: {
+interface RawClientAddonData {
+  client_id: string;
+  addon_id: string;
+  addons: {
     id: string;
     name: string;
     price: number;
-    description: string | null;
-  } | null;
+    description: string;
+  } | null; // allow null
 }
+
+const addonsByClient: Record<string, Addon[]> = {};
+
+(clientAddonsData as RawClientAddonData[]).forEach((item) => {
+  if (!addonsByClient[item.client_id]) {
+    addonsByClient[item.client_id] = [];
+  }
+
+  if (item.addons) {
+    addonsByClient[item.client_id].push({
+      id: item.addons.id,
+      name: item.addons.name,
+      price: item.addons.price,
+      description: item.addons.description,
+    });
+  }
+});
+
 
 // Function to fetch clients with their subscription data
 export async function getOnboardingClients() {
