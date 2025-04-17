@@ -10,12 +10,11 @@ import {
   type SortingState,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { getClients, calculateClientProgress } from "@/lib/client-management/client-query";
+import { getClients } from "@/lib/client-management/client-query";
 import { OnboardingClient } from "@/lib/types/client-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -24,7 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
