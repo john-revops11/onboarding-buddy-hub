@@ -3,46 +3,37 @@ import { useQuery } from "@tanstack/react-query";
 import {
   createColumnHelper,
   getCoreRowModel,
-  useReactTable,
   getPaginationRowModel,
   getSortedRowModel,
   getFilteredRowModel,
+  useReactTable,
   flexRender,
   type SortingState,
 } from "@tanstack/react-table";
 
 import { getClients, calculateClientProgress } from "@/lib/client-management/client-query";
 import { OnboardingClient } from "@/lib/types/client-types";
-import { OnboardingStatus } from "@/lib/constants";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
+  Card, CardHeader, CardTitle, CardDescription, CardContent
 } from "@/components/ui/card";
+import {
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Badge } from "@/components/ui/badge";
+import {
+  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink
+} from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
-
 import { useToast } from "@/hooks/use-toast";
 import { ClientActions } from "./ClientActions";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 
-type EnhancedClient = Omit<OnboardingClient, 'onboardingProgress'> & {
+// Type for enriched client with progress
+type EnhancedClient = Omit<OnboardingClient, "onboardingProgress"> & {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
@@ -53,6 +44,7 @@ type EnhancedClient = Omit<OnboardingClient, 'onboardingProgress'> & {
 
 const ClientList = () => {
   const { toast } = useToast();
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
@@ -65,41 +57,32 @@ const ClientList = () => {
     refetch,
   } = useQuery({ queryKey: ["clients"], queryFn: getClients });
 
-  const { data: enhancedClients = [], isLoading: isLoadingProgress } = useQuery({
+  const {
+    data: enhancedClients = [],
+    isLoading: isLoadingProgress
+  } = useQuery({
     queryKey: ["clients-with-progress", clients],
     queryFn: async () => {
-      try {
-        return await Promise.all(
-          clients.map(async (client) => {
-            const progress = await calculateClientProgress(client.id);
-            const onboardingStatus =
-              progress.progress === 100 ? OnboardingStatus.COMPLETED :
-              progress.progress > 0 ? OnboardingStatus.IN_PROGRESS :
-              OnboardingStatus.NOT_STARTED;
+      const enriched = await Promise.all(clients.map(async (client) => {
+        const progress = await calculateClientProgress(client.id);
+        const status =
+          progress.progress === 100
+            ? "completed"
+            : progress.progress > 0
+              ? "in_progress"
+              : "not_started";
 
-            return {
-              ...client,
-              onboardingProgress: {
-                percentage: progress.progress,
-                completedSteps: progress.completedSteps,
-                totalSteps: progress.totalSteps,
-              },
-              onboardingStatus,
-            };
-          })
-        );
-      } catch (error) {
-        console.error("Error calculating client progress:", error);
-        return clients.map((client) => ({
+        return {
           ...client,
           onboardingProgress: {
-            percentage: 0,
-            completedSteps: 0,
-            totalSteps: 0,
+            percentage: progress.progress,
+            completedSteps: progress.completedSteps,
+            totalSteps: progress.totalSteps,
           },
-          onboardingStatus: OnboardingStatus.NOT_STARTED,
-        }));
-      }
+          onboardingStatus: status,
+        };
+      }));
+      return enriched;
     },
     enabled: clients.length > 0,
   });
@@ -132,7 +115,7 @@ const ClientList = () => {
       cell: (info) => info.getValue() || "-",
     }),
     columnHelper.accessor("onboardingStatus", {
-      header: "Onboarding Status",
+      header: "Onboarding",
       cell: (info) => {
         const progress = info.row.original.onboardingProgress;
         return (
@@ -164,6 +147,7 @@ const ClientList = () => {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       globalFilter,
@@ -172,9 +156,10 @@ const ClientList = () => {
         ...(statusFilter !== "all" ? [{ id: "onboardingStatus", value: statusFilter }] : []),
       ],
     },
-    onGlobalFilterChange: setGlobalFilter,
     initialState: {
-      pagination: { pageSize: 10 },
+      pagination: {
+        pageSize: 10,
+      },
     },
   });
 
@@ -183,7 +168,7 @@ const ClientList = () => {
   if (isError) {
     toast({
       title: "Error loading clients",
-      description: "There was a problem loading the client list. Please try again.",
+      description: "There was a problem loading the client list.",
       variant: "destructive",
     });
   }
@@ -192,7 +177,7 @@ const ClientList = () => {
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Client List</CardTitle>
-        <CardDescription>View and manage all client accounts</CardDescription>
+        <CardDescription>View and manage client accounts</CardDescription>
 
         <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
           <div className="relative flex-1">
@@ -213,9 +198,7 @@ const ClientList = () => {
               <SelectContent>
                 <SelectItem value="all">All Industries</SelectItem>
                 {uniqueIndustries.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
-                  </SelectItem>
+                  <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -226,9 +209,9 @@ const ClientList = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value={OnboardingStatus.NOT_STARTED}>Not Started</SelectItem>
-                <SelectItem value={OnboardingStatus.IN_PROGRESS}>In Progress</SelectItem>
-                <SelectItem value={OnboardingStatus.COMPLETED}>Completed</SelectItem>
+                <SelectItem value="not_started">Not Started</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
 
@@ -247,9 +230,9 @@ const ClientList = () => {
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
+                {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
+                    {headerGroup.headers.map((header) => (
                       <TableHead key={header.id}>
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
@@ -258,27 +241,38 @@ const ClientList = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows.map(row => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+                {table.getRowModel().rows.length > 0 ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center h-24">
+                      No results found.
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+
+            <div className="flex justify-end mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
         )}
       </CardContent>
@@ -286,14 +280,12 @@ const ClientList = () => {
   );
 };
 
-const ClientListSkeleton = () => {
-  return (
-    <div className="p-6 space-y-4">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <Skeleton key={i} className="h-8 w-full rounded-md" />
-      ))}
-    </div>
-  );
-};
+const ClientListSkeleton = () => (
+  <div className="p-6 space-y-4">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <Skeleton key={i} className="h-6 w-full rounded" />
+    ))}
+  </div>
+);
 
 export default ClientList;
