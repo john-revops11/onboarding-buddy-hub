@@ -60,3 +60,5 @@ export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) =>
     </Card>
   );
 };
+export default ClientDetailPage;
+
