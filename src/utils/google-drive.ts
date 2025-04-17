@@ -1,11 +1,8 @@
 // utils/google-drive.ts
-export const listLatestInsightFiles = async (folderId: string) => {
-  const response = await gapi.client.drive.files.list({
-    q: `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false`,
-    orderBy: 'modifiedTime desc',
-    fields: 'files(id, name, modifiedTime, webViewLink, webContentLink)',
-    pageSize: 20,
-  });
-
-  return response.result.files || [];
-};
+export async function listLatestInsightFiles(folderId: string): Promise<any[]> {
+  // Assuming you're calling a backend or Supabase function that proxies to Google API
+  const response = await fetch(`/api/drive/insights?folderId=${folderId}`);
+  if (!response.ok) throw new Error("Failed to fetch from Drive API");
+  const data = await response.json();
+  return data.files;
+}
