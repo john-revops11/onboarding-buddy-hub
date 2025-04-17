@@ -3,6 +3,12 @@ import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/clien
 import { Client } from "@/lib/types/client-types";
 
 // Get a single client by ID
+// src/lib/client-management/client-query.ts
+
+import { supabase } from "@/integrations/supabase/client";
+import { Client } from "@/lib/types/client-types";
+
+// Get a single client by ID
 export async function getClientById(id: string): Promise<Client | null> {
   try {
     const { data, error } = await supabase
@@ -11,7 +17,7 @@ export async function getClientById(id: string): Promise<Client | null> {
       .eq("id", id)
       .single();
 
-    if (error) throw error;
+    if (error || !data) throw error;
 
     return {
       id: data.id,
@@ -25,20 +31,13 @@ export async function getClientById(id: string): Promise<Client | null> {
       companySize: data.company_size,
       subscriptionId: data.subscription_id,
       onboardingStatus: data.onboarding_status,
-      subscriptionTier: {
-        id: "",
-        name: "",
-        price: 0,
-        description: ""
-      },
-      addons: [],
-      teamMembers: []
     };
   } catch (error) {
     console.error("Error fetching client by ID:", error);
     return null;
   }
 }
+
 
 // Define a type for the raw data coming from Supabase
 interface RawClientData {
