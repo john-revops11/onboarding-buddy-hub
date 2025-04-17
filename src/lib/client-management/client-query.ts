@@ -3,12 +3,6 @@ import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/clien
 import { Client } from "@/lib/types/client-types";
 
 // Get a single client by ID
-// src/lib/client-management/client-query.ts
-
-import { supabase } from "@/integrations/supabase/client";
-import { Client } from "@/lib/types/client-types";
-
-// Get a single client by ID
 export async function getClientById(id: string): Promise<Client | null> {
   try {
     const { data, error } = await supabase
