@@ -22,6 +22,18 @@ interface RawClientData {
   } | null;
 }
 
+// Define a type for the raw client-addon relationship data
+interface RawClientAddonData {
+  client_id: string;
+  addon_id: string;
+  addons: {
+    id: string;
+    name: string;
+    price: number;
+    description: string | null;
+  } | null;
+}
+
 // Function to fetch clients with their subscription data
 export async function getOnboardingClients() {
   try {
@@ -57,7 +69,7 @@ export async function getOnboardingClients() {
     
     // Group addons by client_id
     const addonsByClient: Record<string, Addon[]> = {};
-    (clientAddonsData || []).forEach(item => {
+    (clientAddonsData || []).forEach((item: RawClientAddonData) => {
       if (!addonsByClient[item.client_id]) {
         addonsByClient[item.client_id] = [];
       }
