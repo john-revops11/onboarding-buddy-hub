@@ -15,7 +15,7 @@ export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) =>
   const [clientData, setClientData] = useState(client);
   const { toast } = useToast();
 
-  const handleUpdate = async (values: any) => {
+  const handleUpdate = async (values: Partial<Client>) => {
     const success = await updateClient(client.id, values);
     if (success) {
       setClientData({ ...clientData, ...values });
@@ -35,11 +35,11 @@ export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) =>
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Client Details</CardTitle>
         <Button onClick={() => setIsEditOpen(true)}>Edit</Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-2">
         <div><strong>Company:</strong> {clientData.companyName}</div>
         <div><strong>Email:</strong> {clientData.email}</div>
         <div><strong>Contact Person:</strong> {clientData.contactPerson}</div>
@@ -60,5 +60,5 @@ export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ client }) =>
     </Card>
   );
 };
-export default ClientDetailPage;
 
+export default ClientDetailPage;
