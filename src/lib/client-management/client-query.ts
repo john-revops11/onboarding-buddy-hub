@@ -107,7 +107,7 @@ export async function getOnboardingClients() {
         companySize: client.company_size,
         subscriptionTier: subscription,
         addons,
-        teamMembers: [] // fallback if not loaded yet
+        teamMembers: [],
       };
     });
   } catch (error) {
@@ -116,8 +116,7 @@ export async function getOnboardingClients() {
   }
 }
 
-// ✅ Returns step progress for onboarding
-export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
+export async function getClientProgress(clientId: string) {
   try {
     const { data, error } = await supabase
       .from("onboarding_progress")
@@ -127,21 +126,20 @@ export async function getClientProgress(clientId: string): Promise<OnboardingPro
 
     if (error) throw error;
 
-    return (data || []).map((record) => ({
+    return data?.map((record) => ({
       clientId: record.client_id,
       stepName: record.step_name,
       stepOrder: record.step_order,
       completed: record.completed,
       startedAt: record.started_at,
       completedAt: record.completed_at,
-    }));
+    })) || [];
   } catch (error) {
     console.error("Error fetching client progress:", error);
     return [];
   }
 }
 
-// ✅ Calculate progress from steps
 export async function calculateClientProgress(clientId: string): Promise<{
   progress: number;
   completedSteps: number;
@@ -169,5 +167,4 @@ export async function calculateClientProgress(clientId: string): Promise<{
   }
 }
 
-// ✅ Export alias
 export const getClients = getOnboardingClients;
