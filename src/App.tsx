@@ -47,7 +47,7 @@ import CreateAddonPage from "./pages/admin/addons/CreateAddonPage";
 import EditAddonPage from "./pages/admin/addons/EditAddonPage";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
-import AdminClientDetailPage from "./pages/admin/ClientDetailPage";
+import AdminClientDetailPage from "@/pages/admin/ClientDetailPage";
 
 // Create the QueryClient as a function component to ensure proper React context
 const App = () => {
