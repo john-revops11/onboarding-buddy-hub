@@ -1,3 +1,4 @@
+
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,21 +22,17 @@ const ClientsListPage = () => {
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/onboarding">
                 <UserPlus className="mr-2 h-4 w-4" />
-                Add Client
+                Onboard New Client
               </Link>
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export List
             </Button>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>All Clients</CardTitle>
-            <CardDescription>Client status, subscriptions, and onboarding.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClientList />
-          </CardContent>
-        </Card>
+        
+        <ClientList />
       </div>
     </DashboardLayout>
   );

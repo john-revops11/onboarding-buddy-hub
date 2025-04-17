@@ -23,18 +23,6 @@ export const ClientStatusBadge: React.FC<ClientStatusBadgeProps> = ({
   };
 
   const status = getStatus();
-  
-  // Choose badge color based on status
-  const getBadgeVariant = () => {
-    switch(status) {
-      case "completed": 
-        return "success";
-      case "in-progress": 
-        return "default";
-      default: 
-        return "outline";
-    }
-  };
 
   // Render badge based on status
   return (
@@ -42,7 +30,13 @@ export const ClientStatusBadge: React.FC<ClientStatusBadgeProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge
-            variant={getBadgeVariant()}
+            variant={
+              status === "completed" 
+                ? "success" 
+                : status === "in-progress" 
+                  ? "default" 
+                  : "outline"
+            }
             className="flex items-center gap-1 cursor-help"
           >
             {status === "completed" ? (

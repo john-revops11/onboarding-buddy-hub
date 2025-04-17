@@ -6,7 +6,6 @@ import { getClients, completeClientOnboarding } from "@/lib/client-management";
 
 export function useClientManagement() {
   const [clients, setClients] = useState<OnboardingClient[]>([]);
-  const [allClients, setAllClients] = useState<OnboardingClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -22,7 +21,6 @@ export function useClientManagement() {
         status: client.status as "pending" | "active"
       }));
       setClients(typedClientsData);
-      setAllClients(typedClientsData);
     } catch (error) {
       console.error("Error fetching clients:", error);
       toast({
@@ -39,24 +37,6 @@ export function useClientManagement() {
     fetchClients();
   }, [fetchClients]);
 
-  // Filter clients when search query changes
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = allClients.filter(client => {
-        const searchLower = searchQuery.toLowerCase();
-        return (
-          client.email.toLowerCase().includes(searchLower) ||
-          (client.companyName && client.companyName.toLowerCase().includes(searchLower)) ||
-          client.subscriptionTier.name.toLowerCase().includes(searchLower) ||
-          client.addons.some(addon => addon.name.toLowerCase().includes(searchLower))
-        );
-      });
-      setClients(filtered);
-    } else {
-      setClients(allClients);
-    }
-  }, [searchQuery, allClients]);
-
   const markClientComplete = async (id: string) => {
     setProcessingId(id);
     try {
@@ -68,19 +48,16 @@ export function useClientManagement() {
           description: "The client's onboarding has been marked as complete."
         });
         
-        // Update both clients arrays with the updated status
-        const updateClientStatus = (clientArray: OnboardingClient[]) => 
-          clientArray.map(client => 
+        setClients(prevClients => 
+          prevClients.map(client => 
             client.id === id 
               ? { 
                   ...client, 
                   status: "active" as const
                 } 
               : client
-          );
-        
-        setClients(updateClientStatus(clients));
-        setAllClients(updateClientStatus(allClients));
+          )
+        );
       }
     } catch (error) {
       console.error("Error marking client as complete:", error);
@@ -110,7 +87,6 @@ export function useClientManagement() {
       };
     }
     
-    // Calculate progress based on available client data if onboardingProgress is not available
     if (client.email) steps_completed++;
     if (client.companyName) steps_completed++;
     if (client.subscriptionTier.id) steps_completed++;
@@ -123,9 +99,20 @@ export function useClientManagement() {
     return { progress, steps_completed, total_steps };
   };
 
+  const filteredClients = clients.filter(client => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    return (
+      client.email.toLowerCase().includes(searchLower) ||
+      (client.companyName && client.companyName.toLowerCase().includes(searchLower)) ||
+      client.subscriptionTier.name.toLowerCase().includes(searchLower) ||
+      client.addons.some(addon => addon.name.toLowerCase().includes(searchLower))
+    );
+  });
+
   return {
-    clients,
-    allClients,
+    clients: filteredClients,
+    allClients: clients,
     isLoading,
     searchQuery,
     setSearchQuery,
