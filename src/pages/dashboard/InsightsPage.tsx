@@ -1,70 +1,151 @@
-// pages/dashboard/InsightsPage.tsx
-import { useInsights } from "@/hooks/useInsights";
-import { DocumentViewer } from "@/components/insights/DocumentViewer";
+import React, { useEffect, useState } from "react";
+import { useInsights } from "@/hooks/use-insights";
+import { Main } from "@/components/ui/main";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ExternalLink, Download, AlertCircle } from "lucide-react";
 
-const InsightsPage = () => {
-  const { latestFile, historicalFiles, error } = useInsights("LATEST_INSIGHTS_FOLDER_ID");
+export default function InsightsPage() {
+  const { data: insights = [], isLoading, error } = useInsights();
+  const [activeDoc, setActiveDoc] = useState<any | null>(null);
+  const [embedError, setEmbedError] = useState(false);
+
+  useEffect(() => {
+    if (insights.length > 0) {
+      setActiveDoc(insights[0]);
+    }
+  }, [insights]);
+
+  const handleEmbedError = () => {
+    setEmbedError(true);
+  };
+
+  const handleViewPrevious = (doc: any) => {
+    setActiveDoc(doc);
+    setEmbedError(false);
+  };
 
   return (
-    <div className="container py-10">
-      <h1 className="text-2xl font-bold mb-4">Latest Insights</h1>
-      <p className="text-muted-foreground mb-6">
-        Your regular performance snapshots and strategic recommendations from Revify. (Updated Monthly)
-      </p>
-
-      {error && <div className="text-red-600">{error}</div>}
-
-      {latestFile && (
-        <div className="space-y-4 mb-10">
-          <h2 className="text-lg font-semibold">Current Monthly Insight</h2>
-          <DocumentViewer file={latestFile} />
-          <div className="flex gap-3 mt-3">
-            <Button asChild>
-              <a href={latestFile.webContentLink} download>
-                Download
-              </a>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href={latestFile.webViewLink} target="_blank">
-                Open in Drive
-              </a>
-            </Button>
-          </div>
+    <Main>
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Latest Insights</h1>
+          <p className="text-muted-foreground">Your regular performance snapshots and strategic recommendations</p>
         </div>
-      )}
 
-      <h2 className="text-lg font-semibold mt-8">Previous Insights</h2>
-      {historicalFiles.length === 0 ? (
-        <p className="text-muted-foreground">No previous insights available yet.</p>
-      ) : (
-        <div className="grid gap-4 mt-4">
-          {historicalFiles.map((file) => (
-            <div key={file.id} className="p-4 border rounded-md flex justify-between items-center">
-              <div>
-                <p className="font-medium">{file.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(file.modifiedTime).toLocaleDateString()}
-                </p>
+        {isLoading && <p>Loading insights...</p>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>Failed to load insights.</AlertDescription>
+          </Alert>
+        )}
+
+        {!isLoading && !error && activeDoc && (
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle>Current Monthly Insight: {formatInsightDate(activeDoc)}</CardTitle>
+                  <CardDescription>{activeDoc.name}</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <a href={activeDoc.downloadUrl || activeDoc.driveUrl} target="_blank" rel="noreferrer">
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <a href={activeDoc.driveUrl} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Open in Drive
+                    </a>
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <a href={file.webViewLink} target="_blank">
-                    View
-                  </a>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={file.webContentLink} download>
-                    Download
-                  </a>
-                </Button>
-              </div>
+            </CardHeader>
+            <CardContent>
+              {!embedError ? (
+                <div className="border rounded-lg overflow-hidden h-[600px]">
+                  <iframe
+                    src={activeDoc.embedUrl}
+                    width="100%"
+                    height="600"
+                    title={activeDoc.name}
+                    className="border-0"
+                    onError={handleEmbedError}
+                  ></iframe>
+                </div>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Unable to display the latest insight preview.</AlertTitle>
+                  <AlertDescription>
+                    You can still download it or open directly in Google Drive.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 📜 Historical Insights */}
+        {!isLoading && insights.length > 1 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Previous Insights</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {insights
+                .slice(1)
+                .map((doc) => (
+                  <Card
+                    key={doc.id}
+                    className="hover:border-primary cursor-pointer transition"
+                    onClick={() => handleViewPrevious(doc)}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-base">{doc.name}</CardTitle>
+                      <CardDescription>{formatInsightDate(doc)}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => handleViewPrevious(doc)}>
+                        View
+                      </Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={doc.downloadUrl || doc.driveUrl} target="_blank" rel="noreferrer">
+                          Download
+                        </a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
+    </Main>
   );
-};
+}
 
-export default InsightsPage;
+function formatInsightDate(doc: any): string {
+  // Try to extract from filename or fallback to mod date
+  const match = doc.name.match(/(\d{4})[-_ ]?(\d{2})/);
+  if (match) {
+    const [_, year, month] = match;
+    const date = new Date(`${year}-${month}-01`);
+    return date.toLocaleString("default", { month: "long", year: "numeric" });
+  }
+
+  const fallbackDate = new Date(doc.modifiedTime || doc.updatedAt);
+  return fallbackDate.toLocaleString("default", { month: "long", year: "numeric" });
+}
