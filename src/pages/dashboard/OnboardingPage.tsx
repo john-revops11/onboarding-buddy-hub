@@ -1,4 +1,6 @@
-
+import { Progress } from "@/components/ui/progress";
+import { ServiceTierSection } from "@/components/dashboard/ServiceTierSection";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -286,38 +288,63 @@ const OnboardingPage = () => {
   };
 
   return (
-    <Main>
-      <div className="container mx-auto py-10">
-        <div className="mb-8 flex items-center">
-          <Button variant="outline" onClick={() => navigate('/dashboard')} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
-        </div>
-        
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ChecklistSection
-            checklist={checklistItems}
-            onCompleteTask={handleCompleteTask}
-            areRequiredDocumentsUploaded={areRequiredDocumentsUploaded}
-            isLoading={loadingSteps}
-          />
-          <FileUploadSection
-            onFileUploadComplete={handleFileUploadComplete}
-            onVerificationStatusChange={handleVerificationStatusChange}
-          />
-        </div>
-      </div>
-    </Main>
+   <Main>
+  <div className="container mx-auto py-10">
+    <div className="mb-8 flex items-center">
+      <Button variant="outline" onClick={() => navigate("/dashboard")} className="mr-4">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Dashboard
+      </Button>
+      <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
+    </div>
+
+    {error && (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    )}
+
+    {/* ✅ PROGRESS BAR */}
+    <div className="mb-6">
+      <p className="text-sm font-medium mb-2">
+        Progress: {checklistItems.filter((i) => i.completed).length} of {checklistItems.length} complete
+      </p>
+      <Progress value={(checklistItems.filter((i) => i.completed).length / checklistItems.length) * 100} />
+    </div>
+
+    {/* ✅ CHECKLIST + FILES */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <ChecklistSection
+        checklist={checklistItems}
+        onCompleteTask={handleCompleteTask}
+        areRequiredDocumentsUploaded={areRequiredDocumentsUploaded}
+        isLoading={loadingSteps}
+      />
+      <FileUploadSection
+        onFileUploadComplete={handleFileUploadComplete}
+        onVerificationStatusChange={handleVerificationStatusChange}
+      />
+    </div>
+
+    {/* ✅ SERVICE TIER SECTION */}
+    <ServiceTierSection
+      tier={state.user?.platformTier ?? "Standard"}
+      consultingAddOn={state.user?.consultingAddOn}
+      tierUrl={state.user?.tierInfoUrl}
+      consultingUrl={state.user?.consultingOptionsUrl}
+    />
+
+    {/* ✅ QUICK ACTIONS SECTION */}
+    <QuickActions
+      supportUrl={state.user?.supportUrl ?? "#"}
+      meetingUrl={state.user?.meetingUrl ?? "#"}
+      kbUrl={state.user?.kbUrl ?? "#"}
+    />
+  </div>
+</Main>
+
   );
 };
 
