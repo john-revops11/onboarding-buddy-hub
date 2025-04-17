@@ -10,8 +10,10 @@ import {
 import { FileUploader } from "@/components/onboarding/FileUploader";
 
 interface FileUploadSectionProps {
-  onFileUploadComplete: (file: any) => void;
+  onFileUploadComplete: (file: File) => void;
   onVerificationStatusChange: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
+  acceptedFileTypes?: string;
+  helpText?: string;
 }
 
 export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
