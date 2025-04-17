@@ -189,5 +189,4 @@ export async function calculateClientProgress(clientId: string): Promise<{
   }
 }
 
-export const getClients = getOnboardingClients;
 export { getClientById };
