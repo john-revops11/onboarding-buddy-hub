@@ -39,7 +39,7 @@ export default function InsightsPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>Failed to load insights.</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
@@ -52,21 +52,13 @@ export default function InsightsPage() {
                   <CardDescription>{activeDoc.name}</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
+                  <Button variant="outline" size="sm" asChild>
                     <a href={activeDoc.downloadUrl || activeDoc.driveUrl} target="_blank" rel="noreferrer">
                       <Download className="h-4 w-4 mr-1" />
                       Download
                     </a>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
+                  <Button variant="outline" size="sm" asChild>
                     <a href={activeDoc.driveUrl} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Open in Drive
@@ -100,35 +92,32 @@ export default function InsightsPage() {
           </Card>
         )}
 
-        {/* 📜 Historical Insights */}
         {!isLoading && insights.length > 1 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Previous Insights</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {insights
-                .slice(1)
-                .map((doc) => (
-                  <Card
-                    key={doc.id}
-                    className="hover:border-primary cursor-pointer transition"
-                    onClick={() => handleViewPrevious(doc)}
-                  >
-                    <CardHeader>
-                      <CardTitle className="text-base">{doc.name}</CardTitle>
-                      <CardDescription>{formatInsightDate(doc)}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => handleViewPrevious(doc)}>
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={doc.downloadUrl || doc.driveUrl} target="_blank" rel="noreferrer">
-                          Download
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+              {insights.slice(1).map((doc) => (
+                <Card
+                  key={doc.id}
+                  className="hover:border-primary cursor-pointer transition"
+                  onClick={() => handleViewPrevious(doc)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-base">{doc.name}</CardTitle>
+                    <CardDescription>{formatInsightDate(doc)}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex gap-2 justify-end">
+                    <Button size="sm" variant="outline" onClick={() => handleViewPrevious(doc)}>
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={doc.downloadUrl || doc.driveUrl} target="_blank" rel="noreferrer">
+                        Download
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         )}
@@ -138,7 +127,6 @@ export default function InsightsPage() {
 }
 
 function formatInsightDate(doc: any): string {
-  // Try to extract from filename or fallback to mod date
   const match = doc.name.match(/(\d{4})[-_ ]?(\d{2})/);
   if (match) {
     const [_, year, month] = match;
