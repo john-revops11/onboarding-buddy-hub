@@ -78,7 +78,7 @@ const App = () => {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/data-uploads" element={<DataUploadsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/insights" element={<InsightsPage />} />
+           
                 
                 {/* New User Routes */}
                 <Route path="/insights" element={<InsightsPage />} />
