@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClientFormValues } from "../formSchema";
 
 interface ClientInfoFormProps {
@@ -19,7 +19,6 @@ interface ClientInfoFormProps {
 export default function ClientInfoForm({ form }: ClientInfoFormProps) {
   return (
     <CardContent className="pt-6 space-y-4">
-      {/* Email */}
       <FormField
         control={form.control}
         name="email"
@@ -29,15 +28,12 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
             <FormControl>
               <Input placeholder="client@company.com" {...field} />
             </FormControl>
-            <FormDescription>
-              Primary contact email for the client
-            </FormDescription>
+            <FormDescription>Primary contact email for the client</FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Company Name */}
       <FormField
         control={form.control}
         name="companyName"
@@ -47,15 +43,12 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
             <FormControl>
               <Input placeholder="Acme Corp" {...field} />
             </FormControl>
-            <FormDescription>
-              Client's company or organization name (optional)
-            </FormDescription>
+            <FormDescription>Client's company or organization name</FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Contact Person */}
       <FormField
         control={form.control}
         name="contactPerson"
@@ -63,14 +56,13 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
           <FormItem>
             <FormLabel>Contact Person</FormLabel>
             <FormControl>
-              <Input placeholder="Full name of primary contact" {...field} />
+              <Input placeholder="John Doe" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Position */}
       <FormField
         control={form.control}
         name="position"
@@ -78,14 +70,13 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
           <FormItem>
             <FormLabel>Position</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. CEO, VP of Ops" {...field} />
+              <Input placeholder="Head of Engineering" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Industry */}
       <FormField
         control={form.control}
         name="industry"
@@ -93,14 +84,13 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
           <FormItem>
             <FormLabel>Industry</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. SaaS, Healthcare, Finance" {...field} />
+              <Input placeholder="e.g., Fintech, Healthcare..." {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Company Size */}
       <FormField
         control={form.control}
         name="companySize"
@@ -110,15 +100,15 @@ export default function ClientInfoForm({ form }: ClientInfoFormProps) {
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select employee range" />
+                  <SelectValue placeholder="Select company size" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="1-10">1–10 employees</SelectItem>
-                <SelectItem value="11-50">11–50 employees</SelectItem>
-                <SelectItem value="51-250">51–250 employees</SelectItem>
-                <SelectItem value="251-1000">251–1000 employees</SelectItem>
-                <SelectItem value="1001+">1001+ employees</SelectItem>
+                {["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"].map((range) => (
+                  <SelectItem key={range} value={range}>
+                    {range} employees
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
