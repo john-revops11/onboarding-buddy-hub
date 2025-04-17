@@ -186,58 +186,55 @@ const OnboardingPage = () => {
     }
   };
   
-  const handleFileUpload = useCallback(async (files: File[], category: string) => {
-    if (!clientId) {
+const handleFileUpload = useCallback(async (files: File[]) => {
+  const defaultCategory = "initial_data"; // or "uncategorized"
+
+  if (!clientId) {
+    toast({
+      title: "Error",
+      description: "Client ID not found. Please log in again.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  if (files && files.length > 0) {
+    setUploading(true);
+    setUploadProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => (prev >= 90 ? prev : prev + 10));
+    }, 500);
+
+    try {
+      const result = await uploadFile(clientId, files[0], defaultCategory);
+
+      if (result.success) {
+        setUploadProgress(100);
+        toast({
+          title: "File uploaded",
+          description: `${files[0].name} uploaded successfully.`,
+        });
+        await loadClientFiles();
+      } else {
+        throw new Error(result.error || "Failed to upload file");
+      }
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Client ID not found. Please log in again.",
+        title: "Upload error",
+        description: error.message,
         variant: "destructive",
       });
-      return;
-    }
-    
-    if (files && files.length > 0) {
-      setUploading(true);
-      setUploadProgress(0);
-      
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + 10;
-        });
+    } finally {
+      clearInterval(progressInterval);
+      setTimeout(() => {
+        setUploading(false);
+        setUploadProgress(0);
       }, 500);
-      
-      try {
-        const result = await uploadFile(clientId, files[0], category);
-        
-        if (result.success) {
-          setUploadProgress(100);
-          toast({
-            title: "File uploaded",
-            description: `${files[0].name} has been uploaded successfully.`,
-          });
-          
-          await loadClientFiles();
-        } else {
-          throw new Error(result.error || "Failed to upload file");
-        }
-      } catch (error: any) {
-        console.error("File upload error:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to upload file. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        clearInterval(progressInterval);
-        setTimeout(() => {
-          setUploading(false);
-          setUploadProgress(0);
-        }, 500);
-      }
     }
-  }, [clientId, toast]);
+  }
+}, [clientId, toast]);
+
   
   const handleFileUploadComplete = (file: any) => {
     // This is called by the FileUploader component after a successful upload
