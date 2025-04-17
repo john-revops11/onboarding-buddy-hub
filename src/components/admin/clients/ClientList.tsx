@@ -247,7 +247,83 @@ const ClientList = () => {
         ) : (
           <>
             <div className="rounded-md border">
-              <Table>...</Table>
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className="whitespace-nowrap">
+                          {header.isPlaceholder ? null : (
+                            <div
+                              className={header.column.getCanSort() ? "cursor-pointer select-none flex items-center gap-1" : ""}
+                              onClick={header.column.getToggleSortingHandler()}
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                              {{
+                                asc: " \u25B2",
+                                desc: " \u25BC",
+                              }[header.column.getIsSorted() as string] ?? null}
+                            </div>
+                          )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.length > 0 ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end space-x-2 py-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => table.previousPage()}
+                      aria-disabled={!table.getCanPreviousPage()}
+                      className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: table.getPageCount() }, (_, i) => (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        onClick={() => table.setPageIndex(i)}
+                        isActive={table.getState().pagination.pageIndex === i}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => table.nextPage()}
+                      aria-disabled={!table.getCanNextPage()}
+                      className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           </>
         )}
@@ -256,6 +332,35 @@ const ClientList = () => {
   );
 };
 
-const ClientListSkeleton = () => { ... };
+const ClientListSkeleton = () => {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <TableHead key={i}>
+                  <Skeleton className="h-6 w-full" />
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {Array.from({ length: 8 }).map((_, cellIndex) => (
+                  <TableCell key={cellIndex}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
 
 export default ClientList;
