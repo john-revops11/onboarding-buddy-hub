@@ -188,5 +188,3 @@ export async function calculateClientProgress(clientId: string): Promise<{
     return { progress: 0, completedSteps: 0, totalSteps: 0 };
   }
 }
-
-export { getClientById };
