@@ -1,12 +1,12 @@
 // ✅ File: src/pages/admin/ClientDetailPage.tsx
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import ClientDetailPage from "@/components/admin/clients/ClientDetailPage";
 import ClientEditModal from "@/components/admin/clients/ClientEditModal";
-import { useQuery } from "@tanstack/react-query";
 import { getClientById } from "@/lib/client-management/client-query";
 
-const AdminClientDetailPage = () => {
+export default function AdminClientDetailPage() {
   const { clientId } = useParams();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -33,7 +33,7 @@ const AdminClientDetailPage = () => {
       />
     </>
   );
-};
+}
 
 export default AdminClientDetailPage;
 
