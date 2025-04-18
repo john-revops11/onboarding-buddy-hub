@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Card,
@@ -9,15 +10,13 @@ import {
 import { FileUploader } from "@/components/onboarding/FileUploader";
 
 interface FileUploadSectionProps {
-  onFileUploadComplete: (file: File) => void;
-  acceptedFileTypes?: string;
-  helpText?: string;
+  onFileUploadComplete: (file: any) => void;
+  onVerificationStatusChange: (fileId: string, status: 'pending' | 'verified' | 'rejected') => void;
 }
 
 export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   onFileUploadComplete,
-  acceptedFileTypes = ".pdf,.doc,.docx,.jpg,.jpeg,.png",
-  helpText = "Upload documents in PDF, Word, or image format. Maximum file size is 10MB."
+  onVerificationStatusChange
 }) => {
   return (
     <Card>
@@ -30,8 +29,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
       <CardContent>
         <FileUploader 
           onUploadComplete={onFileUploadComplete}
-          acceptedFileTypes={acceptedFileTypes}
-          helpText={helpText}
+          onVerificationStatusChange={onVerificationStatusChange}
+          acceptedFileTypes=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          helpText="Upload documents in PDF, Word, or image format. Maximum file size is 10MB."
         />
       </CardContent>
     </Card>

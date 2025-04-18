@@ -1,15 +1,20 @@
-import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionTier } from "@/lib/types/client-types";
 
-// ✅ Fetch all subscription tiers
+import { supabase } from "@/integrations/supabase/client";
+import { Subscription, SubscriptionTier } from "@/lib/types/client-types";
+
+// Get all subscription tiers
 export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
     const { data, error } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .order("price", { ascending: true });
-
-    if (error) throw error;
+      .from('subscriptions')
+      .select('*')
+      .order('price', { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching subscription tiers:", error);
+      throw error;
+    }
+    
     return data || [];
   } catch (error) {
     console.error("Error fetching subscription tiers:", error);
@@ -17,19 +22,23 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   }
 }
 
-// ✅ Alias for legacy compatibility
+// Alias for backward compatibility
 export const getSubscriptions = getSubscriptionTiers;
 
-// ✅ Fetch a single subscription tier by ID
+// Get a single subscription tier by ID
 export async function getSubscriptionTier(id: string): Promise<SubscriptionTier | null> {
   try {
     const { data, error } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .eq("id", id)
+      .from('subscriptions')
+      .select('*')
+      .eq('id', id)
       .single();
-
-    if (error) throw error;
+    
+    if (error) {
+      console.error("Error fetching subscription tier:", error);
+      throw error;
+    }
+    
     return data;
   } catch (error) {
     console.error("Error fetching subscription tier:", error);
@@ -37,62 +46,65 @@ export async function getSubscriptionTier(id: string): Promise<SubscriptionTier 
   }
 }
 
-// ✅ Create a new subscription tier
-export async function createSubscriptionTier(
-  subscription: Omit<SubscriptionTier, "id">
-): Promise<SubscriptionTier | null> {
+// Create a new subscription tier
+export async function createSubscriptionTier(subscription: Omit<SubscriptionTier, 'id'>): Promise<SubscriptionTier | null> {
   try {
-    if (!Array.isArray(subscription.features)) {
-      throw new Error("Features must be an array of strings.");
-    }
-
     const { data, error } = await supabase
-      .from("subscriptions")
+      .from('subscriptions')
       .insert(subscription)
       .select()
       .single();
-
-    if (error) throw error;
+    
+    if (error) {
+      console.error("Error creating subscription tier:", error);
+      throw error;
+    }
+    
     return data;
-  } catch (error: any) {
-    console.error("❌ Failed to create subscription:", error.message || error);
+  } catch (error) {
+    console.error("Error creating subscription tier:", error);
     return null;
   }
 }
 
-// ✅ Update an existing subscription tier
-export async function updateSubscriptionTier(
-  id: string,
-  subscription: Partial<Omit<SubscriptionTier, "id">>
-): Promise<SubscriptionTier | null> {
+// Update an existing subscription tier
+export async function updateSubscriptionTier(id: string, subscription: Partial<SubscriptionTier>): Promise<SubscriptionTier | null> {
   try {
     const { data, error } = await supabase
-      .from("subscriptions")
+      .from('subscriptions')
       .update(subscription)
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
-
-    if (error) throw error;
+    
+    if (error) {
+      console.error("Error updating subscription tier:", error);
+      throw error;
+    }
+    
     return data;
-  } catch (error: any) {
-    console.error("❌ Failed to update subscription:", error.message || error);
+  } catch (error) {
+    console.error("Error updating subscription tier:", error);
     return null;
   }
 }
 
-// ✅ Delete a subscription tier
+// Delete a subscription tier
 export async function deleteSubscriptionTier(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from("subscriptions")
+      .from('subscriptions')
       .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Error deleting subscription tier:", error);
+      throw error;
+    }
+    
     return true;
-  } catch (error: any) {
-    console.error("❌ Failed to delete subscription:", error.message || error);
+  } catch (error) {
+    console.error("Error deleting subscription tier:", error);
     return false;
   }
 }

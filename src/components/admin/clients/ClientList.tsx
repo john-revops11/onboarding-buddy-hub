@@ -25,21 +25,22 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
-  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext
+  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink
 } from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ClientActions } from "./ClientActions";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 
-interface EnhancedClient extends OnboardingClient {
+// Type for enriched client with progress
+type EnhancedClient = Omit<OnboardingClient, "onboardingProgress"> & {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
     totalSteps: number;
   };
   onboardingStatus?: string;
-}
+};
 
 const ClientList = () => {
   const { toast } = useToast();
@@ -79,7 +80,7 @@ const ClientList = () => {
             totalSteps: progress.totalSteps,
           },
           onboardingStatus: status,
-        } as EnhancedClient;
+        };
       }));
       return enriched;
     },
@@ -264,22 +265,10 @@ const ClientList = () => {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <Button 
-                      onClick={() => table.previousPage()} 
-                      disabled={!table.getCanPreviousPage()}
-                      variant="outline"
-                    >
-                      Previous
-                    </Button>
+                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
                   </PaginationItem>
                   <PaginationItem>
-                    <Button 
-                      onClick={() => table.nextPage()}
-                      disabled={!table.getCanNextPage()}
-                      variant="outline"
-                    >
-                      Next
-                    </Button>
+                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>

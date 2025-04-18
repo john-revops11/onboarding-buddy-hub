@@ -1,4 +1,3 @@
-
 // Client and user types
 export interface Addon {
   id: string;
@@ -76,33 +75,15 @@ export interface ClientOnboardingStep {
   addon_name?: string;
 }
 
-export interface OnboardingProgressItem {
-  stepId: string;
-  completed: boolean;
-  startedAt?: string;
-  completedAt?: string;
-}
-
-export interface OnboardingProgress {
-  percentage: number;
-  completedSteps: number;
-  totalSteps: number;
-  items?: OnboardingProgressItem[];
-}
-
 export interface OnboardingClient {
   id: string;
   email: string;
   companyName?: string;
-  contactPerson?: string;
-  position?: string;
-  industry?: string;
-  companySize?: string;
-  subscriptionTier: Subscription; 
+  subscriptionTier: Subscription; // Change to always be Subscription type
   addons: Addon[];
   status: 'pending' | 'active';
   teamMembers: TeamMember[];
-  onboardingProgress?: OnboardingProgressItem[] | OnboardingProgress;
+  onboardingProgress?: OnboardingProgressItem[];
   created_at?: string;
   createdAt?: string; // Alternative property name
 }
@@ -111,6 +92,13 @@ export interface TeamMember {
   id: string;
   email: string;
   invitationStatus: 'pending' | 'accepted';
+}
+
+export interface OnboardingProgressItem {
+  stepId: string;
+  completed: boolean;
+  startedAt?: string;
+  completedAt?: string;
 }
 
 // Make FileUpload and ClientFile compatible

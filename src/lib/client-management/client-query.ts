@@ -1,166 +1,183 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingClient, TeamMember, Addon, Subscription, OnboardingProgressItem, OnboardingProgress, OnboardingProgressRecord } from "../types/client-types";
+import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
+import { Client } from "@/lib/types/client-types";
 
-export async function getClientById(clientId: string): Promise<OnboardingClient | null> {
+// Get a single client by ID
+export async function getClientById(id: string): Promise<Client | null> {
   try {
-    const { data: client, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', clientId)
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("id", id)
       .single();
 
-    if (error) {
-      console.error('Error fetching client:', error);
-      return null;
-    }
+    if (error || !data) throw error;
 
-    if (!client) return null;
-
-    // Fetch team members
-    const { data: teamMembers, error: teamError } = await supabase
-      .from('team_members')
-      .select('*')
-      .eq('client_id', clientId);
-
-    if (teamError) {
-      console.error('Error fetching team members:', teamError);
-    }
-
-    // Fetch client addon data
-    const { data: clientAddons, error: addonError } = await supabase
-      .from('client_addons')
-      .select(`
-        addons (*)
-      `)
-      .eq('client_id', clientId);
-
-    if (addonError) {
-      console.error('Error fetching client addons:', addonError);
-    }
-
-    // Fetch onboarding progress
-    const { data: progress, error: progressError } = await supabase
-      .from('onboarding_progress')
-      .select('*')
-      .eq('client_id', clientId);
-
-    if (progressError) {
-      console.error('Error fetching onboarding progress:', progressError);
-    }
-
-    // Fetch client's subscription data
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('client_subscriptions')
-      .select(`
-        subscriptions (*)
-      `)
-      .eq('client_id', clientId)
-      .single();
-
-    if (subscriptionError && subscriptionError.code !== 'PGRST116') {
-      console.error('Error fetching client subscription:', subscriptionError);
-    }
-
-    // Process the data
-    const addons: Addon[] = clientAddons
-      ? clientAddons.map((item: any) => ({
-          id: item.addons?.id || '',
-          name: item.addons?.name || '',
-          price: item.addons?.price || 0,
-          description: item.addons?.description || '',
-        }))
-      : [];
-
-    // Fixed subscription data handling - TypeScript was seeing this as an array but it's an object
-    let subscription: Subscription = { id: '', name: 'Standard', price: 0, description: 'Standard plan' };
-    
-    if (subscriptionData && subscriptionData.subscriptions) {
-      // Check if subscriptions is an object (expected case)
-      const subData = subscriptionData.subscriptions;
-      if (typeof subData === 'object' && !Array.isArray(subData)) {
-        subscription = {
-          id: subData.id || '',
-          name: subData.name || 'Standard',
-          price: subData.price || 0,
-          description: subData.description || 'Standard plan',
-        };
-      }
-      // If it's actually an array (unexpected case), take the first item if available
-      else if (Array.isArray(subData) && subData.length > 0) {
-        // Type assertion to avoid 'never' type error
-        const firstItem = subData[0] as { id?: string; name?: string; price?: number; description?: string };
-        subscription = {
-          id: firstItem.id || '',
-          name: firstItem.name || 'Standard',
-          price: firstItem.price || 0,
-          description: firstItem.description || 'Standard plan',
-        };
-      }
-      // Default is already set above
-    }
-
-    // Calculate progress percentage
-    let onboardingProgress = progress || [];
-    const totalSteps = 5; // Default number of steps
-    const completedSteps = onboardingProgress.filter(s => s.completed).length;
-    const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
-
-    // Prepare the client object
-    const enhancedClient: OnboardingClient = {
-      ...client,
-      subscriptionTier: subscription,
-      addons: addons || [],
-      teamMembers: (teamMembers || []) as TeamMember[],
-      onboardingProgress: onboardingProgress,
-      createdAt: client.created_at,
+    return {
+      id: data.id,
+      email: data.email,
+      companyName: data.company_name,
+      status: data.status,
+      createdAt: data.created_at,
+      industry: data.industry,
+      contactPerson: data.contact_person,
+      position: data.position,
+      companySize: data.company_size,
+      subscriptionId: data.subscription_id,
+      onboardingStatus: data.onboarding_status,
     };
-
-    return enhancedClient;
-  } catch (err) {
-    console.error("Error in getClientById:", err);
+  } catch (error) {
+    console.error("Error fetching client by ID:", error);
     return null;
   }
 }
 
-export async function getClients(): Promise<OnboardingClient[]> {
+
+// Define a type for the raw data coming from Supabase
+interface RawClientData {
+  id: string;
+  email: string;
+  company_name: string | null;
+  status: string;
+  created_at: string;
+  industry: string | null;
+  contact_person: string | null;
+  position: string | null;
+  company_size: string | null;
+  subscription_id: string | null;
+  subscriptions: {
+    id: string;
+    name: string;
+    price: number;
+    description: string | null;
+  } | null;
+}
+
+// Function to fetch clients with their subscription data
+export async function getOnboardingClients() {
   try {
-    const { data: clients, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data: clientsData, error: clientsError } = await supabase
+      .from("clients")
+      .select(`
+        id, 
+        email, 
+        company_name, 
+        status, 
+        created_at,
+        industry,
+        contact_person,
+        position,
+        company_size,
+        subscription_id,
+        subscriptions(id, name, price, description)
+      `);
 
-    if (error) {
-      console.error('Error fetching clients:', error);
-      return [];
-    }
+    if (clientsError) throw clientsError;
 
-    // Process each client to get additional data
-    const enhancedClients = await Promise.all(
-      clients.map(async (client) => {
-        return await getClientById(client.id) as OnboardingClient;
-      })
-    );
+    const { data: clientAddonsData, error: addonsError } = await supabase
+      .from("client_addons")
+      .select(`
+        client_id,
+        addon_id,
+        addons(id, name, price, description)
+      `);
 
-    return enhancedClients.filter(c => c !== null) as OnboardingClient[];
-  } catch (err) {
-    console.error("Error in getClients:", err);
+    if (addonsError) throw addonsError;
+
+    const addonsByClient: Record<string, Addon[]> = {};
+    (clientAddonsData || []).forEach((item) => {
+      if (!addonsByClient[item.client_id]) addonsByClient[item.client_id] = [];
+      if (item.addons && !Array.isArray(item.addons)) {
+        addonsByClient[item.client_id].push({
+          id: item.addons.id || "",
+          name: item.addons.name || "",
+          price: item.addons.price || 0,
+          description: item.addons.description || ""
+        });
+      }
+    });
+
+    return ((clientsData || []) as unknown as RawClientData[]).map((client) => {
+      let subscription: Subscription = {
+        id: "",
+        name: "No Subscription",
+        price: 0,
+        description: ""
+      };
+
+      if (client.subscriptions && typeof client.subscriptions === "object") {
+        subscription = {
+          id: client.subscriptions.id || "",
+          name: client.subscriptions.name || "No Subscription",
+          price: client.subscriptions.price || 0,
+          description: client.subscriptions.description || ""
+        };
+      }
+
+      const addons: Addon[] = addonsByClient[client.id] || [];
+
+      return {
+        id: client.id,
+        email: client.email,
+        companyName: client.company_name,
+        status: client.status as "pending" | "active",
+        createdAt: client.created_at,
+        industry: client.industry,
+        contactPerson: client.contact_person,
+        position: client.position,
+        companySize: client.company_size,
+        subscriptionId: client.subscription_id,
+        subscriptionTier: subscription,
+        addons,
+        teamMembers: []
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching onboarding clients:", error);
     return [];
   }
 }
 
-export async function calculateClientProgress(clientId: string): Promise<{progress: number; completedSteps: number; totalSteps: number}> {
+export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
+  try {
+    const { data, error } = await supabase
+      .from("onboarding_progress")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("step_order", { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((record) => ({
+      clientId: record.client_id,
+      stepName: record.step_name,
+      stepOrder: record.step_order,
+      completed: record.completed,
+      startedAt: record.started_at,
+      completedAt: record.completed_at
+    }));
+  } catch (error) {
+    console.error("Error fetching client progress:", error);
+    return [];
+  }
+}
+
+export async function calculateClientProgress(clientId: string): Promise<{
+  progress: number;
+  completedSteps: number;
+  totalSteps: number;
+}> {
   try {
     const progress = await getClientProgress(clientId);
-    
-    if (!progress || progress.length === 0) {
+
+    if (progress.length === 0) {
       return { progress: 0, completedSteps: 0, totalSteps: 0 };
     }
-    
-    const completedSteps = progress.filter(step => step.completed).length;
+
     const totalSteps = progress.length;
+    const completedSteps = progress.filter((step) => step.completed).length;
     const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
-    
+
     return {
       progress: progressPercentage,
       completedSteps,
@@ -169,59 +186,5 @@ export async function calculateClientProgress(clientId: string): Promise<{progre
   } catch (error) {
     console.error("Error calculating client progress:", error);
     return { progress: 0, completedSteps: 0, totalSteps: 0 };
-  }
-}
-
-export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
-  try {
-    const { data, error } = await supabase
-      .from('onboarding_progress')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('step_order', { ascending: true });
-    
-    if (error) {
-      console.error("Error fetching client progress:", error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      clientId: item.client_id,
-      stepName: item.step_name,
-      stepOrder: item.step_order,
-      completed: item.completed,
-      startedAt: item.started_at,
-      completedAt: item.completed_at
-    }));
-  } catch (error) {
-    console.error("Error in getClientProgress:", error);
-    return [];
-  }
-}
-
-export async function getOnboardingClients(): Promise<OnboardingClient[]> {
-  try {
-    const { data: clients, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('onboarding_completed', false)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching onboarding clients:', error);
-      return [];
-    }
-
-    // Process each client to get additional data
-    const enhancedClients = await Promise.all(
-      clients.map(async (client) => {
-        return await getClientById(client.id) as OnboardingClient;
-      })
-    );
-
-    return enhancedClients.filter(c => c !== null) as OnboardingClient[];
-  } catch (err) {
-    console.error("Error in getOnboardingClients:", err);
-    return [];
   }
 }

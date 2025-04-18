@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Eye, Edit, MoreHorizontal, Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { OnboardingClient } from "@/lib/types/client-types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { completeClientOnboarding } from "@/lib/client-management";
 
 interface ClientActionsProps {
@@ -17,7 +17,6 @@ interface ClientActionsProps {
 export const ClientActions: React.FC<ClientActionsProps> = ({ clientId, client, onSuccess }) => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = React.useState(false);
-  const { toast } = useToast();
 
   const handleViewDetails = () => {
     navigate(`/admin/clients/${clientId}`);
@@ -103,7 +102,7 @@ export const ClientActions: React.FC<ClientActionsProps> = ({ clientId, client, 
           {client.status !== "active" && (
             <DropdownMenuItem onClick={handleCompleteOnboarding} disabled={isProcessing}>
               <CheckCircle className="h-4 w-4 mr-2" />
-              {isProcessing ? "Processing..." : "Complete Onboarding"}
+              Complete Onboarding
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
