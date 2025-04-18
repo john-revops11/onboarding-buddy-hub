@@ -283,7 +283,9 @@ export type Database = {
           metadata: Json | null
           notes: string | null
           onboarding_completed: boolean | null
+          onboarding_status: string | null
           position: string | null
+          role: string | null
           status: string
           subscription_id: string | null
           updated_at: string
@@ -303,7 +305,9 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          onboarding_status?: string | null
           position?: string | null
+          role?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -323,7 +327,9 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           onboarding_completed?: boolean | null
+          onboarding_status?: string | null
           position?: string | null
+          role?: string | null
           status?: string
           subscription_id?: string | null
           updated_at?: string
@@ -337,6 +343,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      companies: {
+        Row: {
+          company_name: string
+          created_at: string
+          drive_created_at: string | null
+          id: string
+          shared_drive_id: string | null
+          upload_folder_id: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          drive_created_at?: string | null
+          id?: string
+          shared_drive_id?: string | null
+          upload_folder_id?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          drive_created_at?: string | null
+          id?: string
+          shared_drive_id?: string | null
+          upload_folder_id?: string | null
+        }
+        Relationships: []
       }
       drive_audit: {
         Row: {
@@ -465,6 +498,53 @@ export type Database = {
           user_email?: string
         }
         Relationships: []
+      }
+      insights: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          download_url: string | null
+          drive_url: string | null
+          embed_url: string | null
+          id: string
+          is_current: boolean | null
+          modifiedtime: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          drive_url?: string | null
+          embed_url?: string | null
+          id?: string
+          is_current?: boolean | null
+          modifiedtime?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          drive_url?: string | null
+          embed_url?: string | null
+          id?: string
+          is_current?: boolean | null
+          modifiedtime?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insights_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitation_tokens: {
         Row: {
@@ -606,6 +686,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      opportunities: {
+        Row: {
+          area: string
+          client_id: string | null
+          created_at: string | null
+          current_level: string | null
+          description: string
+          id: string
+          target_level: string
+          target_opportunity: number
+          total_annual_opportunity: number
+          tracking_dashboard: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          area: string
+          client_id?: string | null
+          created_at?: string | null
+          current_level?: string | null
+          description: string
+          id?: string
+          target_level: string
+          target_opportunity: number
+          total_annual_opportunity: number
+          tracking_dashboard?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          area?: string
+          client_id?: string | null
+          created_at?: string | null
+          current_level?: string | null
+          description?: string
+          id?: string
+          target_level?: string
+          target_opportunity?: number
+          total_annual_opportunity?: number
+          tracking_dashboard?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -858,6 +988,10 @@ export type Database = {
         Args: { p_checklist_id: string; p_client_id: string }
         Returns: string
       }
+      bytea_to_text: {
+        Args: { data: string }
+        Returns: string
+      }
       check_table_exists: {
         Args: { table_name: string }
         Returns: boolean
@@ -880,6 +1014,10 @@ export type Database = {
       }
       generate_invitation_token: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_random_password: {
+        Args: { length: number }
         Returns: string
       }
       get_addon_popularity: {
@@ -955,6 +1093,57 @@ export type Database = {
         Args: { secret_name: string }
         Returns: Json
       }
+      http: {
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
+        Returns: unknown
+      }
+      http_delete: {
+        Args:
+          | { uri: string }
+          | { uri: string; content: string; content_type: string }
+        Returns: unknown
+      }
+      http_get: {
+        Args: { uri: string } | { uri: string; data: Json }
+        Returns: unknown
+      }
+      http_head: {
+        Args: { uri: string }
+        Returns: unknown
+      }
+      http_header: {
+        Args: { field: string; value: string }
+        Returns: Database["public"]["CompositeTypes"]["http_header"]
+      }
+      http_list_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          curlopt: string
+          value: string
+        }[]
+      }
+      http_patch: {
+        Args: { uri: string; content: string; content_type: string }
+        Returns: unknown
+      }
+      http_post: {
+        Args:
+          | { uri: string; content: string; content_type: string }
+          | { uri: string; data: Json }
+        Returns: unknown
+      }
+      http_put: {
+        Args: { uri: string; content: string; content_type: string }
+        Returns: unknown
+      }
+      http_reset_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      http_set_curlopt: {
+        Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
       revoke_secret: {
         Args: { secret_name: string }
         Returns: undefined
@@ -967,12 +1156,36 @@ export type Database = {
         Args: { secret_name: string; secret_value: string }
         Returns: undefined
       }
+      text_to_bytea: {
+        Args: { data: string }
+        Returns: string
+      }
+      urlencode: {
+        Args: { data: Json } | { string: string } | { string: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      http_header: {
+        field: string | null
+        value: string | null
+      }
+      http_request: {
+        method: unknown | null
+        uri: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content_type: string | null
+        content: string | null
+      }
+      http_response: {
+        status: number | null
+        content_type: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content: string | null
+      }
     }
   }
 }
