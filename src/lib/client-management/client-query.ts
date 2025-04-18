@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingClient, TeamMember, Addon, Subscription, OnboardingProgressItem, OnboardingProgress, OnboardingProgressRecord } from "../types/client-types";
 
@@ -71,16 +72,30 @@ export async function getClientById(clientId: string): Promise<OnboardingClient 
         }))
       : [];
 
-    // Fix: Properly extract subscription data from the response
+    // Fixed subscription data handling - TypeScript was seeing this as an array but it's an object
     let subscription: Subscription = { id: '', name: 'Standard', price: 0, description: 'Standard plan' };
     
     if (subscriptionData && subscriptionData.subscriptions) {
-      subscription = {
-        id: subscriptionData.subscriptions.id || '',
-        name: subscriptionData.subscriptions.name || 'Standard',
-        price: subscriptionData.subscriptions.price || 0,
-        description: subscriptionData.subscriptions.description || 'Standard plan',
-      };
+      // Check if subscriptions is an object (expected case)
+      const subData = subscriptionData.subscriptions;
+      if (typeof subData === 'object' && !Array.isArray(subData)) {
+        subscription = {
+          id: subData.id || '',
+          name: subData.name || 'Standard',
+          price: subData.price || 0,
+          description: subData.description || 'Standard plan',
+        };
+      }
+      // If it's actually an array (unexpected case), take the first item if available
+      else if (Array.isArray(subData) && subData.length > 0) {
+        subscription = {
+          id: subData[0].id || '',
+          name: subData[0].name || 'Standard',
+          price: subData[0].price || 0,
+          description: subData[0].description || 'Standard plan',
+        };
+      }
+      // Default is already set above
     }
 
     // Calculate progress percentage
