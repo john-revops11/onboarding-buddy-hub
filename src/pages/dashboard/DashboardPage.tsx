@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
 import {
   Card,
