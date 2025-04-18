@@ -7,7 +7,12 @@ export interface User {
   createdAt: string;
   avatar?: string;
   status: "pending" | "approved" | "rejected";
-  onboardingStatus?: number;
+  onboardingStatus?: number | string;
+  platformTier?: string;
+  fullName?: string;
+  supportUrl?: string;
+  kbUrl?: string;
+  meetingUrl?: string;
   // Add these to appease TypeScript when converting from Supabase User
   app_metadata?: Record<string, any>;
   user_metadata?: Record<string, any>;

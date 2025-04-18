@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingProgressRecord, Subscription, Addon } from "@/lib/types/client-types";
+import { OnboardingProgressRecord, Subscription, Addon, OnboardingClient } from "@/lib/types/client-types";
 
 // Define a type for the raw data coming from Supabase
 interface RawClientData {
@@ -23,7 +23,7 @@ interface RawClientData {
 }
 
 // Function to fetch clients with their subscription data
-export async function getOnboardingClients() {
+export async function getOnboardingClients(): Promise<OnboardingClient[]> {
   try {
     // Get all clients with their subscription data
     const { data: clientsData, error: clientsError } = await supabase
@@ -56,20 +56,22 @@ export async function getOnboardingClients() {
     if (addonsError) throw addonsError;
     
     // Group addons by client_id
-    const addonsByClient = (clientAddonsData || []).reduce((acc, item) => {
-      if (!acc[item.client_id]) {
-        acc[item.client_id] = [];
+    const addonsByClient: Record<string, Addon[]> = {};
+    
+    (clientAddonsData || []).forEach(item => {
+      if (!addonsByClient[item.client_id]) {
+        addonsByClient[item.client_id] = [];
       }
+      
       if (item.addons) {
-        acc[item.client_id].push({
+        addonsByClient[item.client_id].push({
           id: item.addons.id || "",
           name: item.addons.name || "",
           price: item.addons.price || 0,
           description: item.addons.description || ""
         });
       }
-      return acc;
-    }, {});
+    });
 
     // Map the raw client data to our expected format
     return ((clientsData || []) as unknown as RawClientData[]).map(client => {

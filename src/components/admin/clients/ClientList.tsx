@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -25,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
-  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink
+  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext
 } from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,14 +34,14 @@ import { ClientActions } from "./ClientActions";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 
 // Type for enriched client with progress
-type EnhancedClient = Omit<OnboardingClient, "onboardingProgress"> & {
+interface EnhancedClient extends OnboardingClient {
   onboardingProgress?: {
     percentage: number;
     completedSteps: number;
     totalSteps: number;
   };
   onboardingStatus?: string;
-};
+}
 
 const ClientList = () => {
   const { toast } = useToast();
@@ -80,7 +81,7 @@ const ClientList = () => {
             totalSteps: progress.totalSteps,
           },
           onboardingStatus: status,
-        };
+        } as EnhancedClient;
       }));
       return enriched;
     },
@@ -98,19 +99,23 @@ const ClientList = () => {
       header: "Email",
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("contactPerson", {
+    columnHelper.accessor((row) => row.contactPerson, {
+      id: "contactPerson",
       header: "Contact Person",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("position", {
+    columnHelper.accessor((row) => row.position, {
+      id: "position",
       header: "Position",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("industry", {
+    columnHelper.accessor((row) => row.industry, {
+      id: "industry",
       header: "Industry",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor("companySize", {
+    columnHelper.accessor((row) => row.companySize, {
+      id: "companySize",
       header: "Company Size",
       cell: (info) => info.getValue() || "-",
     }),
@@ -265,10 +270,16 @@ const ClientList = () => {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
+                    <PaginationPrevious 
+                      onClick={() => table.previousPage()} 
+                      className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
+                    />
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
+                    <PaginationNext 
+                      onClick={() => table.nextPage()}
+                      className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
+                    />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>

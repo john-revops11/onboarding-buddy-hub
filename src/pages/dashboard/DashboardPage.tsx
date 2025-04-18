@@ -1,4 +1,3 @@
-// src/pages/dashboard/DashboardPage.tsx
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { useAnalyticsDashboards } from "@/hooks/use-analytics-dashboards"; // New hook
+import { useAnalyticsDashboards } from "@/hooks/use-analytics-dashboards"; 
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -19,7 +18,7 @@ const DashboardPage = () => {
   const clientId = user?.id ?? "";
   const tier = user?.platformTier ?? "Standard";
   const fullName = user?.fullName ?? "there";
-  const isOnboardingComplete = user?.onboardingStatus === "Complete";
+  const isOnboardingComplete = user?.onboardingStatus === "Complete" || user?.onboardingStatus === 100;
 
   const { dashboards, loading, error } = useAnalyticsDashboards(tier, clientId);
 
