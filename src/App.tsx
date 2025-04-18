@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,6 +47,7 @@ import EditAddonPage from "./pages/admin/addons/EditAddonPage";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
 import AdminClientDetailPage from "@/pages/admin/ClientDetailPage";
+import { supabase } from "@/lib/supabaseClient"; // Import Supabase client
 
 // Create the QueryClient as a function component to ensure proper React context
 const App = () => {
