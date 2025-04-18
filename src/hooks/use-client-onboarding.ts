@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,7 +12,7 @@ import {
   getClientFiles,
   updateFileStatus,
 } from "@/lib/client-management/file-upload";
-import { getClientProgress } from "@/lib/client-management/client-query";
+import { getClientProgress } from "@/lib/client-management";
 import { ChecklistItem, DocumentCategory } from "@/types/onboarding";
 import { FileUpload, OnboardingProgressRecord } from "@/lib/types/client-types";
 

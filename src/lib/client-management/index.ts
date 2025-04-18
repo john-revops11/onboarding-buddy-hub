@@ -1,7 +1,7 @@
 
 // Export all client management functionality from a single entry point
 export { createClient } from './client-create';
-export { getClients, getClientById, getClientProgress, calculateClientProgress, getOnboardingClients } from './client-query';
+export { getClients, getClientById, calculateClientProgress, getClientProgress, getOnboardingClients } from './client-query';
 export { sendClientInvitation } from './client-invitations';
 export { completeClientOnboarding } from './client-status';
 

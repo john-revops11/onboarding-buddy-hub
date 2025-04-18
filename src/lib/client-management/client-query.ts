@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingClient, TeamMember, Addon, Subscription, OnboardingProgressItem, OnboardingProgress, OnboardingProgressRecord } from "../types/client-types";
 
@@ -72,14 +71,17 @@ export async function getClientById(clientId: string): Promise<OnboardingClient 
         }))
       : [];
 
-    const subscription: Subscription = subscriptionData?.subscriptions 
-      ? {
-          id: subscriptionData.subscriptions.id || '',
-          name: subscriptionData.subscriptions.name || 'Standard',
-          price: subscriptionData.subscriptions.price || 0,
-          description: subscriptionData.subscriptions.description || 'Standard plan',
-        }
-      : { id: '', name: 'Standard', price: 0, description: 'Standard plan' };
+    // Fix: Properly extract subscription data from the response
+    let subscription: Subscription = { id: '', name: 'Standard', price: 0, description: 'Standard plan' };
+    
+    if (subscriptionData && subscriptionData.subscriptions) {
+      subscription = {
+        id: subscriptionData.subscriptions.id || '',
+        name: subscriptionData.subscriptions.name || 'Standard',
+        price: subscriptionData.subscriptions.price || 0,
+        description: subscriptionData.subscriptions.description || 'Standard plan',
+      };
+    }
 
     // Calculate progress percentage
     let onboardingProgress = progress || [];
@@ -130,7 +132,6 @@ export async function getClients(): Promise<OnboardingClient[]> {
   }
 }
 
-// Add this exported function to fix the error in ClientList.tsx
 export async function calculateClientProgress(clientId: string): Promise<{progress: number; completedSteps: number; totalSteps: number}> {
   try {
     const progress = await getClientProgress(clientId);
@@ -154,7 +155,6 @@ export async function calculateClientProgress(clientId: string): Promise<{progre
   }
 }
 
-// Add this exported function to fix the error in useClientOnboarding.ts
 export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
   try {
     const { data, error } = await supabase
@@ -182,7 +182,6 @@ export async function getClientProgress(clientId: string): Promise<OnboardingPro
   }
 }
 
-// Add this exported function to fix the error in index.ts
 export async function getOnboardingClients(): Promise<OnboardingClient[]> {
   try {
     const { data: clients, error } = await supabase
