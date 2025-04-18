@@ -88,11 +88,13 @@ export async function getClientById(clientId: string): Promise<OnboardingClient 
       }
       // If it's actually an array (unexpected case), take the first item if available
       else if (Array.isArray(subData) && subData.length > 0) {
+        // Type assertion to avoid 'never' type error
+        const firstItem = subData[0] as { id?: string; name?: string; price?: number; description?: string };
         subscription = {
-          id: subData[0].id || '',
-          name: subData[0].name || 'Standard',
-          price: subData[0].price || 0,
-          description: subData[0].description || 'Standard plan',
+          id: firstItem.id || '',
+          name: firstItem.name || 'Standard',
+          price: firstItem.price || 0,
+          description: firstItem.description || 'Standard plan',
         };
       }
       // Default is already set above
