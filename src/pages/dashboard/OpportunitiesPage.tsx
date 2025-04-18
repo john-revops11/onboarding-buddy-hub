@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useInsights } from "@/hooks/use-client-insights";
 import { useClientOpportunities } from "@/hooks/use-client-opportunities";
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import {
   Alert,
-  AlertCircle,
   AlertTitle,
   AlertDescription,
 } from "@/components/ui/alert";
@@ -40,6 +40,7 @@ import {
   ExternalLink,
   Search,
   Info,
+  AlertCircle,
 } from "lucide-react";
 import {
   Tooltip,
