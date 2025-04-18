@@ -76,6 +76,20 @@ export interface ClientOnboardingStep {
   addon_name?: string;
 }
 
+export interface OnboardingProgressItem {
+  stepId: string;
+  completed: boolean;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface OnboardingProgress {
+  percentage: number;
+  completedSteps: number;
+  totalSteps: number;
+  items?: OnboardingProgressItem[];
+}
+
 export interface OnboardingClient {
   id: string;
   email: string;
@@ -88,7 +102,7 @@ export interface OnboardingClient {
   addons: Addon[];
   status: 'pending' | 'active';
   teamMembers: TeamMember[];
-  onboardingProgress?: OnboardingProgressItem[];
+  onboardingProgress?: OnboardingProgressItem[] | OnboardingProgress;
   created_at?: string;
   createdAt?: string; // Alternative property name
 }
@@ -97,13 +111,6 @@ export interface TeamMember {
   id: string;
   email: string;
   invitationStatus: 'pending' | 'accepted';
-}
-
-export interface OnboardingProgressItem {
-  stepId: string;
-  completed: boolean;
-  startedAt?: string;
-  completedAt?: string;
 }
 
 // Make FileUpload and ClientFile compatible

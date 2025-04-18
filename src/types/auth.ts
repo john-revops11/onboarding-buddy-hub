@@ -13,6 +13,9 @@ export interface User {
   supportUrl?: string;
   kbUrl?: string;
   meetingUrl?: string;
+  tierInfoUrl?: string;
+  consultingAddOn?: boolean;
+  consultingOptionsUrl?: string;
   // Add these to appease TypeScript when converting from Supabase User
   app_metadata?: Record<string, any>;
   user_metadata?: Record<string, any>;

@@ -1,151 +1,163 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, FileUp, HelpCircle, Book, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { 
+  BookOpen, 
+  Calendar, 
+  HelpCircle, 
+  MessageSquare, 
+  Upload, 
+  FileText
+} from "lucide-react";
 
-interface QuickActionsProps {
+export interface QuickActionsProps {
   showOnboardingButton: boolean;
   supportUrl: string;
   kbUrl: string;
   meetingUrl?: string;
 }
 
-export function QuickActions({ 
-  showOnboardingButton, 
-  supportUrl, 
-  kbUrl, 
-  meetingUrl 
-}: QuickActionsProps) {
-  const navigate = useNavigate();
-  
+export const QuickActions: React.FC<QuickActionsProps> = ({
+  showOnboardingButton,
+  supportUrl,
+  kbUrl,
+  meetingUrl,
+}) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {showOnboardingButton && (
-        <Card className="hover:shadow-md transition-shadow overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+    <section className="space-y-2">
+      <h2 className="text-lg font-semibold">Quick Actions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Documentation Card */}
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-primary-200/70 p-2">
-                <FileUp className="h-5 w-5 text-primary-700" />
+            <div className="flex flex-col h-full">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-primary/10 rounded mr-3">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Knowledge Resources</h3>
               </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold">Complete Onboarding</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">Finish setting up your account</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Access guides, FAQs, and best practices for using Revify
+                effectively.
+              </p>
+              <div className="mt-auto space-y-2">
                 <Button 
                   variant="ghost" 
-                  className="mt-2 p-0 h-auto text-primary-700 hover:text-primary-900 hover:bg-transparent"
-                  onClick={() => navigate('/onboarding')}
+                  className="w-full justify-start" 
+                  asChild
                 >
-                  <span className="mr-1">Continue Setup</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <a 
+                    href={kbUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Knowledge Base
+                  </a>
                 </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      <Card className="hover:shadow-md transition-shadow overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-blue-100 p-2">
-              <FileUp className="h-5 w-5 text-blue-700" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold">Data Upload</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">Upload your data files</p>
-              <Button 
-                variant="ghost" 
-                className="mt-2 p-0 h-auto text-blue-700 hover:text-blue-900 hover:bg-transparent"
-                onClick={() => navigate('/dashboard/data-uploads')}
-              >
-                <span className="mr-1">Upload Files</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="hover:shadow-md transition-shadow overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-amber-100 p-2">
-              <HelpCircle className="h-5 w-5 text-amber-700" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold">Support</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">Get help from our team</p>
-              <Button 
-                variant="ghost" 
-                component="a"
-                className="mt-2 p-0 h-auto text-amber-700 hover:text-amber-900 hover:bg-transparent"
-                href={supportUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="mr-1">Contact Support</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="hover:shadow-md transition-shadow overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-green-100 p-2">
-              <Book className="h-5 w-5 text-green-700" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold">Knowledge Base</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">Browse tutorials and guides</p>
-              <Button 
-                variant="ghost" 
-                component="a"
-                className="mt-2 p-0 h-auto text-green-700 hover:text-green-900 hover:bg-transparent"
-                href={kbUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="mr-1">View Resources</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {meetingUrl && (
-        <Card className="hover:shadow-md transition-shadow overflow-hidden md:col-span-2 lg:col-span-4">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-purple-100 p-2">
-                <Calendar className="h-5 w-5 text-purple-700" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-semibold">Schedule a Strategy Session</h3>
-                <p className="text-sm text-muted-foreground">
-                  Book a meeting with our team to discuss your strategy and next steps.
-                </p>
                 <Button 
-                  variant="outline"
-                  component="a"
-                  className="mt-2 text-purple-700 border-purple-200 hover:bg-purple-50"
-                  href={meetingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  asChild
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Schedule Meeting
+                  <a 
+                    href="https://docs.revify.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Documentation
+                  </a>
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
-    </div>
+
+        {/* Support Card */}
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-primary/10 rounded mr-3">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Support</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get help from our team when you need it.
+              </p>
+              <div className="mt-auto space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  asChild
+                >
+                  <a 
+                    href={supportUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Contact Support
+                  </a>
+                </Button>
+
+                {meetingUrl && (
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    asChild
+                  >
+                    <a 
+                      href={meetingUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule a Meeting
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Management Card */}
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-primary/10 rounded mr-3">
+                  <Upload className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Data Management</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload data files and manage your account data.
+              </p>
+              <div className="mt-auto">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  asChild
+                >
+                  <a 
+                    href="/dashboard/data-uploads" 
+                    rel="noopener noreferrer"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Data
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
   );
-}
+};

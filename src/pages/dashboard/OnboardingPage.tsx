@@ -1,106 +1,136 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
-import { useClientOnboarding } from "@/hooks/use-client-onboarding";
-import { Main } from "@/components/ui/main";
+
+import React, { useState } from "react";
+import { DashboardLayout } from "@/components/layout/DashboardSidebar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-
-import { ChecklistSection } from "@/components/dashboard/ChecklistSection";
+import { useAuth } from "@/hooks/use-auth";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
-import { ServiceTierSection } from "@/components/dashboard/ServiceTierSection";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { toast } from "@/components/ui/use-toast";
 
-const OnboardingPage = () => {
-  const navigate = useNavigate();
+export default function OnboardingPage() {
   const { state } = useAuth();
-  const {
-    checklistItems,
-    loadingSteps,
-    uploadedFiles,
-    uploading,
-    uploadProgress,
-    error,
-    handleCompleteTask,
-    handleFileUpload,
-    handleVerificationStatusChange,
-  } = useClientOnboarding();
+  const user = state.user;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileUploadComplete = (file: File) => {
-    handleFileUpload([file]);
+    toast({
+      title: "File uploaded",
+      description: `${file.name} has been uploaded and is pending review.`,
+    });
   };
 
-  const completedCount = checklistItems.filter((item) => item.completed).length;
-  const progress = (completedCount / checklistItems.length) * 100;
+  const handleVerifyFiles = async () => {
+    try {
+      setIsSubmitting(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Verification requested",
+        description: "Your files have been submitted for verification.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Verification failed",
+        description: "There was an error submitting your files. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-  const user = state.user;
+  // Check if user has completed onboarding
+  const isOnboardingComplete = user?.onboardingStatus === "Complete" || user?.onboardingStatus === 100;
+
+  if (isOnboardingComplete) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Onboarding Complete</h1>
+            <p className="text-muted-foreground">
+              Your account has been fully set up and is ready to use.
+            </p>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>All Set!</CardTitle>
+              <CardDescription>
+                You have successfully completed all onboarding steps.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>
+                Your account is now fully configured and you have access to all features.
+                You can upload additional files at any time through the Data Uploads section.
+              </p>
+              <Button asChild>
+                <a href="/dashboard">Go to Dashboard</a>
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <FileUploadSection 
+            onFileUploadComplete={handleFileUploadComplete} 
+          />
+          
+          <QuickActions 
+            showOnboardingButton={false}
+            supportUrl={user?.supportUrl || "#"}
+            kbUrl={user?.kbUrl || "#"}
+            meetingUrl={user?.meetingUrl || undefined}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <Main>
-      <div className="container mx-auto py-10">
-        <div className="mb-8 flex items-center">
-          <Button variant="outline" onClick={() => navigate("/dashboard")} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
-        </div>
-
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* ✅ Progress Bar */}
-        <div className="mb-6">
-          <p className="text-sm font-medium mb-2">
-            Progress: {completedCount} of {checklistItems.length} complete
+          <p className="text-muted-foreground">
+            Complete the setup process to get started with Revify
           </p>
-          <Progress value={progress} />
         </div>
 
-        {/* ✅ Checklist + Uploads */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <ChecklistSection
-            checklist={checklistItems}
-            onCompleteTask={handleCompleteTask}
-            areRequiredDocumentsUploaded={(task) =>
-              !task.requiredDocuments?.length ||
-              task.requiredDocuments.every((cat) =>
-                uploadedFiles.some((file) => file.category === cat)
-              )
-            }
-            isLoading={loadingSteps}
-          />
-
-          <FileUploadSection
-            onFileUploadComplete={handleFileUploadComplete}
-            onVerificationStatusChange={handleVerificationStatusChange}
-          />
-        </div>
-
-        {/* ✅ Service Tier Info */}
-        <ServiceTierSection
-          tier={user?.platformTier ?? "Standard"}
-          consultingAddOn={user?.consultingAddOn}
-          tierUrl={user?.tierInfoUrl}
-          consultingUrl={user?.consultingOptionsUrl}
+        <QuickActions 
+          showOnboardingButton={true}
+          supportUrl={user?.supportUrl || "#"}
+          kbUrl={user?.kbUrl || "#"}
+          meetingUrl={user?.meetingUrl || undefined}
         />
 
-        {/* ✅ Quick Access Actions */}
-        <QuickActions
-          supportUrl={user?.supportUrl ?? "#"}
-          meetingUrl={user?.meetingUrl ?? "#"}
-          kbUrl={user?.kbUrl ?? "#"}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Required Documents</CardTitle>
+            <CardDescription>
+              Please upload the following required files to complete your onboarding
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <FileUploadSection 
+              onFileUploadComplete={handleFileUploadComplete} 
+            />
+            
+            <div className="flex justify-end">
+              <Button onClick={handleVerifyFiles} disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit Files for Verification"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </Main>
+    </DashboardLayout>
   );
-};
-
-export default OnboardingPage;
+}

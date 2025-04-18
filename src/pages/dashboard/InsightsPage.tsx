@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useInsights } from "@/hooks/use-insights";
 import { Main } from "@/components/ui/main";
@@ -15,10 +16,11 @@ import {
   AlertDescription,
 } from "@/components/ui/alert";
 import { ExternalLink, Download, AlertCircle } from "lucide-react";
+import { Insight } from "@/hooks/use-insights";
 
 export default function InsightsPage() {
   const { data: insights = [], isLoading, error } = useInsights();
-  const [activeDoc, setActiveDoc] = useState<any | null>(null);
+  const [activeDoc, setActiveDoc] = useState<Insight | null>(null);
   const [embedError, setEmbedError] = useState(false);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function InsightsPage() {
     setEmbedError(true);
   };
 
-  const handleViewPrevious = (doc: any) => {
+  const handleViewPrevious = (doc: Insight) => {
     setActiveDoc(doc);
     setEmbedError(false);
   };
@@ -52,7 +54,7 @@ export default function InsightsPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{error.toString()}</AlertDescription>
           </Alert>
         )}
 
@@ -69,7 +71,7 @@ export default function InsightsPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <a
-                      href={activeDoc.downloadUrl || activeDoc.driveUrl}
+                      href={activeDoc.download_url || activeDoc.drive_url}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -79,7 +81,7 @@ export default function InsightsPage() {
                   </Button>
                   <Button variant="outline" size="sm" asChild>
                     <a
-                      href={activeDoc.driveUrl}
+                      href={activeDoc.drive_url}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -94,13 +96,13 @@ export default function InsightsPage() {
               {!embedError ? (
                 <div className="border rounded-lg overflow-hidden h-[600px]">
                   <iframe
-                    src={activeDoc.embedUrl}
+                    src={activeDoc.embed_url}
                     width="100%"
                     height="600"
                     title={activeDoc.name}
                     className="border-0"
                     onError={handleEmbedError}
-                  ></iframe>
+                  />
                 </div>
               ) : (
                 <Alert variant="destructive">
@@ -141,7 +143,7 @@ export default function InsightsPage() {
                     </Button>
                     <Button size="sm" variant="outline" asChild>
                       <a
-                        href={doc.downloadUrl || doc.driveUrl}
+                        href={doc.download_url || doc.drive_url}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -159,7 +161,7 @@ export default function InsightsPage() {
   );
 }
 
-function formatInsightDate(doc: any): string {
+function formatInsightDate(doc: Insight): string {
   const match = doc.name.match(/(\d{4})[-_ ]?(\d{2})/);
   if (match) {
     const [_, year, month] = match;
@@ -167,6 +169,6 @@ function formatInsightDate(doc: any): string {
     return date.toLocaleString("default", { month: "long", year: "numeric" });
   }
 
-  const fallbackDate = new Date(doc.modifiedTime || doc.updatedAt);
+  const fallbackDate = new Date(doc.modifiedTime || doc.updatedAt || '');
   return fallbackDate.toLocaleString("default", { month: "long", year: "numeric" });
 }

@@ -5,16 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Insight {
   id: string;
   name: string;
-  drive_url: string;
   embed_url: string;
+  drive_url: string;
   download_url: string;
-  is_current: boolean;
-  modifiedTime: string;
-  created_at: string;
-  updated_at: string;
+  is_current?: boolean;
+  modifiedTime?: string;
+  updatedAt?: string;
 }
 
-export function useInsights() {
+export const useInsights = () => {
   return useQuery({
     queryKey: ["insights"],
     queryFn: async () => {
@@ -27,4 +26,4 @@ export function useInsights() {
       return data as Insight[];
     },
   });
-}
+};

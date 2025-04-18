@@ -4,14 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Download, ExternalLink, AlertCircle } from "lucide-react";
+import { Insight } from "@/hooks/use-insights";
 
 interface InsightPreviewProps {
-  insight: {
-    name: string;
-    embed_url: string;
-    drive_url: string;
-    download_url: string;
-  };
+  insight: Insight;
 }
 
 export function InsightPreview({ insight }: InsightPreviewProps) {
