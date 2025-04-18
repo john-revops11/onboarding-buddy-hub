@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useInsights } from "@/hooks/use-insights";
 import { Main } from "@/components/ui/main";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@/components/ui/alert";
 import { ExternalLink, Download, AlertCircle } from "lucide-react";
 
 export default function InsightsPage() {
@@ -31,10 +41,13 @@ export default function InsightsPage() {
       <div className="space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Latest Insights</h1>
-          <p className="text-muted-foreground">Your regular performance snapshots and strategic recommendations</p>
+          <p className="text-muted-foreground">
+            Your regular performance snapshots and strategic recommendations
+          </p>
         </div>
 
         {isLoading && <p>Loading insights...</p>}
+
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -48,18 +61,28 @@ export default function InsightsPage() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>Current Monthly Insight: {formatInsightDate(activeDoc)}</CardTitle>
+                  <CardTitle>
+                    Current Monthly Insight: {formatInsightDate(activeDoc)}
+                  </CardTitle>
                   <CardDescription>{activeDoc.name}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <a href={activeDoc.downloadUrl || activeDoc.driveUrl} target="_blank" rel="noreferrer">
+                    <a
+                      href={activeDoc.downloadUrl || activeDoc.driveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       <Download className="h-4 w-4 mr-1" />
                       Download
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
-                    <a href={activeDoc.driveUrl} target="_blank" rel="noreferrer">
+                    <a
+                      href={activeDoc.driveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Open in Drive
                     </a>
@@ -82,7 +105,9 @@ export default function InsightsPage() {
               ) : (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Unable to display the latest insight preview.</AlertTitle>
+                  <AlertTitle>
+                    Unable to display the latest insight preview.
+                  </AlertTitle>
                   <AlertDescription>
                     You can still download it or open directly in Google Drive.
                   </AlertDescription>
@@ -107,11 +132,19 @@ export default function InsightsPage() {
                     <CardDescription>{formatInsightDate(doc)}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline" onClick={() => handleViewPrevious(doc)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewPrevious(doc)}
+                    >
                       View
                     </Button>
                     <Button size="sm" variant="outline" asChild>
-                      <a href={doc.downloadUrl || doc.driveUrl} target="_blank" rel="noreferrer">
+                      <a
+                        href={doc.downloadUrl || doc.driveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         Download
                       </a>
                     </Button>
