@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -33,7 +32,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ClientActions } from "./ClientActions";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 
-// Type for enriched client with progress
 interface EnhancedClient extends OnboardingClient {
   onboardingProgress?: {
     percentage: number;
@@ -99,23 +97,19 @@ const ClientList = () => {
       header: "Email",
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor((row) => row.contactPerson, {
-      id: "contactPerson",
+    columnHelper.accessor("contactPerson", {
       header: "Contact Person",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor((row) => row.position, {
-      id: "position",
+    columnHelper.accessor("position", {
       header: "Position",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor((row) => row.industry, {
-      id: "industry",
+    columnHelper.accessor("industry", {
       header: "Industry",
       cell: (info) => info.getValue() || "-",
     }),
-    columnHelper.accessor((row) => row.companySize, {
-      id: "companySize",
+    columnHelper.accessor("companySize", {
       header: "Company Size",
       cell: (info) => info.getValue() || "-",
     }),
@@ -270,16 +264,22 @@ const ClientList = () => {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious 
+                    <Button 
                       onClick={() => table.previousPage()} 
-                      className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
-                    />
+                      disabled={!table.getCanPreviousPage()}
+                      variant="outline"
+                    >
+                      Previous
+                    </Button>
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationNext 
+                    <Button 
                       onClick={() => table.nextPage()}
-                      className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
-                    />
+                      disabled={!table.getCanNextPage()}
+                      variant="outline"
+                    >
+                      Next
+                    </Button>
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>

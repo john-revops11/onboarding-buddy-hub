@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingClient, TeamMember, Addon, Subscription } from "../types/client-types";
+import { OnboardingClient, TeamMember, Addon, Subscription, OnboardingProgressItem, OnboardingProgress, OnboardingProgressRecord } from "../types/client-types";
 
 export async function getClientById(clientId: string): Promise<OnboardingClient | null> {
   try {
@@ -65,19 +65,19 @@ export async function getClientById(clientId: string): Promise<OnboardingClient 
     // Process the data
     const addons: Addon[] = clientAddons
       ? clientAddons.map((item: any) => ({
-          id: item.addons.id,
-          name: item.addons.name,
-          price: item.addons.price,
-          description: item.addons.description,
+          id: item.addons?.id || '',
+          name: item.addons?.name || '',
+          price: item.addons?.price || 0,
+          description: item.addons?.description || '',
         }))
       : [];
 
     const subscription: Subscription = subscriptionData?.subscriptions 
       ? {
-          id: subscriptionData.subscriptions.id,
-          name: subscriptionData.subscriptions.name,
-          price: subscriptionData.subscriptions.price,
-          description: subscriptionData.subscriptions.description,
+          id: subscriptionData.subscriptions.id || '',
+          name: subscriptionData.subscriptions.name || 'Standard',
+          price: subscriptionData.subscriptions.price || 0,
+          description: subscriptionData.subscriptions.description || 'Standard plan',
         }
       : { id: '', name: 'Standard', price: 0, description: 'Standard plan' };
 
@@ -126,6 +126,86 @@ export async function getClients(): Promise<OnboardingClient[]> {
     return enhancedClients.filter(c => c !== null) as OnboardingClient[];
   } catch (err) {
     console.error("Error in getClients:", err);
+    return [];
+  }
+}
+
+// Add this exported function to fix the error in ClientList.tsx
+export async function calculateClientProgress(clientId: string): Promise<{progress: number; completedSteps: number; totalSteps: number}> {
+  try {
+    const progress = await getClientProgress(clientId);
+    
+    if (!progress || progress.length === 0) {
+      return { progress: 0, completedSteps: 0, totalSteps: 0 };
+    }
+    
+    const completedSteps = progress.filter(step => step.completed).length;
+    const totalSteps = progress.length;
+    const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
+    
+    return {
+      progress: progressPercentage,
+      completedSteps,
+      totalSteps
+    };
+  } catch (error) {
+    console.error("Error calculating client progress:", error);
+    return { progress: 0, completedSteps: 0, totalSteps: 0 };
+  }
+}
+
+// Add this exported function to fix the error in useClientOnboarding.ts
+export async function getClientProgress(clientId: string): Promise<OnboardingProgressRecord[]> {
+  try {
+    const { data, error } = await supabase
+      .from('onboarding_progress')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('step_order', { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching client progress:", error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      clientId: item.client_id,
+      stepName: item.step_name,
+      stepOrder: item.step_order,
+      completed: item.completed,
+      startedAt: item.started_at,
+      completedAt: item.completed_at
+    }));
+  } catch (error) {
+    console.error("Error in getClientProgress:", error);
+    return [];
+  }
+}
+
+// Add this exported function to fix the error in index.ts
+export async function getOnboardingClients(): Promise<OnboardingClient[]> {
+  try {
+    const { data: clients, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('onboarding_completed', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching onboarding clients:', error);
+      return [];
+    }
+
+    // Process each client to get additional data
+    const enhancedClients = await Promise.all(
+      clients.map(async (client) => {
+        return await getClientById(client.id) as OnboardingClient;
+      })
+    );
+
+    return enhancedClients.filter(c => c !== null) as OnboardingClient[];
+  } catch (err) {
+    console.error("Error in getOnboardingClients:", err);
     return [];
   }
 }

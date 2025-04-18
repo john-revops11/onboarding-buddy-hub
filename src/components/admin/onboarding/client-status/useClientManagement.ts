@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
-import { OnboardingClient } from "@/lib/types/client-types";
+import { OnboardingClient, OnboardingProgressItem } from "@/lib/types/client-types";
 import { getClients, completeClientOnboarding } from "@/lib/client-management";
 
 export function useClientManagement() {
@@ -75,7 +75,21 @@ export function useClientManagement() {
     const total_steps = 6;
     let steps_completed = 0;
     
-    if (client.onboardingProgress && client.onboardingProgress.length > 0) {
+    // Handle the case when onboardingProgress is an object (OnboardingProgress)
+    if (client.onboardingProgress && 
+        typeof client.onboardingProgress === 'object' && 
+        !Array.isArray(client.onboardingProgress) &&
+        'percentage' in client.onboardingProgress) {
+      return {
+        progress: client.onboardingProgress.percentage,
+        steps_completed: client.onboardingProgress.completedSteps,
+        total_steps: client.onboardingProgress.totalSteps
+      };
+    }
+    
+    // Handle the case when onboardingProgress is an array (OnboardingProgressItem[])
+    if (client.onboardingProgress && 
+        Array.isArray(client.onboardingProgress)) {
       const completedSteps = client.onboardingProgress.filter(step => step.completed).length;
       const totalSteps = client.onboardingProgress.length;
       const progressPercent = Math.round((completedSteps / totalSteps) * 100);
@@ -87,6 +101,7 @@ export function useClientManagement() {
       };
     }
     
+    // Fallback calculation when onboardingProgress is not available
     if (client.email) steps_completed++;
     if (client.companyName) steps_completed++;
     if (client.subscriptionTier.id) steps_completed++;
