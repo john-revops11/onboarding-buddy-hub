@@ -154,20 +154,6 @@ const OpportunitiesPage = () => {
         </p>
         
         <div className="grid gap-5">
-          <Card className="border shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle>Consulting Tier</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="border border-primary/20 rounded-lg p-4 flex items-center justify-between bg-white">
-                <div>
-                  <p className="font-medium">Elite Consulting Tier</p>
-                  <p className="text-sm text-muted-foreground">Premium access to all Revify services and features</p>
-                </div>
-                <Button variant="outline" size="sm">View Benefits</Button>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader>
