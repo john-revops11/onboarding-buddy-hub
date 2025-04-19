@@ -2,30 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, MoveRight } from 'lucide-react';
+import { BookOpen, MessageSquare, Calendar } from 'lucide-react';
 import { isOnboardingComplete } from '@/utils/onboardingUtils';
 
 export const QuickActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [onboardingComplete, setOnboardingComplete] = useState(isOnboardingComplete());
-  const [clientTier, setClientTier] = useState('basic'); // Example: Fetch from API
+  const [clientTier, setClientTier] = useState('basic');
   const [supportConfig, setSupportConfig] = useState({
     supportUrl: 'mailto:support@revify.com',
-    knowledgeBaseUrl: '/knowledge-hub', // Default to internal route
+    knowledgeBaseUrl: '/knowledge-hub',
     bookingUrl: 'https://calendly.com/revify/support',
   });
 
-  // Fetch client tier and support config from Admin Portal
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        // Replace with actual API call, e.g., const response = await api.get('/admin/config');
         const response = {
-          clientTier: 'premium', // Example
+          clientTier: 'premium',
           supportConfig: {
             supportUrl: 'https://revify.com/support',
-            knowledgeBaseUrl: 'https://revify.notion.site/Knowledge-Base', // External URL example
+            knowledgeBaseUrl: 'https://revify.notion.site/Knowledge-Base',
             bookingUrl: 'https://calendly.com/revify/support',
           },
         };
@@ -67,8 +65,8 @@ export const QuickActions = () => {
           className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
           onClick={() => navigate('/onboarding')}
         >
-          <span className="mr-3">View Onboarding Progress</span>
-          <MoveRight className="h-4 w-4" />
+          <BookOpen className="h-4 w-4 mr-2 text-[#68b046]" />
+          <span>View Onboarding Progress</span>
         </Button>
       )}
       <Button
@@ -76,20 +74,16 @@ export const QuickActions = () => {
         className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
         onClick={handleKnowledgeBaseClick}
       >
-        <span className="mr-3">Access Knowledge Base</span>
-        {supportConfig.knowledgeBaseUrl.startsWith('/') ? (
-          <MoveRight className="h-4 w-4" />
-        ) : (
-          <ExternalLink className="h-4 w-4" />
-        )}
+        <BookOpen className="h-4 w-4 mr-2 text-[#68b046]" />
+        <span>Access Knowledge Base</span>
       </Button>
       <Button
         variant="secondary"
         className="bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046] px-6 py-2 rounded-full flex items-center"
         onClick={handleSupportClick}
       >
-        <span className="mr-3">Contact Support</span>
-        <ExternalLink className="h-4 w-4" />
+        <MessageSquare className="h-4 w-4 mr-2 text-[#68b046]" />
+        <span>Contact Support</span>
       </Button>
       {clientTier === 'premium' && (
         <Button
@@ -97,8 +91,8 @@ export const QuickActions = () => {
           className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
           onClick={() => window.open(supportConfig.bookingUrl, '_blank')}
         >
-          <span className="mr-3">Schedule Ad-hoc Call</span>
-          <ExternalLink className="h-4 w-4" />
+          <Calendar className="h-4 w-4 mr-2 text-[#68b046]" />
+          <span>Schedule Ad-hoc Call</span>
         </Button>
       )}
     </div>
