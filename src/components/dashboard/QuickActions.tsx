@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, MessageSquare, Calendar } from 'lucide-react';
 import { isOnboardingComplete } from '@/utils/onboardingUtils';
 
-export const QuickActions = () => {
+type QuickActionsProps = {
+  showTitle?: boolean;
+};
+
+export const QuickActions = ({ showTitle = true }: QuickActionsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [onboardingComplete, setOnboardingComplete] = useState(isOnboardingComplete());
@@ -59,7 +63,9 @@ export const QuickActions = () => {
 
   return (
     <div className="flex flex-col items-center gap-4 w-full my-[5px]">
-      <h2 className="text-lg md:text-xl font-semibold text-center">Quick Actions</h2>
+      {showTitle && (
+        <h2 className="text-lg md:text-xl font-semibold text-center">Quick Actions</h2>
+      )}
       {!onboardingComplete && (
         <Button
           variant="outline"
