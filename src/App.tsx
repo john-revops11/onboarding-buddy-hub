@@ -47,7 +47,6 @@ import CreateAddonPage from "./pages/admin/addons/CreateAddonPage";
 import EditAddonPage from "./pages/admin/addons/EditAddonPage";
 import AdminOnboardingPage from "./pages/admin/onboarding/AdminOnboardingPage";
 import AdminInsightsPage from "./pages/admin/AdminInsightsPage";
-import AdminClientDetailPage from "./pages/admin/ClientDetailPage";
 
 // Create the QueryClient as a function component to ensure proper React context
 const App = () => {
@@ -89,7 +88,7 @@ const App = () => {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/clients" element={<ClientsListPage />} />
-                <Route path="/admin/clients/:id" element={<AdminClientDetailPage />} />
+                <Route path="/admin/clients/:id" element={<ClientDetailPage />} />
                 <Route path="/admin/checklists" element={<AdminChecklists />} />
                 <Route path="/admin/checklists/create" element={<ChecklistEditor />} />
                 <Route path="/admin/checklists/edit/:id" element={<ChecklistEditor />} />

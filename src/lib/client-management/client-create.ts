@@ -7,25 +7,36 @@ export async function createClient(data: ClientFormValues): Promise<string> {
   try {
     const addons = Array.isArray(data.addons) ? data.addons : [];
 
+    // Ensure subscriptionId is valid
+    if (!data.subscriptionId) {
+      throw new Error("Subscription ID is required.");
+    }
+
+    // Step 1: Create the client
     const { data: clientData, error: clientError } = await supabase
       .from("clients")
-      .insert({
-        email: data.email,
-        company_name: data.companyName || null,
-        contact_person: data.contactPerson || null,
-        position: data.position || null,
-        industry: data.industry || null,
-        company_size: data.companySize || null,
-        subscription_id: data.subscriptionId,
-        status: "pending",
-        onboarding_status: "not_started",
-      })
+      .insert([
+        {
+          email: data.email,
+          company_name: data.companyName || null,
+          subscription_id: data.subscriptionId,
+          status: "pending",
+
+          // New fields
+          industry: data.industry || null,
+          contact_person: data.contactPerson || null,
+          position: data.position || null,
+          company_size: data.companySize || null,
+        }
+      ])
       .select("id")
       .single();
 
     if (clientError) throw clientError;
+
     const clientId = clientData.id;
 
+    // Step 2: Add addons
     if (addons.length > 0) {
       const addonRecords = addons.map((addonId) => ({
         client_id: clientId,
@@ -39,6 +50,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (addonError) throw addonError;
     }
 
+    // Step 3: Add team members
     if (data.teamMembers && data.teamMembers.length > 0) {
       const teamMemberRecords = data.teamMembers.map((member) => ({
         client_id: clientId,
@@ -53,6 +65,7 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       if (teamError) throw teamError;
     }
 
+    // Step 4: Create onboarding steps
     const onboardingSteps = [
       { step_name: "welcome", step_order: 1, completed: false },
       { step_name: "contract", step_order: 2, completed: false },
@@ -74,6 +87,13 @@ export async function createClient(data: ClientFormValues): Promise<string> {
       .insert(onboardingRecords);
 
     if (onboardingError) throw onboardingError;
+
+    // Success: Return client ID
+    toast({
+      title: "Client Created",
+      description: `Client ${data.companyName} has been successfully created.`,
+      variant: "success",
+    });
 
     return clientId;
   } catch (error: any) {
