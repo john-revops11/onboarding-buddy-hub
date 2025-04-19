@@ -1,155 +1,138 @@
-// src/pages/dashboard/DashboardPage.tsx
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardSidebar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, BarChart3 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { useAnalyticsDashboards } from "@/hooks/use-analytics-dashboards";
+import { useAuth } from "@/contexts/auth-context";
+import { 
+  isOnboardingComplete, 
+  skipOnboarding, 
+  getClientStatus, 
+  getPendingNotifications,
+  addNotification
+} from "@/utils/onboardingUtils";
+import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const DashboardPage = () => {
-  const navigate = useNavigate();
   const { state } = useAuth();
+  const navigate = useNavigate();
   const user = state.user;
-
-  const clientId = user?.id ?? "";
-  const tier = user?.platformTier ?? "Standard";
-  const fullName = user?.fullName ?? "there";
-  const isOnboardingComplete = user?.onboardingStatus === "Complete";
-
-  const { dashboards, loading, error } = useAnalyticsDashboards(tier, clientId);
+  const [completedItems, setCompletedItems] = useState(2);
+  const [totalItems, setTotalItems] = useState(6);
+  const [clientStatus, setClientStatus] = useState(getClientStatus());
+  
+  // Check if we should redirect to onboarding
+  useEffect(() => {
+    const onboardingComplete = isOnboardingComplete();
+    
+    // If onboarding is not complete and client status is pending
+    if (!onboardingComplete && clientStatus === 'pending') {
+      navigate('/onboarding');
+    }
+  }, [navigate, clientStatus]);
+  
+  // Skip onboarding on load for demo purposes
+  // In a real app, this would be based on client state
+  useEffect(() => {
+    if (!isOnboardingComplete()) {
+      skipOnboarding();
+    }
+  }, []);
+  
+  // Add a welcome notification when dashboard is first loaded (demo purpose)
+  useEffect(() => {
+    const notifications = getPendingNotifications();
+    
+    // Only add welcome notification if there are no notifications yet
+    if (notifications.length === 0) {
+      addNotification({
+        title: "Welcome to the Dashboard",
+        message: "Your onboarding process has been started. Complete all steps to get started.",
+        type: "info"
+      });
+      
+      // Add additional demo notifications
+      setTimeout(() => {
+        addNotification({
+          title: "New Team Member Invited",
+          message: "You've successfully invited a team member to join your workspace.",
+          type: "success"
+        });
+      }, 15000);
+      
+      setTimeout(() => {
+        addNotification({
+          title: "Onboarding Step Completed",
+          message: "You've completed the Account Setup step. 5 more steps to go!",
+          type: "success"
+        });
+      }, 30000);
+    }
+  }, []);
+  
+  // Calculate progress percentage
+  const progress = Math.round((completedItems / totalItems) * 100);
 
   return (
     <DashboardLayout>
-      <div className="space-y-10 animate-fade-in">
-        {/* Header */}
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {fullName}!</p>
-        </header>
-
-        {/* Quick Actions */}
-        <QuickActions
-          showOnboardingButton={!isOnboardingComplete}
-          supportUrl={user?.supportUrl ?? "#"}
-          kbUrl={user?.kbUrl ?? "#"}
-          meetingUrl={user?.meetingUrl}
+      <motion.div 
+        className="space-y-5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <DashboardBanner 
+          userName={user?.name || "User"} 
+          userRole={user?.role || "Member"}
         />
-
-        {/* Analytics Hub */}
-        <AnimatePresence>
-          {isOnboardingComplete && (
-            <motion.section
-              key="analytics"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-4"
-            >
-              <div>
-                <h2 className="text-2xl font-semibold flex items-center gap-2">
-                  <BarChart3 size={20} />
-                  Revify Analytics Hub
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Access your performance dashboards and analytics on Tableau Online.
-                </p>
-              </div>
-
-              {/* Dashboards */}
-              {loading && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-36 w-full rounded-xl animate-pulse" />
-                  ))}
-                </div>
-              )}
-
-              {error && (
+        
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="md:col-span-2 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg md:text-xl font-semibold">Progress Overview</CardTitle>
+              <Badge variant="success" className="ml-2">Active</Badge>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ProgressOverview 
+                progress={progress} 
+                completedItems={completedItems} 
+                totalItems={totalItems} 
+              />
+              <div className="mt-4 flex justify-end">
                 <motion.div
-                  className="text-destructive bg-destructive/10 p-4 rounded-lg"
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: 1 }}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ y: 0, scale: 0.98 }}
                 >
-                  Could not load dashboard links. Please try again later or contact support.
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-sm focus:ring-4 focus:ring-accentGreen-600/40 px-4 py-2"
+                    onClick={() => navigate('/onboarding')}
+                  >
+                    <span className="mr-2">View Onboarding Details</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </motion.div>
-              )}
-
-              {!loading && dashboards.length === 0 && (
-                <p className="text-muted-foreground text-sm">
-                  Your analytics dashboards are being prepared or are not yet available.
-                </p>
-              )}
-
-              {!loading && dashboards.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {dashboards.map((dash) => (
-                    <motion.div
-                      key={dash.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Card className="hover:shadow-md transition-shadow duration-200">
-                        <CardHeader>
-                          <CardTitle>{dash.name}</CardTitle>
-                          {dash.description && (
-                            <CardDescription>{dash.description}</CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent>
-                          <Button
-                            asChild
-                            variant="secondary"
-                            className="gap-2 mt-2 w-full justify-center"
-                          >
-                            <a
-                              href={dash.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Open Dashboard
-                              <ArrowRight size={16} />
-                            </a>
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        {/* Onboarding Prompt */}
-        {!isOnboardingComplete && (
-          <motion.div
-            className="mt-6 border border-muted rounded-lg p-6 bg-muted/30"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className="text-lg font-semibold mb-2">Finish Setting Up</h3>
-            <p className="text-muted-foreground mb-4">
-              You still have a few onboarding steps to complete before unlocking your analytics dashboard.
-            </p>
-            <Button onClick={() => navigate("/onboarding")}>
-              Continue Onboarding
-            </Button>
-          </motion.div>
-        )}
-      </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg md:text-xl font-semibold">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <QuickActions />
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
     </DashboardLayout>
   );
 };
