@@ -58,7 +58,8 @@ export const QuickActions = () => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center gap-4 w-full my-[5px]">
+      <h2 className="text-lg md:text-xl font-semibold text-center">Quick Actions</h2>
       {!onboardingComplete && (
         <Button
           variant="outline"
@@ -79,7 +80,7 @@ export const QuickActions = () => {
       </Button>
       <Button
         variant="secondary"
-        className="w-[80%] bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046] px-6 py-2 rounded-full flex items-center justify-center"
+        className="w-[80%] bg-[#68b046]/20 border-[#68b046] hover:bg-[#68b046]/30 text-[#68b046] px-6 py-2 rounded-full flex items-center justify-center"
         onClick={handleSupportClick}
       >
         <MessageSquare className="h-4 w-4 mr-2 text-[#68b046]" />
