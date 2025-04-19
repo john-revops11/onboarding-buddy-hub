@@ -1,7 +1,7 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button"; // ✅ Import Button
 import { ClientFormValues } from "../formSchema";
 
 interface ConfirmationTabProps {
@@ -9,13 +9,15 @@ interface ConfirmationTabProps {
   subscriptions: any[];
   addons: any[];
   selectedAddons: string[];
+  onSubmit: () => void; // ✅ New prop for submission
 }
 
 export default function ConfirmationTab({ 
   form, 
   subscriptions, 
   addons, 
-  selectedAddons 
+  selectedAddons, 
+  onSubmit 
 }: ConfirmationTabProps) {
   return (
     <CardContent className="pt-6 space-y-6">
@@ -72,6 +74,14 @@ export default function ConfirmationTab({
           upon submission.
         </p>
       </div>
+
+      {/* ✅ Finalize Button */}
+      <Button
+        className="w-full"
+        onClick={onSubmit}
+      >
+        Finalize and Send Invitations
+      </Button>
     </CardContent>
   );
 }
