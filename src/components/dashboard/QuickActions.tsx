@@ -58,11 +58,11 @@ export const QuickActions = () => {
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col items-center gap-4 w-full">
       {!onboardingComplete && (
         <Button
           variant="outline"
-          className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
+          className="w-[80%] bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center justify-center"
           onClick={() => navigate('/onboarding')}
         >
           <BookOpen className="h-4 w-4 mr-2 text-[#68b046]" />
@@ -71,7 +71,7 @@ export const QuickActions = () => {
       )}
       <Button
         variant="outline"
-        className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
+        className="w-[80%] bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center justify-center"
         onClick={handleKnowledgeBaseClick}
       >
         <BookOpen className="h-4 w-4 mr-2 text-[#68b046]" />
@@ -79,7 +79,7 @@ export const QuickActions = () => {
       </Button>
       <Button
         variant="secondary"
-        className="bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046] px-6 py-2 rounded-full flex items-center"
+        className="w-[80%] bg-[#68b046]/20 hover:bg-[#68b046]/30 text-[#68b046] px-6 py-2 rounded-full flex items-center justify-center"
         onClick={handleSupportClick}
       >
         <MessageSquare className="h-4 w-4 mr-2 text-[#68b046]" />
@@ -88,7 +88,7 @@ export const QuickActions = () => {
       {clientTier === 'premium' && (
         <Button
           variant="outline"
-          className="bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center"
+          className="w-[80%] bg-[#F2FCE2] border-[#68b046] text-[#68b046] hover:bg-[#68b046]/10 px-6 py-2 rounded-full flex items-center justify-center"
           onClick={() => window.open(supportConfig.bookingUrl, '_blank')}
         >
           <Calendar className="h-4 w-4 mr-2 text-[#68b046]" />
